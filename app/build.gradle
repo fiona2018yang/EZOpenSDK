@@ -1,0 +1,50 @@
+apply plugin: 'com.android.application'
+
+android {
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+    lintOptions {
+        abortOnError false
+    }
+
+    compileSdkVersion 26
+    buildToolsVersion '27.0.3'
+
+    defaultConfig {
+        applicationId "ezviz.ezopensdk"
+        minSdkVersion 16
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        ndk {
+            abiFilters "armeabi-v7a"
+        }
+
+        //启用renderscript
+        renderscriptTargetApi = 18
+        renderscriptSupportModeEnabled = true
+    }
+
+    buildTypes {
+        release {
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+repositories {
+    flatDir {
+        dirs 'libs' //this way we can find the .aar file in libs folder
+    }
+}
+
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:26.0.0-beta1'
+    implementation 'com.android.support:support-v4:26.0.0-beta1'
+    implementation files('libs/BaiduLBS_Android.jar')
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+}

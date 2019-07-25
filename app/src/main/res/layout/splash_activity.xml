@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@mipmap/icon_splash">
+
+    <com.videogo.ui.cameralist.CountDownView
+        android:id="@+id/count_down_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_margin="16dp"
+        app:cd_animator_time="5"
+        app:cd_animator_time_unit="S"
+        app:cd_arc_color="#ffffff"
+        app:cd_arc_width="2dp"
+        app:cd_bg_color="#6eb8e7"
+        app:cd_circle_radius="20dp"
+        app:cd_location="top"
+        app:cd_retreat_type="forward"
+        app:cd_text_color="#ffffff"
+        app:cd_text_size="14sp" />
+
+</RelativeLayout>
