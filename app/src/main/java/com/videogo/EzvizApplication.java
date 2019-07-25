@@ -26,7 +26,7 @@ import com.videogo.openapi.EZOpenSDK;
  */
 public class EzvizApplication extends Application {
 
-    //开发者需要填入自己申请的appkey//123456
+    //开发者需要填入自己申请的appkey//ABCDEFG
     public static String AppKey = "76d8a02ae81a4260a02e470ebb48077d";
 
     public static EZOpenSDK getOpenSDK() {
