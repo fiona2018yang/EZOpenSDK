@@ -16,6 +16,8 @@ import ezviz.ezopensdk.R;
 
 public class LoadingTextView extends FrameLayout {
 
+
+    //test  github
     public static final int NOTEXT = -1;
     public static final int HORIZONTAL = 0;
     public static final int VERTICAL = 1;
