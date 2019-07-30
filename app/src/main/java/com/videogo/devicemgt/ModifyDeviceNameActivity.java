@@ -141,7 +141,6 @@ public class ModifyDeviceNameActivity extends RootActivity implements View.OnCli
             }
         });
 //        mTitleBar.addRightButton(R.drawable.common_title_confirm_selector, new OnClickListener() {
-//
 //            @Override
 //            public void onClick(View v) {
 //                modifyDeviceName();

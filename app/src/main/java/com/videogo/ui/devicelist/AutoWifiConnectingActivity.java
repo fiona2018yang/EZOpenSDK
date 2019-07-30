@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.videogo.EzvizApplication;
+import com.videogo.MainActivity;
 import com.videogo.RootActivity;
 import com.videogo.constant.Constant;
 import com.videogo.device.DeviceInfoEx;
@@ -1591,7 +1592,8 @@ public class AutoWifiConnectingActivity extends RootActivity implements OnClickL
      */
     private void closeActivity() {
         // start the EZCameraList here
-        Intent intent = new Intent(this, EZCameraListActivity.class);
+        //Intent intent = new Intent(this, EZCameraListActivity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         finish();

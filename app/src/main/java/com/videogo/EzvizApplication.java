@@ -93,7 +93,8 @@ public class EzvizApplication extends Application {
             LogUtil.i("TAG","action = "+action);
             if (action.equals(Constant.OAUTH_SUCCESS_ACTION)){
                 Log.i("TAG", "onReceive: OAUTH_SUCCESS_ACTION");
-                Intent i = new Intent(context, EZCameraListActivity.class);
+                //Intent i = new Intent(context, EZCameraListActivity.class);
+                Intent i = new Intent(context, MainActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 /*******   获取登录成功之后的EZAccessToken对象   *****/
                 EZAccessToken token =EzvizApplication.getOpenSDK().getEZAccessToken();

@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.videogo.EzvizApplication;
+import com.videogo.MainActivity;
 import com.videogo.RootActivity;
 import com.videogo.exception.BaseException;
 import com.videogo.openapi.EZHCNetDeviceSDK;
@@ -65,7 +66,8 @@ public class APWifiConfigActivity extends RootActivity {
             public void onClick(View v) {
                 if (mAddTv.getText().toString().trim().equalsIgnoreCase(getString(R.string.complete_txt))){
                     // TODO: 2018/6/6 完成
-                    Intent intent = new Intent(APWifiConfigActivity.this, EZCameraListActivity.class);
+                    //Intent intent = new Intent(APWifiConfigActivity.this, EZCameraListActivity.class);
+                    Intent intent = new Intent(APWifiConfigActivity.this, MainActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                     finish();

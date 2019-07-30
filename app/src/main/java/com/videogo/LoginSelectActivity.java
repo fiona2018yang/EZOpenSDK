@@ -127,7 +127,8 @@ public class LoginSelectActivity extends Activity implements OnClickListener{
                 //String getAccessTokenSign = SignUtil.getGetAccessTokenSign();
 
                 EzvizApplication.getOpenSDK().setAccessToken(editText.getText().toString());
-                Intent toIntent = new Intent(LoginSelectActivity.this, EZCameraListActivity.class);
+                //Intent toIntent = new Intent(LoginSelectActivity.this, EZCameraListActivity.class);
+                Intent toIntent = new Intent(LoginSelectActivity.this, MainActivity.class);
                 toIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 LoginSelectActivity.this.startActivity(toIntent);
             }

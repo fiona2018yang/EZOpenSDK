@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.videogo.EzvizApplication;
+import com.videogo.MainActivity;
 import com.videogo.RootActivity;
 import com.videogo.constant.IntentConsts;
 import com.videogo.errorlayer.ErrorInfo;
@@ -897,7 +898,8 @@ public class EZDeviceSettingActivity extends RootActivity {
 
             if (result) {
                 showToast(R.string.detail_del_device_success);
-                Intent intent = new Intent(EZDeviceSettingActivity.this, EZCameraListActivity.class);
+                //Intent intent = new Intent(EZDeviceSettingActivity.this, EZCameraListActivity.class);
+                Intent intent = new Intent(EZDeviceSettingActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
                 finish();

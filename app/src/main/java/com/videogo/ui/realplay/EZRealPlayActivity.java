@@ -53,7 +53,9 @@ import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.videogo.CameraListFrag;
 import com.videogo.EzvizApplication;
+import com.videogo.MainActivity;
 import com.videogo.constant.Config;
 import com.videogo.constant.Constant;
 import com.videogo.constant.IntentConsts;
@@ -498,7 +500,8 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             intent.putExtra(IntentConsts.EXTRA_DEVICE_ID, mCameraInfo.getDeviceSerial());
             intent.putExtra(IntentConsts.EXTRA_CAMERA_NO, mCameraInfo.getCameraNo());
             intent.putExtra("video_level", mCameraInfo.getVideoLevel().getVideoLevel());
-            setResult(EZCameraListActivity.RESULT_CODE, intent);
+            //setResult(EZCameraListActivity.RESULT_CODE, intent);
+            setResult(CameraListFrag.RESULT_CODE, intent);
         }
         super.finish();
     }

@@ -51,7 +51,7 @@
 
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="PPmzLlX6O0UhTgZpsgQAq7ijASGGHm33" />
+            android:value="5CW9N1dcyaSpb7tDFk8ESxwQIqGU4Z60" />
 
         <activity
             android:name="com.videogo.LoginSelectActivity"
@@ -80,6 +80,9 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.ui.cameralist.EZCameraListActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.videogo.MainActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.ui.realplay.EZRealPlayActivity"
@@ -128,18 +131,6 @@
         <activity
             android:name="com.videogo.ui.devicelist.AutoWifiResetActivity"
             android:screenOrientation="portrait" />
-
-        <receiver
-            android:name="com.videogo.EzvizBroadcastReceiver"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.videogo.action.ADD_DEVICE_SUCCESS_ACTION" />
-                <action android:name="com.videogo.action.OAUTH_SUCCESS_ACTION" />
-                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
-            </intent-filter>
-        </receiver>
-
         <activity
             android:name="com.videogo.devicemgt.EZUpgradeDeviceActivity"
             android:label="@string/title_activity_ezupgrade_device"></activity>
