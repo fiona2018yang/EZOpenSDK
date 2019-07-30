@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@mipmap/icon_splash">
+    android:orientation="vertical"
+    android:background="@mipmap/icon_login">
 
     <com.videogo.ui.cameralist.CountDownView
         android:id="@+id/count_down_view"
@@ -22,4 +23,44 @@
         app:cd_text_color="#ffffff"
         app:cd_text_size="14sp" />
 
-</RelativeLayout>
+
+    <EditText
+        android:id="@+id/et_login_username"
+        android:layout_width="218dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="340dp"
+        android:layout_marginLeft="120dp"
+        android:background="#e000000"/>
+
+    <EditText
+        android:id="@+id/et_login_password"
+        android:layout_width="218dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="120dp"
+        android:background="#e000000"/>
+
+
+    <LinearLayout
+        android:layout_width="60dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="34dp"
+        android:layout_marginLeft="74dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="116dp"
+            android:layout_height="45dp"
+            android:background="#e000000"/>
+
+        <Button
+            android:id="@+id/btn_signup"
+            android:layout_width="116dp"
+            android:layout_height="46dp"
+            android:layout_marginLeft="31dp"
+            android:background="#e000000"/>
+
+    </LinearLayout>
+
+</LinearLayout>
