@@ -16,13 +16,20 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.esri.arcgisruntime.data.TileCache;
 import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.layers.RasterLayer;
+import com.esri.arcgisruntime.mapping.ArcGISMap;
+import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.raster.Raster;
 
 import ezviz.ezopensdk.R;
 
 public class MainActivity extends FragmentActivity {
-    private MapView map = null;
+    private MapView mapView = null;
+    private ArcGISMap mMap;
     //屏幕点
     private Point mapPoint;
     //画点、线、面、涂鸦辅助图层
@@ -61,8 +68,36 @@ public class MainActivity extends FragmentActivity {
         checkpermission();
     }
     private void initViews() {
-
+        mapView = (MapView) findViewById(R.id.map);
+        sharedPreferences = getSharedPreferences("path", 0);
+        path = sharedPreferences.getString("earthPath", "");
+        if (path.equals("") || path == null) {
+            Toast.makeText(this,"没有TPK地图，请选择文件或者从云端下载！",Toast.LENGTH_LONG).show();
+        }else{
+            String str = path.substring(path.indexOf("."));
+            //加载离线切片地图
+            if (str.equals(".tpk")){
+                TileCache mainTileCache = new TileCache(path);
+                ArcGISTiledLayer arcGISTiledLayer = new ArcGISTiledLayer(mainTileCache);
+                arcGISTiledLayer.setDescription("MainLayer");
+                mMap = new ArcGISMap(new Basemap(arcGISTiledLayer));
+                mapView.setMap(mMap);
+            }else if(str.equals(".tif")){
+                //加载tif
+                Raster raster = new Raster(path);
+                RasterLayer rasterLayer = new RasterLayer(raster);
+                rasterLayer.setDescription("MainLayer");
+                mMap = new ArcGISMap(new Basemap(rasterLayer));
+                mapView.setMap(mMap);
+                rasterLayer.addDoneLoadingListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
+                    }
+                });
+            }
         }
+    }
     @Override
     protected void onResume() {
         super.onResume();
