@@ -38,6 +38,7 @@ import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 
 import cn.qqtheme.framework.picker.FilePicker;
 import ezviz.ezopensdk.R;
+
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
     private ImageButton qiehuan,xinxi,baojing,jiqiren,liangsuan,fangda,suoxiao,dingwei;
@@ -127,6 +128,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     if (collection.size()==2){
                         Polyline polyline = new Polyline(collection);
                         Graphic line =new Graphic(polyline,s2);
+                        graphicsOverlay.getGraphics().add(line);
                     }
                     return true;
                 }

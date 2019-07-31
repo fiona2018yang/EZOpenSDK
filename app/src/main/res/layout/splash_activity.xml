@@ -30,7 +30,7 @@
         android:layout_height="45dp"
         android:layout_marginTop="340dp"
         android:layout_marginLeft="120dp"
-        android:background="#e000000"/>
+        />
 
     <EditText
         android:id="@+id/et_login_password"
@@ -38,7 +38,7 @@
         android:layout_height="45dp"
         android:layout_marginTop="20dp"
         android:layout_marginLeft="120dp"
-        android:background="#e000000"/>
+        />
 
 
     <LinearLayout
@@ -52,14 +52,14 @@
             android:id="@+id/btn_login"
             android:layout_width="116dp"
             android:layout_height="45dp"
-            android:background="#e000000"/>
+            />
 
         <Button
             android:id="@+id/btn_signup"
             android:layout_width="116dp"
             android:layout_height="46dp"
             android:layout_marginLeft="31dp"
-            android:background="#e000000"/>
+            />
 
     </LinearLayout>
 
