@@ -23,6 +23,7 @@ import android.widget.Toast;
 import com.baidu.location.Poi;
 import com.esri.arcgisruntime.data.TileCache;
 import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.geometry.Polyline;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
 import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
@@ -32,6 +33,7 @@ import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.raster.Raster;
+import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 
 import cn.qqtheme.framework.picker.FilePicker;
@@ -120,7 +122,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     mMapView.getGraphicsOverlays().add(graphicsOverlay);
                     collection.add(p);
                     SimpleMarkerSymbol s = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.BLACK,5);
+                    SimpleLineSymbol s2 = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
                     graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),s));
+                    if (collection.size()==2){
+                        Polyline polyline = new Polyline(collection);
+                        Graphic line =new Graphic(polyline,s2);
+                    }
                     return true;
                 }
                 //双击屏幕

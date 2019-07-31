@@ -83,6 +83,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.MainActivity"
+            android:launchMode="singleTask"
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.ui.realplay.EZRealPlayActivity"

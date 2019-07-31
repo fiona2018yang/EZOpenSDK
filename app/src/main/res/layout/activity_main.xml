@@ -1,10 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <android.support.v4.view.ViewPager
-        android:id="@+id/viewpager"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/secondLevelBackground">
+    <RelativeLayout
+        android:id="@+id/head"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </android.support.v4.view.ViewPager>
-</LinearLayout>
+        android:layout_height="60dp"
+        android:background="@color/topBarBackground">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:padding="16dp"
+            android:text="实景测绘"
+            android:textColor="@color/topBarText"
+            android:textSize="@dimen/title_text_size" />
+    </RelativeLayout>
+
+    <com.esri.arcgisruntime.mapping.view.MapView
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/head" />
+
+    <ImageButton
+        android:id="@+id/qiehuan"
+        android:layout_marginTop="120dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/qiehuan"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <ImageButton
+        android:id="@+id/xinxi"
+        android:layout_below="@+id/qiehuan"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/xinxi"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <ImageButton
+        android:id="@+id/baojing"
+        android:layout_below="@+id/xinxi"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/baojing"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <ImageButton
+        android:id="@+id/jiqiren"
+        android:layout_below="@+id/baojing"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/jiqiren"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <ImageButton
+        android:id="@+id/liangsuan"
+        android:layout_below="@+id/jiqiren"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/liangsuan"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <ImageButton
+        android:id="@+id/fangda"
+        android:layout_below="@+id/liangsuan"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/fangda"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <ImageButton
+        android:id="@+id/suoxiao"
+        android:layout_below="@+id/fangda"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/suoxiao"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+    <ImageButton
+        android:id="@+id/dingwei"
+        android:layout_below="@+id/suoxiao"
+        android:layout_marginTop="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_alignParentRight="true"
+        android:background="@mipmap/dingwei"
+        android:layout_width="40dp"
+        android:layout_height="40dp" />
+
+</RelativeLayout>

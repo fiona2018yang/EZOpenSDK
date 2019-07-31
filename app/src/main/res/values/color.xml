@@ -111,11 +111,14 @@
     <color name="leavemessage_text_color">#3aa3ee</color>
     <color name="leavemessage_time_text_color">#adadad</color>
     <color name="leavemessage_gray">#888888</color>
+    <color name="topBarText">#ffffff</color>
     <!-- 我的 -->
 
     <color name="remotefile_timebar_color">#39a3ed</color>
     <color name="remotefile_timebar_alarm_color">#ff8261</color>
     <color name="remotefile_line_color">#fe2b2b</color>
+    <color name="secondLevelBackground">#DFDCDC</color>
+    <color name="topBarBackground">#21262a</color>
 
     <!-- 回放列表 -->
     <color name="remotelist_item_select">#249bff</color>
