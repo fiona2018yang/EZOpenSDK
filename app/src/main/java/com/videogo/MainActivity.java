@@ -1,7 +1,6 @@
 package com.videogo;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -15,33 +14,26 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.esri.arcgisruntime.data.TileCache;
 import com.esri.arcgisruntime.geometry.AngularUnit;
 import com.esri.arcgisruntime.geometry.AngularUnitId;
-import com.esri.arcgisruntime.geometry.AreaUnit;
-import com.esri.arcgisruntime.geometry.AreaUnitId;
 import com.esri.arcgisruntime.geometry.GeodeticCurveType;
 import com.esri.arcgisruntime.geometry.GeodeticDistanceResult;
 import com.esri.arcgisruntime.geometry.Geometry;
 import com.esri.arcgisruntime.geometry.GeometryEngine;
-import com.esri.arcgisruntime.geometry.GeometryType;
 import com.esri.arcgisruntime.geometry.LinearUnit;
 import com.esri.arcgisruntime.geometry.LinearUnitId;
 import com.esri.arcgisruntime.geometry.PointCollection;
 import com.esri.arcgisruntime.geometry.Polygon;
 import com.esri.arcgisruntime.geometry.Polyline;
 import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
 import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
@@ -57,16 +49,15 @@ import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.videogo.ui.cameralist.EZCameraListActivity;
 
+import java.io.File;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-
-import cn.qqtheme.framework.picker.FilePicker;
 import ezviz.ezopensdk.R;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
-    private Spinner spinner;
+    private TextView titile;
     private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
     private ArcGISMap mMap;
@@ -108,6 +99,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         position = findViewById(R.id.position_ibtn);
         result = findViewById(R.id.result);
         position_sel = findViewById(R.id.position_ibtn_sel);
+        titile = findViewById(R.id.title);
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
@@ -123,76 +115,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         sharedPreferences = getSharedPreferences("path", 0);
         path = sharedPreferences.getString("earthPath", "");
         Log.i("TAG","path="+path);
-        if (path.equals("") || path == null) {
-            Toast.makeText(this,"没有TPK地图，请选择文件或者从云端下载！",Toast.LENGTH_LONG).show();
-        }else{
-            String str = path.substring(path.indexOf("."));
-            //加载离线切片地图
-            if (str.equals(".tpk")){
-                TileCache mainTileCache = new TileCache(path);
-                ArcGISTiledLayer arcGISTiledLayer = new ArcGISTiledLayer(mainTileCache);
-                arcGISTiledLayer.setDescription("MainLayer");
-                mMap = new ArcGISMap(new Basemap(arcGISTiledLayer));
-                mapView.setMap(mMap);
-                collection = new PointCollection(mapView.getSpatialReference());
-            }else if(str.equals(".tif")){
-                //加载tif
-                Raster raster = new Raster(path);
-                RasterLayer rasterLayer = new RasterLayer(raster);
-                rasterLayer.setDescription("MainLayer");
-                mMap = new ArcGISMap(new Basemap(rasterLayer));
-                mapView.setMap(mMap);
-                rasterLayer.addDoneLoadingListener(new Runnable() {
-                    @Override
-                    public void run() {
-                        mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
-                        collection = new PointCollection(mapView.getSpatialReference());
-                    }
-                });
-            }
-            /**
-             * mapview监听
-             */
-            mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(this,mapView){
-                @Override
-                //点击屏幕
-                public boolean onSingleTapConfirmed(MotionEvent e) {
-                    if (measure_sel.getVisibility() == View.VISIBLE){
-                        //点，线，面样式
-                        SimpleMarkerSymbol s = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.BLACK,3);
-                        SimpleLineSymbol s2 = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
-                        SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,R.color.color_simplefill,null);
-
-                        Point p = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(),(int)e.getY()));
-                        collection.add(p);
-                        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
-                        mMapView.getGraphicsOverlays().add(graphicsOverlay);
-                        graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),s));
-                        if (collection.size()==2){
-                            Polyline polyline = new Polyline(collection);
-                            Graphic line = new Graphic(polyline,s2);
-                            list_graphic.add(line);
-                            graphicsOverlay.getGraphics().add(line);
-                            //计算距离
-                            GeodeticDistanceResult georesult = GeometryEngine.distanceGeodetic(collection.get(0),collection.get(1),new LinearUnit(LinearUnitId.METERS),new AngularUnit(AngularUnitId.DEGREES), GeodeticCurveType.GEODESIC);
-                            double distance = georesult.getDistance();
-                            result.setText("距离为:"+distance+"米");
-                        }else if (collection.size() > 2){
-                            list_graphic.get(list_graphic.size()-1).setVisible(false);
-                            Polygon polygon=new Polygon(collection);
-                            Graphic fill = new Graphic(polygon, s3);
-                            list_graphic.add(fill);
-                            graphicsOverlay.getGraphics().add(fill);
-                            //计算面积
-                            //double area = GeometryEngine.areaGeodetic(list_graphic.get(list_graphic.size()-1).getGeometry(), new AreaUnit(AreaUnitId.SQUARE_METERS),GeodeticCurveType.GEODESIC);
-                            String area = measure_area();
-                            result.setText("面积为:"+area+"平方米");
-                        }
-                    }
-                    return true;
-                }
-            });
+        if (path.equals("")||path == null){
+            path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
         }
+        String str = path.substring(path.indexOf("."));
+        //加载tif
+        loadlayer(path);
     }
 
     @Override
@@ -204,6 +132,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             case R.id.info_ibtn:
                 break;
             case R.id.warning_ibtn:
+                Intent t = new Intent(MainActivity.this,BaiduMapActivity.class);
+                startActivity(t);
                 break;
             case R.id.robot_ibtn:
                 Intent i = new Intent(MainActivity.this, EZCameraListActivity.class);
@@ -402,60 +332,22 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //            }
 //        });
 //        picker.show();
-        RelativeLayout view = (RelativeLayout) getLayoutInflater().inflate(R.layout.map_change_dialog,null);
-        AlertDialog dialog = new AlertDialog.Builder(MainActivity.this)
-                .setView(view)
-                .setNegativeButton("取消",null)
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (spinner.getSelectedItemPosition()){
-                            case 0:
-                                String path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("earthPath", path);
-                                editor.commit();
-                                //加载离线切片地图
-                                finish();
-                                startActivity(new Intent(MainActivity.this, MainActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","实景地图西区");
-                                break;
-                            case 1:
-                                String path2 =Environment.getExternalStorageDirectory().getPath()+"/2.tif";
-                                SharedPreferences.Editor editor2 = sharedPreferences.edit();
-                                editor2.putString("earthPath", path2);
-                                editor2.commit();
-                                //加载离线切片地图
-                                finish();
-                                startActivity(new Intent(MainActivity.this, MainActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","实景地图南区");
-                                break;
-                            case 2:
-                                SharedPreferences sharedPreferences = getSharedPreferences("style", 0);
-                                SharedPreferences.Editor editor3 = sharedPreferences.edit();
-                                editor3.putString("mapstyle","SATELLITE");
-                                editor3.commit();
-                                finish();
-                                startActivity(new Intent(MainActivity.this, BaiduMapActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","百度卫星地图");
-                                break;
-                            case 3:
-                                SharedPreferences sharedPreferences2 = getSharedPreferences("style", 0);
-                                SharedPreferences.Editor editor4 = sharedPreferences2.edit();
-                                editor4.putString("mapstyle","NORMAL");
-                                editor4.commit();
-                                finish();
-                                startActivity(new Intent(MainActivity.this, BaiduMapActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","百度标准地图");
-                                break;
-                        }
-                    }
-                }).show();
-        spinner = dialog.findViewById(R.id.spinner);
+        if (path.equals("")||path==null||(path.substring(path.indexOf(".")-1)).equals("2.tif")){
+            path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
+            loadlayer(path);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("earthPath", path);
+            editor.commit();
+        }else if ((path.substring(path.indexOf(".")-1)).equals("1.tif")){
+            path =Environment.getExternalStorageDirectory().getPath()+"/2.tif";
+            loadlayer(path);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("earthPath", path);
+            editor.commit();
+        }
+        list_graphic.clear();
+        result.setText("");
+        mapView.getGraphicsOverlays().clear();
     }
 
     @Override
@@ -463,6 +355,75 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         super.onResume();
         if (isNeedCheck){
             checkpermission();
+        }
+    }
+    /**
+     * 添加图层
+     */
+    private void loadlayer(String path){
+        File file = new File(path);
+        if (!file.exists()){
+            ToastNotRepeat.show(this,"文件不存在！");
+        }else{
+            if ((path.substring(path.indexOf(".")-1)).equals("2.tif")){
+                titile.setText("实景地图(南区)");
+            }else{
+                titile.setText("实景地图(西区)");
+            }
+            Raster raster = new Raster(path);
+            RasterLayer rasterLayer = new RasterLayer(raster);
+            rasterLayer.setDescription("MainLayer");
+            mMap = new ArcGISMap(new Basemap(rasterLayer));
+            mapView.setMap(mMap);
+            rasterLayer.addDoneLoadingListener(new Runnable() {
+                @Override
+                public void run() {
+                    mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
+                    collection = new PointCollection(mapView.getSpatialReference());
+                }
+            });
+            /**
+             * mapview监听
+             */
+            mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(this,mapView){
+                @Override
+                //点击屏幕
+                public boolean onSingleTapConfirmed(MotionEvent e) {
+                    if (measure_sel.getVisibility() == View.VISIBLE){
+                        //点，线，面样式
+                        SimpleMarkerSymbol s = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.BLACK,3);
+                        SimpleLineSymbol s2 = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
+                        SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,R.color.color_simplefill,null);
+
+                        Point p = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(),(int)e.getY()));
+                        collection.add(p);
+                        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
+                        mMapView.getGraphicsOverlays().add(graphicsOverlay);
+                        graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),s));
+                        if (collection.size()==2){
+                            Polyline polyline = new Polyline(collection);
+                            Graphic line = new Graphic(polyline,s2);
+                            list_graphic.add(line);
+                            graphicsOverlay.getGraphics().add(line);
+                            //计算距离
+                            GeodeticDistanceResult georesult = GeometryEngine.distanceGeodetic(collection.get(0),collection.get(1),new LinearUnit(LinearUnitId.METERS),new AngularUnit(AngularUnitId.DEGREES), GeodeticCurveType.GEODESIC);
+                            double distance = georesult.getDistance();
+                            result.setText("距离为:"+distance+"米");
+                        }else if (collection.size() > 2){
+                            list_graphic.get(list_graphic.size()-1).setVisible(false);
+                            Polygon polygon=new Polygon(collection);
+                            Graphic fill = new Graphic(polygon, s3);
+                            list_graphic.add(fill);
+                            graphicsOverlay.getGraphics().add(fill);
+                            //计算面积
+                            //double area = GeometryEngine.areaGeodetic(list_graphic.get(list_graphic.size()-1).getGeometry(), new AreaUnit(AreaUnitId.SQUARE_METERS),GeodeticCurveType.GEODESIC);
+                            String area = measure_area();
+                            result.setText("面积为:"+area+"平方米");
+                        }
+                    }
+                    return true;
+                }
+            });
         }
     }
     /**

@@ -1,28 +1,16 @@
 package com.videogo;
 
 import android.app.Activity;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
-
-
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
-import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
@@ -45,11 +33,9 @@ import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.map.UiSettings;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
-
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-
 import ezviz.ezopensdk.R;
 
 public class BaiduMapActivity extends Activity implements View.OnClickListener {
@@ -59,7 +45,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private MapStatusUpdate mMapStatusUpdate;
     private LocationClient locationClient;
     private MyLocationListener myLocationListener;
-    private Spinner spinner;
     private LatLng latLng ;
     private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
@@ -106,8 +91,9 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         UiSettings settings = mBaiduMap.getUiSettings();
         settings.setCompassEnabled(false);
         settings.setOverlookingGesturesEnabled(false);
-        if (style.equals("NORMAL")){
+        if (style.equals("NORMAL")||style.equals("")||style==null){
             //标准地图
+            style = "NORMAL";
             mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
         }else{
             //卫星地图
@@ -351,62 +337,19 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
      *地图切换
      */
     private void selectfile() {
-        RelativeLayout view = (RelativeLayout) getLayoutInflater().inflate(R.layout.map_change_dialog,null);
-        AlertDialog dialog = new AlertDialog.Builder(BaiduMapActivity.this)
-                .setView(view)
-                .setNegativeButton("取消",null)
-                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (spinner.getSelectedItemPosition()){
-                            case 0:
-                                SharedPreferences sharedPreferences1 = getSharedPreferences("path", 0);
-                                String path = Environment.getExternalStorageDirectory().getPath()+"/1.tif";
-                                SharedPreferences.Editor editor = sharedPreferences1.edit();
-                                editor.putString("earthPath", path);
-                                editor.commit();
-                                //加载离线切片地图
-                                finish();
-                                startActivity(new Intent(BaiduMapActivity.this, MainActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","实景地图西区");
-                                break;
-                            case 1:
-                                SharedPreferences sharedPreferences2 = getSharedPreferences("path", 0);
-                                String path2 =Environment.getExternalStorageDirectory().getPath()+"/2.tif";
-                                SharedPreferences.Editor editor2 = sharedPreferences2.edit();
-                                editor2.putString("earthPath", path2);
-                                editor2.commit();
-                                //加载离线切片地图
-                                finish();
-                                startActivity(new Intent(BaiduMapActivity.this, MainActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","实景地图南区");
-                                break;
-                            case 2:
-                                SharedPreferences.Editor editor3 = sharedPreferences.edit();
-                                editor3.putString("mapstyle", "SATELLITE");
-                                editor3.commit();
-                                //加载离线切片地图
-                                finish();
-                                startActivity(new Intent(BaiduMapActivity.this, BaiduMapActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","百度卫星地图");
-                                break;
-                            case 3:
-                                SharedPreferences.Editor editor4 = sharedPreferences.edit();
-                                editor4.putString("mapstyle", "NORMAL");
-                                editor4.commit();
-                                //加载离线切片地图
-                                finish();
-                                startActivity(new Intent(BaiduMapActivity.this, BaiduMapActivity.class));
-                                overridePendingTransition(0, 0);
-                                Log.i("TAG","百度标准地图");
-                                break;
-                        }
-                    }
-                }).show();
-        spinner = dialog.findViewById(R.id.spinner);
+        if (style.equals("NORMAL")){
+            SharedPreferences.Editor editor3 = sharedPreferences.edit();
+            editor3.putString("mapstyle", "SATELLITE");
+            editor3.commit();
+            mBaiduMap.setMapType(BaiduMap.MAP_TYPE_SATELLITE);
+            style = "SATELLITE";
+        }else if (style.equals("SATELLITE")){
+            SharedPreferences.Editor editor3 = sharedPreferences.edit();
+            editor3.putString("mapstyle", "NORMAL");
+            editor3.commit();
+            mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
+            style = "NORMAL";
+        }
     }
     public class MyLocationListener extends BDAbstractLocationListener {
 
