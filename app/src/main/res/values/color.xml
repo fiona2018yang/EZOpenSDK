@@ -142,6 +142,10 @@
     <color name="help_link">#527ddb</color>
     <color name="opensdk_cameralist_bg">#f0f0f1</color>
     <color name="on_off_text_selector">#3ea6ef</color>
-<color name="grouplayout_item_bg_sel">#f3f4f5</color>
+    <color name="grouplayout_item_bg_sel">#f3f4f5</color>
+
+    <color name="Lightgray">#07171016</color><!--浅灰 -->
+    <color name="z_white">#FFFFFF</color>
+    <color name="colorBlack">#ff000000</color>
     
 </resources>
