@@ -20,11 +20,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.READ_LOGS" />
-
-    <!-- zxing -->
+    <uses-permission android:name="android.permission.READ_LOGS" /> <!-- zxing -->
     <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-feature android:name="android.hardware.camera" />
@@ -35,9 +32,7 @@
 
 
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
-
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <!-- Keeps the processor from sleeping when a message is received. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Keeps the processor from sleeping when a message is received. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
 
@@ -45,10 +40,13 @@
         android:name="com.videogo.EzvizApplication"
         android:allowBackup="true"
         android:icon="@mipmap/paper"
-        android:label="水务机器人"
+        android:label="土地管控"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Light.NoTitleBar"
         tools:replace="android:label">
+        <activity android:name="com.videogo.HomeActivity">
+
+        </activity>
 
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
@@ -101,10 +99,10 @@
             android:screenOrientation="nosensor" />
         <activity
             android:name="com.videogo.ui.message.EZMessageImageActivity2"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.ui.message.EZMessageActivity2"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.ui.remoteplayback.EZRemotePlayBackActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -144,7 +142,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.devicemgt.EZUpgradeDeviceActivity"
-            android:label="@string/title_activity_ezupgrade_device"></activity>
+            android:label="@string/title_activity_ezupgrade_device" />
         <activity
             android:name="com.videogo.ui.LanDevice.LanDeviceActivity"
             android:screenOrientation="portrait" />
@@ -155,10 +153,10 @@
 
         <activity
             android:name="com.videogo.ui.LanDevice.LanDeviceActivateActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.ui.devicelist.APWifiConfigActivity"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
