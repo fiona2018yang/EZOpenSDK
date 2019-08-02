@@ -59,42 +59,38 @@ public class HomeActivity extends Activity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //                img = (ImageView) view.findViewById(R.id.main_title_icon);
-                for (int i = 0; i < parent.getCount(); i++) {
-                    View v = parent.getChildAt(i);
-                    if (position == i) {//当前选中的Item改变背景颜色
-                        if (position != 3 ) {
-                            view.setBackgroundColor(getResources().getColor(R.color.Lightgray));
-                        } else {
-                            view.setBackgroundColor(Color.TRANSPARENT);
-                        }
-                    } else {
-                        v.setBackgroundColor(Color.TRANSPARENT);
-                    }
-                }
+//                for (int i = 0; i < parent.getCount(); i++) {
+//                    View v = parent.getChildAt(i);
+//                    if (position == i) {//当前选中的Item改变背景颜色
+//                        if (position != 3 ) {
+//                            view.setBackgroundColor(getResources().getColor(R.color.Lightgray));
+//                        } else {
+//                            view.setBackgroundColor(Color.TRANSPARENT);
+//                        }
+//                    } else {
+//                        v.setBackgroundColor(Color.TRANSPARENT);
+//                    }
+//                }
+                // "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"
                 switch (position) {
-                    case 0:
-                        //
-//                        Intent iSnrSat = new Intent(view.getContext(), com.wonech.wonestar.ActivitySnrSat.class);
-//                        startActivity(iSnrSat);
-                        //  BatteryInfor();
+                    case 0://实景地图
+                        Intent iRealMap = new Intent(view.getContext(), com.videogo.MainActivity.class);
+                        startActivity(iRealMap);
                         break;
-                    case 1:
-                        //显示星空图
-                        //StarSatelliteSnr();
-//                        Intent star = new Intent(view.getContext(), StarChartActivity.class);
-//                        startActivity(star);
+                    case 1://画面预览
+                        Intent iRreview = new Intent(view.getContext(), com.videogo.ui.cameralist.EZCameraListActivity  .class);
+                        startActivity(iRreview);
                         break;
-                    case 2:
-//                        GNSSInfor();
+                    case 2://百度地图
+                        Intent iBaiduMap = new Intent(view.getContext(), com.videogo.BaiduMapActivity.class);
+                        startActivity(iBaiduMap);
                         break;
-                    case 3: //启动\关闭CROS差分
-//                        img = (ImageView) view.findViewById(R.id.main_title_icon);  //放在指定位置才是修改指定位置的图片
-//                        StarCors();
+                    case 3: //报警信息
                         break;
-                    //                    case 4:
-                    //                        //显示状态提示信息
-                    //                        TipInfor();
-                    //                        break;
+                    case 4://视频查看
+                        break;
+                    case 5://图片查看
+                        break;
                     default:
                         break;
                 }

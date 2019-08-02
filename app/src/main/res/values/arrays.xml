@@ -7,4 +7,14 @@
         <item>"百度卫星地图"</item>
         <item>"百度标准地图"</item>
     </string-array>
+    <!-- home 界面九宫格 -->
+    <string-array name="home_grid_text">
+        <item>"实景地图"</item>
+
+    </string-array>
+    <string-array name="home_grid_icons">
+        <!--<item>@mipmap/main_title_battery_n</item>-->
+        <item></item>
+
+    </string-array>
 </resources>
