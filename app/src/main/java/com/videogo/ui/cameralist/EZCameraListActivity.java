@@ -146,10 +146,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
     private final static int LOAD_MY_DEVICE = 0;
     private final static int LOAD_SHARE_DEVICE = 1;
     private int mLoadType = LOAD_MY_DEVICE;
-
-    //地图视图
-    private MapView mapView;
-    private BaiduMap mBaiduMap;
     private BitmapDescriptor bdA = null;
     private MapStatusUpdate mMapStatusUpdate;
 
@@ -218,88 +214,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
     }
 
     private void initView() {
-        mapView = (MapView) findViewById(R.id.page_head);
-        // 不显示缩放比例尺
-        mapView.showZoomControls(false);
-        // 不显示百度地图Logo
-        mapView.removeViewAt(1);
-        //初始化位置
-        mBaiduMap = mapView.getMap();
-        //打开交通图
-        mBaiduMap.setTrafficEnabled(false);
-        //卫星地图
-        mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
-        //初始位置
-        LatLng cenpt = new LatLng(33.935681, 118.289365);
-        MapStatus mMapStatus = new MapStatus.Builder()
-                .target(cenpt)
-                .zoom(13)
-                .build();
-        //定义MapStatusUpdate对象，以便描述地图状态将要发生的变化
-        mMapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
-        //改变地图状态
-        mBaiduMap.setMapStatus(mMapStatusUpdate);
-        //覆盖物
-        LatLng point = new LatLng(33.973943, 118.246309);
-        LatLng point1 = new LatLng(33.957715, 118.299696);
-        LatLng point2 = new LatLng(33.911357, 118.291629);
-        //构建Marker图标
-        Bitmap da1 = BitmapFactory.decodeResource(getResources(), R.mipmap.icon_lookat);
-        Matrix matrix = new Matrix();
-        matrix.postScale(2.5f, 2.5f); //长和宽放大缩小的比例
-        Bitmap resizeBmp = Bitmap.createBitmap(da1, 0, 0, da1.getWidth(), da1.getHeight(), matrix, true);
-        bdA = BitmapDescriptorFactory.fromBitmap(resizeBmp);
-        //构建MarkerOption，用于在地图上添加Marker
-        OverlayOptions option = new MarkerOptions()
-                .position(point)
-                .icon(bdA)
-                .perspective(true)
-                .title("双塔机器人");
-        OverlayOptions option1 = new MarkerOptions()
-                .position(point1)
-                .icon(bdA)
-                .perspective(true)
-                .title("河湾公园机器人");
-        OverlayOptions option2 = new MarkerOptions()
-                .position(point2)
-                .icon(bdA)
-                .perspective(true)
-                .title("朱老庄机器人");
-        //在地图上添加Marker，并显示
-        mBaiduMap.addOverlay(option);
-        mBaiduMap.addOverlay(option1);
-        mBaiduMap.addOverlay(option2);
-        mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                Toast.makeText(
-                        EZCameraListActivity.this,
-                        "该点为：" + marker.getTitle(),
-                        Toast.LENGTH_LONG).show();
-                return true;
-            }
-        });
-
-        ImageView m_location = (ImageView) findViewById(R.id.page_location);
-        m_location.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //改变地图状态
-                mBaiduMap.setMapStatus(mMapStatusUpdate);
-            }
-        });
-
-        ImageView m_photos = (ImageView) findViewById(R.id.page_photos);
-        m_photos.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(EZCameraListActivity.this, CardPhotosActivity.class);
-                startActivity(intent);
-            }
-        });
-
         mMyDevice = (TextView) findViewById(R.id.text_my);
-//        mShareDevice = (TextView) findViewById(R.id.text_share);
         mAddBtn = (Button) findViewById(R.id.btn_add);
         mUserBtn = (Button) findViewById(R.id.btn_user);
         mUserBtn.setOnClickListener(new OnClickListener() {
@@ -316,28 +231,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
                 startActivity(intent);
             }
         });
-
-//        mShareDevice.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                mShareDevice.setTextColor(getResources().getColor(R.color.orange_text));
-//                mMyDevice.setTextColor(getResources().getColor(R.color.black_text));
-//                mAdapter.clearAll();
-//                mLoadType = LOAD_SHARE_DEVICE;
-//                getCameraInfoList(true);
-//            }
-//        });
-
-//        mMyDevice.setOnClickListener(new OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                mShareDevice.setTextColor(getResources().getColor(R.color.black_text));
-//                mMyDevice.setTextColor(getResources().getColor(R.color.orange_text));
-//                mAdapter.clearAll();
-//                mLoadType = LOAD_MY_DEVICE;
-//                getCameraInfoList(true);
-//            }
-//        });
         mNoMoreView = getLayoutInflater().inflate(R.layout.no_device_more_footer, null);
         mAdapter = new EZCameraListAdapter(this);
         mAdapter.setOnClickListener(new EZCameraListAdapter.OnClickListener() {

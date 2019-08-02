@@ -17,11 +17,12 @@
             android:textColor="@color/topBarText"
             android:textSize="@dimen/title_text_size" />
     </RelativeLayout>
-    <com.esri.arcgisruntime.mapping.view.MapView
+    <com.baidu.mapapi.map.MapView
         android:id="@+id/map"
+        android:layout_below="@+id/head"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@+id/head" />
+        android:layout_height="match_parent">
+    </com.baidu.mapapi.map.MapView>
 
     <ImageButton
         android:id="@+id/change_ibtn"
