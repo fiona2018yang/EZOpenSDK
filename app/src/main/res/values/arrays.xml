@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 标题栏 -->
+    <string-array name="map_title">
+        <item>"实景地图西区"</item>
+        <item>"实景地图南区"</item>
+        <item>"百度卫星地图"</item>
+        <item>"百度标准地图"</item>
+    </string-array>
+</resources>

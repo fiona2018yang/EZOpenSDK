@@ -70,26 +70,6 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="3">
-
-            <com.baidu.mapapi.map.MapView
-                android:id="@+id/page_head"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
-            <ImageView
-                android:id="@+id/page_location"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentRight="true"
-                android:layout_margin="8dp"
-                android:src="@mipmap/icon_location" />
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_below="@+id/page_head">
 
@@ -102,18 +82,18 @@
                 android:text="设备列表"
                 android:textSize="16sp" />
 
-            <ImageView
-                android:id="@+id/page_photos"
-                android:layout_width="60dp"
-                android:layout_height="match_parent"
-                android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
-                android:clickable="true"
-                android:paddingBottom="16dp"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:paddingTop="16dp"
-                android:src="@drawable/icon_photo_selector" />
+            <!--<ImageView-->
+                <!--android:id="@+id/page_photos"-->
+                <!--android:layout_width="60dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:layout_alignParentRight="true"-->
+                <!--android:layout_centerVertical="true"-->
+                <!--android:clickable="true"-->
+                <!--android:paddingBottom="16dp"-->
+                <!--android:paddingLeft="8dp"-->
+                <!--android:paddingRight="8dp"-->
+                <!--android:paddingTop="16dp"-->
+                <!--android:src="@drawable/icon_photo_selector" />-->
         </RelativeLayout>
 
         <View

@@ -27,6 +27,7 @@
     <color name="black_text">#333333</color>
     <color name="blue">#205ba9</color>
     <color name="gray">#c8c8c8</color>
+    <color name="color_simplefill">#2B2B2B</color>
     <color name="cameralist_gray">#e3e3e3</color>
     <color name="page_change_gray">#8f8f8f</color>
     <color name="gray_text">#adadad</color>
