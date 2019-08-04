@@ -3,23 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/secondLevelBackground">
-    <RelativeLayout
-        android:id="@+id/head"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:background="@color/topBarBackground">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:padding="16dp"
-            android:text="实景测绘"
-            android:textColor="@color/topBarText"
-            android:textSize="@dimen/title_text_size" />
-    </RelativeLayout>
     <com.baidu.mapapi.map.MapView
         android:id="@+id/map"
-        android:layout_below="@+id/head"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
     </com.baidu.mapapi.map.MapView>

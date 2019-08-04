@@ -35,6 +35,7 @@ import com.esri.arcgisruntime.geometry.Polygon;
 import com.esri.arcgisruntime.geometry.Polyline;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
+import com.esri.arcgisruntime.layers.KmlLayer;
 import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
@@ -43,6 +44,8 @@ import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
 import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.arcgisruntime.ogc.kml.KmlDataset;
+import com.esri.arcgisruntime.ogc.kml.KmlNode;
 import com.esri.arcgisruntime.raster.Raster;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
@@ -50,6 +53,7 @@ import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.videogo.ui.cameralist.EZCameraListActivity;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -118,7 +122,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         if (path.equals("")||path == null){
             path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
         }
-        String str = path.substring(path.indexOf("."));
         //加载tif
         loadlayer(path);
     }
@@ -132,12 +135,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             case R.id.info_ibtn:
                 break;
             case R.id.warning_ibtn:
-                Intent t = new Intent(MainActivity.this,BaiduMapActivity.class);
-                startActivity(t);
                 break;
             case R.id.robot_ibtn:
-                Intent i = new Intent(MainActivity.this, EZCameraListActivity.class);
-                startActivity(i);
                 break;
             case R.id.measure_ibtn:
                 measure.setVisibility(View.GONE);
@@ -380,8 +379,33 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 public void run() {
                     mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
                     collection = new PointCollection(mapView.getSpatialReference());
+                    String url = Environment.getExternalStorageDirectory().getPath()+"/robot.kml";
+                    List<String> list_name = new ArrayList<>();
+                    List<String> list_des = new ArrayList<>();
+                    List<Point> list_point = new ArrayList<>();
+                    try { ReadKml.parseKml(url,list_name,list_des,list_point);
+                        Log.i("TAG","list_name="+list_name.toString());
+                        Log.i("TAG","list_des="+list_des.toString());
+                        Log.i("TAG","list_point="+list_point.toString());
+                        Log.i("TAG","list_name.size="+list_name.size());
+                        Log.i("TAG","list_des.size="+list_des.size());
+                        Log.i("TAG","list_point.size="+list_point.size());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
+            //添加KML图层
+//            KmlDataset kmlDataset = new KmlDataset(url);
+//            KmlLayer kmlLayer = new KmlLayer(kmlDataset);
+//            mMap.getOperationalLayers().add(kmlLayer);
+//            mapView.setMap(mMap);
+//            kmlDataset.addDoneLoadingListener(new Runnable() {
+//                @Override
+//                public void run() {
+//                    List<KmlNode> list = kmlDataset.getRootNodes();
+//                }
+//            });
             /**
              * mapview监听
              */
@@ -393,7 +417,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         //点，线，面样式
                         SimpleMarkerSymbol s = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.BLACK,3);
                         SimpleLineSymbol s2 = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
-                        SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,R.color.color_simplefill,null);
+                        SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,R.color.simple_fill_color,null);
 
                         Point p = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(),(int)e.getY()));
                         collection.add(p);
@@ -401,6 +425,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         mMapView.getGraphicsOverlays().add(graphicsOverlay);
                         graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),s));
                         if (collection.size()==2){
+                            //添加线元素
                             Polyline polyline = new Polyline(collection);
                             Graphic line = new Graphic(polyline,s2);
                             list_graphic.add(line);
@@ -410,6 +435,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             double distance = georesult.getDistance();
                             result.setText("距离为:"+distance+"米");
                         }else if (collection.size() > 2){
+                            //添加面元素
                             list_graphic.get(list_graphic.size()-1).setVisible(false);
                             Polygon polygon=new Polygon(collection);
                             Graphic fill = new Graphic(polygon, s3);
@@ -418,7 +444,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             //计算面积
                             //double area = GeometryEngine.areaGeodetic(list_graphic.get(list_graphic.size()-1).getGeometry(), new AreaUnit(AreaUnitId.SQUARE_METERS),GeodeticCurveType.GEODESIC);
                             String area = measure_area();
-                            result.setText("面积为:"+area+"平方米");
+                            double mu = Double.parseDouble(area)*0.0015;
+                            BigDecimal b = new BigDecimal(mu);
+                            //保留小数点后两位
+                            double mu1 = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+                            result.setText("面积为:"+area+"平方米/"+mu1+"亩");
                         }
                     }
                     return true;

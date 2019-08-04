@@ -1,17 +1,18 @@
 package com.videogo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Color;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SimpleAdapter;
+
+import com.bigkoo.convenientbanner.ConvenientBanner;
+import com.bigkoo.convenientbanner.holder.CBViewHolderCreator;
+import com.bigkoo.convenientbanner.holder.Holder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +24,9 @@ import ezviz.ezopensdk.R;
 public class HomeActivity extends Activity {
 
     private GridView   HomeGView;
+    private ConvenientBanner convenientBanner;
     private List<Map<String, Object>> data_list;
+    private List<Integer> imgs=new ArrayList<>();
 
     // 图片封装为一个数组
     private int[] icon = { R.mipmap.home_icon_real_map,R.mipmap.home_icon_preview,R.mipmap.home_icon_baidu_map,
@@ -36,13 +39,18 @@ public class HomeActivity extends Activity {
         setContentView(R.layout.activity_home);
 
         initGridView();
-
+        setConvenientBanner();
     }
 
     /**
      * 初始化View
      */
     private void initGridView() {
+        convenientBanner= (ConvenientBanner) findViewById(R.id.convenientBanner);
+        imgs.add(R.mipmap.bg_home_1);
+        imgs.add(R.mipmap.bg_home_2);
+        imgs.add(R.mipmap.bg_home_3);
+
         HomeGView = (GridView) findViewById(R.id.gv_home);
         //新建List
         data_list = new ArrayList<>();
@@ -122,4 +130,32 @@ public class HomeActivity extends Activity {
 //        }
 //        return data_list;
 //    }
+    /**
+     * 设置广告栏
+     */
+    private void setConvenientBanner() {
+        convenientBanner.setPages(new CBViewHolderCreator() {
+            @Override
+            public Object createHolder() {
+                return new LocalImageHolderView();
+            }
+        },imgs).setPointViewVisible(true)//设置指示器是否可见
+                .setPageIndicator(new int[]{R.mipmap.yuandianbantou,R.mipmap.yuandian});//设置两个点图片作为翻页指示器，不设置则没有指示器，可以根据自己需求自行配合自己的指示器,不需要圆点指示器可用不设
+        convenientBanner.setManualPageable(true);//设置手动影响（设置了该项无法手动切换）
+        convenientBanner.startTurning(2000);     //设置自动切换（同时设置了切换时间间隔）
+        convenientBanner.setPageIndicatorAlign(ConvenientBanner.PageIndicatorAlign.ALIGN_PARENT_RIGHT);//设置指示器位置（左、中、右）
+    }
+    public class LocalImageHolderView implements Holder<Integer> {
+        private ImageView imageView;
+        @Override
+        public View createView(Context context) {
+            imageView = new ImageView(context);
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            return imageView;
+        }
+        @Override
+        public void UpdateUI(Context context, int position, Integer data) {
+            imageView.setImageResource(data);
+        }
+    }
 }

@@ -33,6 +33,8 @@ import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.map.UiSettings;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
+
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +114,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         //初始化定位参数配置
         initLocation();
 
-
         change.setOnClickListener(this);
         info.setOnClickListener(this);
         warning.setOnClickListener(this);
@@ -135,6 +136,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                     OverlayOptions option = new MarkerOptions().position(latLng).icon(bitmap);
                     mBaiduMap.addOverlay(option);
                     if (points.size() == 2){
+                        //添加线元素
                         OverlayOptions mOverlayOptions = new PolylineOptions().width(3).color(Color.BLACK).points(points);
                         Overlay mPolyline = mBaiduMap.addOverlay(mOverlayOptions);
                         Overlays.add(mPolyline);
@@ -142,13 +144,18 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                         double distance = DistanceUtil. getDistance(points.get(0), points.get(1));
                         result.setText("距离为:"+distance+"米");
                     }else if(points.size()>2){
-                        PolygonOptions mPolygonOptions = new PolygonOptions().points(points).fillColor(R.color.color_simplefill).stroke(new Stroke(0, R.color.color_simplefill)); //边框宽度和颜色
+                        //添加面元素
+                        PolygonOptions mPolygonOptions = new PolygonOptions().points(points).fillColor(R.color.simple_fill_color).stroke(new Stroke(0, R.color.simple_fill_color)); //边框宽度和颜色
                         Overlays.get(Overlays.size()-1).setVisible(false);
                         Overlay mPolygon = mBaiduMap.addOverlay(mPolygonOptions);
                         Overlays.add(mPolygon);
                         //计算面积
                         String area = measure_area();
-                        result.setText("面积为:"+area+"平方米");
+                        double mu = Double.parseDouble(area)*0.0015;
+                        BigDecimal b = new BigDecimal(mu);
+                        //保留小数点后两位
+                        double mu1 = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+                        result.setText("面积为:"+area+"平方米/"+mu1+"亩");
                     }
                 }
             }
@@ -338,12 +345,14 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
      */
     private void selectfile() {
         if (style.equals("NORMAL")){
+            //切换成卫星地图
             SharedPreferences.Editor editor3 = sharedPreferences.edit();
             editor3.putString("mapstyle", "SATELLITE");
             editor3.commit();
             mBaiduMap.setMapType(BaiduMap.MAP_TYPE_SATELLITE);
             style = "SATELLITE";
         }else if (style.equals("SATELLITE")){
+            //切换成标准地图
             SharedPreferences.Editor editor3 = sharedPreferences.edit();
             editor3.putString("mapstyle", "NORMAL");
             editor3.commit();
