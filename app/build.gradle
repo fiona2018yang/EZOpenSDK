@@ -22,7 +22,7 @@ android {
         ndk {
             abiFilters "armeabi-v7a"
         }
-
+        multiDexEnabled true
         //启用renderscript
         renderscriptTargetApi = 18
         renderscriptSupportModeEnabled = true
@@ -34,11 +34,8 @@ android {
         }
     }
     compileOptions {
-
         sourceCompatibility JavaVersion.VERSION_1_8
-
         targetCompatibility JavaVersion.VERSION_1_8
-
     }
 }
 repositories {
@@ -56,4 +53,8 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'cn.qqtheme.framework:FilePicker:latest.release'
     implementation(name: 'arcgis-android-100.5.0', ext: 'aar')
+    implementation 'com.android.support:multidex:1.0.1'
+    implementation 'com.bigkoo:convenientbanner:2.0.5'
+    implementation files('libs/dom4j-1.6.1.jar')
+    implementation 'org.jsoup:jsoup:1.9.2'
 }
