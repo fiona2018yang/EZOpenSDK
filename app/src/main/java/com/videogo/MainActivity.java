@@ -1,10 +1,10 @@
 package com.videogo;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -18,10 +18,10 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.esri.arcgisruntime.data.TileCache;
+
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.geometry.AngularUnit;
 import com.esri.arcgisruntime.geometry.AngularUnitId;
 import com.esri.arcgisruntime.geometry.GeodeticCurveType;
@@ -34,66 +34,60 @@ import com.esri.arcgisruntime.geometry.PointCollection;
 import com.esri.arcgisruntime.geometry.Polygon;
 import com.esri.arcgisruntime.geometry.Polyline;
 import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
-import com.esri.arcgisruntime.layers.KmlLayer;
 import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
 import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.IdentifyGraphicsOverlayResult;
 import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
-import com.esri.arcgisruntime.ogc.kml.KmlDataset;
-import com.esri.arcgisruntime.ogc.kml.KmlNode;
 import com.esri.arcgisruntime.raster.Raster;
+import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
 import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
-import com.videogo.ui.cameralist.EZCameraListActivity;
+import com.esri.arcgisruntime.symbology.TextSymbol;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import ezviz.ezopensdk.R;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
-    private TextView titile;
-    private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
+    private ImageButton change,info,info_sel,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
     private ArcGISMap mMap;
     private String path;
     private Point point;
+    private TextView title;
     private SharedPreferences sharedPreferences;
     private PointCollection collection ;
     public LocationDisplay locationDisplay;
     private List<Graphic> list_graphic = new ArrayList<>();
+    private List<GraphicsOverlay> list_graphicsOverlays = new ArrayList<>();
+    private List<GraphicsOverlay> list_graphicsOverlays_info = new ArrayList<>();
+    private GraphicsOverlay graphicsOverlay_info;
 
-    private static String[] allpermissions = {
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.ACCESS_WIFI_STATE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_SETTINGS,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.CAMERA,
-    };
-    private boolean isNeedCheck = true;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        checkpermission();
         initViews();
     }
     private void initViews() {
         mapView = (MapView) findViewById(R.id.map);
         change = findViewById(R.id.change_ibtn);
         info = findViewById(R.id.info_ibtn);
+        info_sel = findViewById(R.id.info_ibtn_sel);
         warning = findViewById(R.id.warning_ibtn);
         robot = findViewById(R.id.robot_ibtn);
         measure = findViewById(R.id.measure_ibtn);
@@ -103,10 +97,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         position = findViewById(R.id.position_ibtn);
         result = findViewById(R.id.result);
         position_sel = findViewById(R.id.position_ibtn_sel);
-        titile = findViewById(R.id.title);
+        title = findViewById(R.id.title_tv);
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
+        info_sel.setOnClickListener(this);
         warning.setOnClickListener(this);
         robot.setOnClickListener(this);
         measure.setOnClickListener(this);
@@ -133,6 +128,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 selectfile();
                 break;
             case R.id.info_ibtn:
+                info.setVisibility(View.GONE);
+                info_sel.setVisibility(View.VISIBLE);
+                graphicsOverlay_info.setVisible(true);
+                break;
+            case R.id.info_ibtn_sel:
+                info.setVisibility(View.VISIBLE);
+                info_sel.setVisibility(View.GONE);
+                graphicsOverlay_info.setVisible(false);
                 break;
             case R.id.warning_ibtn:
                 break;
@@ -142,15 +145,17 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 measure.setVisibility(View.GONE);
                 measure_sel.setVisibility(View.VISIBLE);
                 result.setVisibility(View.VISIBLE);
+                title.setVisibility(View.GONE);
                 break;
             case R.id.measure_ibtn_sel:
                 measure.setVisibility(View.VISIBLE);
                 measure_sel.setVisibility(View.GONE);
                 result.setVisibility(View.GONE);
+                title.setVisibility(View.VISIBLE);
                 collection.clear();
                 list_graphic.clear();
                 result.setText("");
-                mapView.getGraphicsOverlays().clear();
+                mapView.getGraphicsOverlays().removeAll(list_graphicsOverlays);
                 break;
             case R.id.zoom_in_ibtn:
                 ZoomIn();
@@ -337,12 +342,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("earthPath", path);
             editor.commit();
+            ClearMap();
         }else if ((path.substring(path.indexOf(".")-1)).equals("1.tif")){
             path =Environment.getExternalStorageDirectory().getPath()+"/2.tif";
             loadlayer(path);
+            mapView.getGraphicsOverlays().clear();
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("earthPath", path);
             editor.commit();
+            ClearMap();
         }
         list_graphic.clear();
         result.setText("");
@@ -352,9 +360,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     @Override
     protected void onResume() {
         super.onResume();
-        if (isNeedCheck){
-            checkpermission();
-        }
     }
     /**
      * 添加图层
@@ -365,9 +370,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             ToastNotRepeat.show(this,"文件不存在！");
         }else{
             if ((path.substring(path.indexOf(".")-1)).equals("2.tif")){
-                titile.setText("实景地图(南区)");
+                title.setText("南区");
             }else{
-                titile.setText("实景地图(西区)");
+                title.setText("西区");
             }
             Raster raster = new Raster(path);
             RasterLayer rasterLayer = new RasterLayer(raster);
@@ -379,17 +384,52 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 public void run() {
                     mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
                     collection = new PointCollection(mapView.getSpatialReference());
-                    String url = Environment.getExternalStorageDirectory().getPath()+"/robot.kml";
-                    List<String> list_name = new ArrayList<>();
-                    List<String> list_des = new ArrayList<>();
-                    List<Point> list_point = new ArrayList<>();
-                    try { ReadKml.parseKml(url,list_name,list_des,list_point);
-                        Log.i("TAG","list_name="+list_name.toString());
-                        Log.i("TAG","list_des="+list_des.toString());
-                        Log.i("TAG","list_point="+list_point.toString());
-                        Log.i("TAG","list_name.size="+list_name.size());
-                        Log.i("TAG","list_des.size="+list_des.size());
-                        Log.i("TAG","list_point.size="+list_point.size());
+                    String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
+                    String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
+                    GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
+                    graphicsOverlay_info = new GraphicsOverlay();
+                    mapView.getGraphicsOverlays().add(graphicsOverlay);
+                    mapView.getGraphicsOverlays().add(graphicsOverlay_info);
+                    PictureMarkerSymbol pictureMarkerSymbol = new PictureMarkerSymbol((BitmapDrawable) getResources().getDrawable(R.mipmap.marker));
+                    SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
+                    pictureMarkerSymbol.loadAsync();
+                    try {
+                        List<String> list_name = new ArrayList<>();
+                        List<String> list_des = new ArrayList<>();
+                        List<Point> list_point = new ArrayList<>();
+                        List<String> list_name_info = new ArrayList<>();
+                        List<String> list_des_info = new ArrayList<>();
+                        List<PointCollection> list_collection = new ArrayList<>();
+                        ReadKml readKml = new ReadKml(url,list_name,list_des,list_point);
+                        readKml.parseKml();
+                        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection);
+                        readKml1.parseKml();
+                        for (int i = 0 ; i < list_point.size()  ; i++){
+                            int finalI = i;
+                            pictureMarkerSymbol.addDoneLoadingListener(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Map<String,Object> map = new HashMap<>();
+                                    map.put("style","marker");
+                                    map.put("des",list_des.get(finalI));
+                                    Graphic ph = new Graphic(list_point.get(finalI), map, pictureMarkerSymbol);
+                                    graphicsOverlay.getGraphics().add(ph);
+                                    TextSymbol t = new TextSymbol(12f, list_name.get(finalI+2), Color.GREEN, TextSymbol.HorizontalAlignment.LEFT, TextSymbol.VerticalAlignment.TOP);
+                                    Graphic graphic_text = new Graphic(list_point.get(finalI),t);
+                                    graphicsOverlay.getGraphics().add(graphic_text);
+                                }
+                            });
+                        }
+                        for (int i = 0 ; i < list_collection.size() ; i++){
+                            Polyline polyline = new Polyline(list_collection.get(i));
+                            Graphic line = new Graphic(polyline,simpleLineSymbol);
+                            graphicsOverlay_info.getGraphics().add(line);
+                            TextSymbol textSymbol = new TextSymbol(12f, list_des_info.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
+                            Graphic ts = new Graphic(polyline,textSymbol);
+                            graphicsOverlay_info.getGraphics().add(ts);
+                        }
+                        info.setVisibility(View.GONE);
+                        info_sel.setVisibility(View.VISIBLE);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -417,11 +457,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         //点，线，面样式
                         SimpleMarkerSymbol s = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.BLACK,3);
                         SimpleLineSymbol s2 = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
-                        SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,R.color.simple_fill_color,null);
+                        SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,Color.argb(75,255,255,0),null);
 
                         Point p = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(),(int)e.getY()));
                         collection.add(p);
                         GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
+                        list_graphicsOverlays.add(graphicsOverlay);
                         mMapView.getGraphicsOverlays().add(graphicsOverlay);
                         graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),s));
                         if (collection.size()==2){
@@ -450,40 +491,35 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             double mu1 = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
                             result.setText("面积为:"+area+"平方米/"+mu1+"亩");
                         }
+                    }else{
+                        android.graphics.Point screenPoint = new android.graphics.Point((int)e.getX(),(int)e.getY());
+                        ListenableFuture<List<IdentifyGraphicsOverlayResult>> identifyFuture =mapView.identifyGraphicsOverlaysAsync(screenPoint,20,false,25);
+                        identifyFuture.addDoneListener(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    List<IdentifyGraphicsOverlayResult> identifyLayerResults = identifyFuture.get();
+                                    for (IdentifyGraphicsOverlayResult identifyGraphicsOverlayResult : identifyLayerResults){
+                                        List<Graphic> graphics_resule = identifyGraphicsOverlayResult.getGraphics();
+                                        for (Graphic graphic : graphics_resule){
+                                            //if (graphic.getGeometry().getGeometryType().toString().equals("POINT"))
+                                        }
+                                    }
+                                }catch (Exception e1){
+                                    e1.printStackTrace();
+                                }
+                            }
+                        });
                     }
                     return true;
                 }
             });
         }
     }
-    /**
-     * 权限管理
-     */
-    private void checkpermission() {
-        if (Build.VERSION.SDK_INT>=23){
-            boolean needapply = false;
-            for(int i = 0;i <allpermissions.length;i++ ){
-                int checkpermission = ContextCompat.checkSelfPermission(getApplicationContext(),allpermissions[i]);
-                if (checkpermission!= PackageManager.PERMISSION_GRANTED){
-                    needapply = true;
-                }
-            }
-            if(needapply){
-                ActivityCompat.requestPermissions(MainActivity.this,allpermissions,1);
-            }
-        }
+    private void ClearMap(){
+        list_graphic.clear();
+        list_graphicsOverlays.clear();
+        mapView.getGraphicsOverlays().clear();
     }
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        for(int  i = 0 ;i<grantResults.length;i++){
-            if(grantResults[i]==PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(MainActivity.this, permissions[i]+"已授权",Toast.LENGTH_SHORT).show();
-                initViews();
-                isNeedCheck = false;
-            }else{
-                Toast.makeText(MainActivity.this,permissions[i]+"拒绝授权",Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
+
 }

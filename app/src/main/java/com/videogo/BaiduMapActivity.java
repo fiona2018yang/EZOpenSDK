@@ -2,9 +2,15 @@ package com.videogo;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
+import android.util.Base64;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
@@ -30,10 +36,13 @@ import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.PolygonOptions;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.map.Stroke;
+import com.baidu.mapapi.map.TextOptions;
 import com.baidu.mapapi.map.UiSettings;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.mapapi.utils.DistanceUtil;
-
+import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.PointCollection;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -48,7 +57,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private LocationClient locationClient;
     private MyLocationListener myLocationListener;
     private LatLng latLng ;
-    private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
+    private ImageButton change,info,info_sel,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
     private String style;
     private float angle;
@@ -57,6 +66,15 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private SharedPreferences sharedPreferences;
     private List<LatLng> points = new ArrayList<LatLng>();
     private List<Overlay> Overlays = new ArrayList<Overlay>();
+    private List<Overlay> Overlays_info = new ArrayList<Overlay>();
+    private List<OverlayOptions> options = new ArrayList<>();
+    private List<OverlayOptions> options2 = new ArrayList<>();
+    private List<String> list_name = new ArrayList<>();
+    private List<String> list_des = new ArrayList<>();
+    private List<Point> list_point = new ArrayList<>();
+    private List<String> list_name_info = new ArrayList<>();
+    private List<String> list_des_info = new ArrayList<>();
+    private List<PointCollection> list_collection = new ArrayList<>();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +87,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         mapView = findViewById(R.id.map);
         change = findViewById(R.id.change_ibtn);
         info = findViewById(R.id.info_ibtn);
+        info_sel = findViewById(R.id.info_ibtn_sel);
         warning = findViewById(R.id.warning_ibtn);
         robot = findViewById(R.id.robot_ibtn);
         measure = findViewById(R.id.measure_ibtn);
@@ -80,8 +99,16 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         position_sel = findViewById(R.id.position_ibtn_sel);
         sharedPreferences = getSharedPreferences("style", 0);
         style = sharedPreferences.getString("mapstyle", "");
-
-
+        String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
+        String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
+        try {
+            ReadKml readKml = new ReadKml(url,list_name,list_des,list_point);
+            ReadKml readKml2 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection);
+            readKml.parseKml();
+            readKml2.parseKml();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
         // 不显示缩放比例尺
         mapView.showZoomControls(false);
         // 不显示百度地图Logo
@@ -103,7 +130,8 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         }
         mBaiduMap.setMyLocationEnabled(true);
         //初始位置
-        LatLng cenpt = new LatLng(33.935681, 118.289365);
+        //LatLng cenpt = new LatLng(33.935681, 118.289365);
+        LatLng cenpt = new LatLng(33.92287826538086, 118.19874572753906);
         MapStatus mMapStatus = new MapStatus.Builder().target(cenpt).zoom(13).build();
         //定义MapStatusUpdate对象，以便描述地图状态将要发生的变化
         mMapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
@@ -113,9 +141,14 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         options.zoomGesturesEnabled(true);
         //初始化定位参数配置
         initLocation();
+        //添加图标
+        addMarker();
+        //添加地块信息
+        addInfo();
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
+        info_sel.setOnClickListener(this);
         warning.setOnClickListener(this);
         robot.setOnClickListener(this);
         measure.setOnClickListener(this);
@@ -145,7 +178,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                         result.setText("距离为:"+distance+"米");
                     }else if(points.size()>2){
                         //添加面元素
-                        PolygonOptions mPolygonOptions = new PolygonOptions().points(points).fillColor(R.color.simple_fill_color).stroke(new Stroke(0, R.color.simple_fill_color)); //边框宽度和颜色
+                        PolygonOptions mPolygonOptions = new PolygonOptions().points(points).fillColor(Color.argb(75,255,255,0)).stroke(new Stroke(0, R.color.simple_fill_color)); //边框宽度和颜色
                         Overlays.get(Overlays.size()-1).setVisible(false);
                         Overlay mPolygon = mBaiduMap.addOverlay(mPolygonOptions);
                         Overlays.add(mPolygon);
@@ -167,6 +200,85 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         });
     }
 
+    /**
+     * 添加图标
+     */
+    private void addMarker() {
+        for (int i  = 0 ; i < list_point.size() ; i++){
+            //坐标转换
+            CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(list_point.get(i)));
+            LatLng latLng = converter.convert();
+            Log.i("TAG","latlng="+latLng);
+            OverlayOptions marker_option = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker));
+            OverlayOptions text_option = new TextOptions().text(list_name.get(i+2)).fontSize(25).position(latLng).fontColor(Color.GREEN);
+            options.add(marker_option);
+            options.add(text_option);
+        }
+        mBaiduMap.addOverlays(options);
+    }
+
+    /**
+     *添加地块
+     */
+    private void addInfo(){
+        for (int i = 0 ; i < list_collection.size() ; i++){
+            List<LatLng> points = new ArrayList<LatLng>();
+            for (int j = 0 ; j < list_collection.get(i).size() ; j++){
+                //坐标转换
+                CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(list_collection.get(i).get(j)  ));
+                LatLng latLng = converter.convert();
+                points.add(latLng);
+            }
+            OverlayOptions mOverlayOptions = new PolylineOptions().width(6).color(Color.BLACK).points(points);
+            options2.add(mOverlayOptions);
+            BitmapDescriptor bitmapDescriptor = stringToBitmapDescriptor(list_des_info.get(i));
+            OverlayOptions option = new MarkerOptions().icon(bitmapDescriptor).position(getInterPosition(points));
+            options2.add(option);
+        }
+        Overlays_info = mBaiduMap.addOverlays(options2);
+        info.setVisibility(View.GONE);
+        info_sel.setVisibility(View.VISIBLE);
+    }
+    private LatLng tramsform(Point p ){
+        LatLng latLng = new LatLng(p.getY(),p.getX());
+        return latLng;
+    }
+
+    /**
+     * String to Bitmap
+     * @param string
+     * @return
+     */
+    public BitmapDescriptor stringToBitmapDescriptor(String string) {
+        TextView textView = new TextView(this);
+        textView.setGravity(Gravity.CENTER);
+        textView.setTextSize(10);
+        textView.setTextColor(Color.BLACK);
+        textView.setShadowLayer(0, 0, 0, Color.BLACK);
+        textView.setText(string);
+        textView.destroyDrawingCache();
+        textView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        textView.layout(0, 0, textView.getMeasuredWidth(), textView.getMeasuredHeight());
+        textView.setDrawingCacheEnabled(true);
+        Bitmap bitmapText = textView.getDrawingCache(true);
+        BitmapDescriptor bd = BitmapDescriptorFactory.fromBitmap(bitmapText);
+        return bd;
+    }
+    /**
+     * 获取Points集合中心点
+     * @param points
+     * @return
+     */
+    private LatLng getInterPosition(List<LatLng> points){
+        double x = 0.0, y = 0.0;
+        for (int  i = 0 ; i < points.size() ; i++){
+            x += points.get(i).latitude;
+            y += points.get(i).longitude;
+        }
+        LatLng latLng = new LatLng(x/points.size(),y/points.size());
+        return latLng;
+    }
     private void initLocation() {
         //方向传感器
         myOrientationListener = new MyOrientationListener(this);
@@ -195,6 +307,18 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 selectfile();
                 break;
             case R.id.info_ibtn:
+                info.setVisibility(View.GONE);
+                info_sel.setVisibility(View.VISIBLE);
+                for (Overlay overlay : Overlays_info){
+                        overlay.setVisible(true);
+                };
+                break;
+            case R.id.info_ibtn_sel:
+                info.setVisibility(View.VISIBLE);
+                info_sel.setVisibility(View.GONE);
+                for (Overlay overlay : Overlays_info){
+                    overlay.setVisible(false);
+                };
                 break;
             case R.id.warning_ibtn:
                 break;

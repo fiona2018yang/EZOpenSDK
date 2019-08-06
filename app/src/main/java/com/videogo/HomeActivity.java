@@ -1,14 +1,21 @@
 package com.videogo;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SimpleAdapter;
+import android.widget.Toast;
 
 import com.bigkoo.convenientbanner.ConvenientBanner;
 import com.bigkoo.convenientbanner.holder.CBViewHolderCreator;
@@ -27,7 +34,17 @@ public class HomeActivity extends Activity {
     private ConvenientBanner convenientBanner;
     private List<Map<String, Object>> data_list;
     private List<Integer> imgs=new ArrayList<>();
-
+    private static String[] allpermissions = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_WIFI_STATE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_SETTINGS,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.CAMERA,
+    };
+    private boolean isNeedCheck = true;
     // 图片封装为一个数组
     private int[] icon = { R.mipmap.home_icon_real_map,R.mipmap.home_icon_preview,R.mipmap.home_icon_baidu_map,
             R.mipmap.home_icon_alarm_information,R.mipmap.home_icon_show_video,R.mipmap.home_icon__show_picture };
@@ -37,7 +54,7 @@ public class HomeActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
+        checkpermission();
         initGridView();
         setConvenientBanner();
     }
@@ -156,6 +173,44 @@ public class HomeActivity extends Activity {
         @Override
         public void UpdateUI(Context context, int position, Integer data) {
             imageView.setImageResource(data);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (isNeedCheck){
+            checkpermission();
+        }
+    }
+
+    /**
+     * 权限管理
+     */
+    private void checkpermission() {
+        if (Build.VERSION.SDK_INT>=23){
+            boolean needapply = false;
+            for(int i = 0;i <allpermissions.length;i++ ){
+                int checkpermission = ContextCompat.checkSelfPermission(getApplicationContext(),allpermissions[i]);
+                if (checkpermission!= PackageManager.PERMISSION_GRANTED){
+                    needapply = true;
+                }
+            }
+            if(needapply){
+                ActivityCompat.requestPermissions(HomeActivity.this,allpermissions,1);
+            }
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        for(int  i = 0 ;i<grantResults.length;i++){
+            if(grantResults[i]==PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(HomeActivity.this, permissions[i]+"已授权",Toast.LENGTH_SHORT).show();
+                isNeedCheck = false;
+            }else{
+                Toast.makeText(HomeActivity.this,permissions[i]+"拒绝授权",Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

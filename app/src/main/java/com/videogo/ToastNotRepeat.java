@@ -14,7 +14,7 @@ public class ToastNotRepeat {
     //判断Toast显示状态来控制不重复出现
     public static void show(Context context, String message){
         if (mToast==null){
-            mToast= Toast.makeText(context,message, Toast.LENGTH_SHORT);
+            mToast= Toast.makeText(context,message, Toast.LENGTH_LONG);
         }else {
             mToast.setText(message);
         }

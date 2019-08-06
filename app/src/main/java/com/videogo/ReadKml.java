@@ -1,6 +1,12 @@
 package com.videogo;
 
+import android.util.Log;
+
 import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.geometry.SpatialReference;
+import com.esri.arcgisruntime.mapping.view.MapView;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -13,7 +19,28 @@ import java.util.List;
 
 
 public class ReadKml {
-    public static void parseKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point){
+    private String path;
+    private List<String> list_name;
+    private List<String> list_des;
+    private List<Point> list_point;
+    private List<PointCollection> list_collection;
+
+    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point) {
+        this.path = path;
+        this.list_name = list_name;
+        this.list_des = list_des;
+        this.list_point = list_point;
+    }
+
+    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point, List<PointCollection> list_collection) {
+        this.path = path;
+        this.list_name = list_name;
+        this.list_des = list_des;
+        this.list_point = list_point;
+        this.list_collection = list_collection;
+    }
+
+    public  void parseKml(){
         try {
             InputStream inputStream = new FileInputStream(path);
             SAXReader reader = new SAXReader();
@@ -25,12 +52,12 @@ public class ReadKml {
                 e.printStackTrace();
             }
             Element root = document.getRootElement();//获取doc.kml文件的根结点
-            listNodes(root,list_name,list_des,list_point);
+            listNodes(root);
         } catch (IOException e){
             e.printStackTrace();
         }
     }
-    private static void listNodes(Element node, List<String> list_name, List<String> list_des, List<Point> list_point) {
+    private  void listNodes(Element node) {
         //假设当前节点内容不为空，则输出
         if(!(node.getTextTrim().equals("")) && "name".equals(node.getName())){
             //Log.d("当前结点内容：", node.getText());
@@ -40,15 +67,26 @@ public class ReadKml {
             list_des.add(node.getText());
         }else if (!(node.getTextTrim().equals("")) && "coordinates".equals(node.getName())){
             String string = node.getText();
-            Point p = new Point(Double.parseDouble(string.substring(0,string.indexOf(","))),Double.parseDouble(string.substring(string.indexOf(",")+1,string.lastIndexOf(","))));
-            list_point.add(p);
+            if (path.contains("info.kml")){
+                String[] str = string.trim().split(" ");
+                PointCollection  collection = new PointCollection(SpatialReference.create(4326));
+                for (int i = 0 ; i < str.length ; i++){
+                    String t = str[i];
+                    Point p = new Point(Double.parseDouble(t.substring(0,t.indexOf(","))),Double.parseDouble(t.substring(t.indexOf(",")+1,t.lastIndexOf(","))),SpatialReference.create(4326));
+                    collection.add(p);
+                }
+                list_collection.add(collection);
+            }else{
+                Point p = new Point(Double.parseDouble(string.substring(0,string.indexOf(","))),Double.parseDouble(string.substring(string.indexOf(",")+1,string.lastIndexOf(","))));
+                list_point.add(p);
+            }
         }
         //同一时候迭代当前节点以下的全部子节点
         //使用递归
         Iterator<Element> iterator = node.elementIterator();
         while(iterator.hasNext()){
             Element e = iterator.next();
-            listNodes(e,list_name,list_des,list_point);
+            listNodes(e);
         }
     }
 }
