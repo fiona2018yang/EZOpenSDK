@@ -1,10 +1,13 @@
 package com.videogo;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,7 +20,9 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +54,15 @@ import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
 import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.TextSymbol;
+import com.videogo.constant.IntentConsts;
+import com.videogo.errorlayer.ErrorInfo;
+import com.videogo.exception.BaseException;
+import com.videogo.exception.ErrorCode;
+import com.videogo.openapi.bean.EZCameraInfo;
+import com.videogo.openapi.bean.EZDeviceInfo;
+import com.videogo.ui.realplay.EZRealPlayActivity;
+import com.videogo.ui.util.EZUtils;
+import com.videogo.util.ConnectionDetector;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -57,8 +71,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.Inflater;
 
 import ezviz.ezopensdk.R;
+
+import static com.videogo.EzvizApplication.getOpenSDK;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
@@ -70,11 +87,17 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private TextView title;
     private SharedPreferences sharedPreferences;
     private PointCollection collection ;
+    private List<EZDeviceInfo> list_ezdevices;
     public LocationDisplay locationDisplay;
     private List<Graphic> list_graphic = new ArrayList<>();
     private List<GraphicsOverlay> list_graphicsOverlays = new ArrayList<>();
     private List<GraphicsOverlay> list_graphicsOverlays_info = new ArrayList<>();
     private GraphicsOverlay graphicsOverlay_info;
+
+    public final static int REQUEST_CODE = 100;
+    public final static int RESULT_CODE = 101;
+    private final static int LOAD_MY_DEVICE = 0;
+    private int mLoadType = LOAD_MY_DEVICE;
 
 
     @Override
@@ -113,12 +136,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         sharedPreferences = getSharedPreferences("path", 0);
         path = sharedPreferences.getString("earthPath", "");
+        list_ezdevices = new ArrayList<>();
         Log.i("TAG","path="+path);
         if (path.equals("")||path == null){
             path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
         }
         //加载tif
         loadlayer(path);
+        MyTask myTask = new MyTask();
+        myTask.execute();
     }
 
     @Override
@@ -411,21 +437,28 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                 public void run() {
                                     Map<String,Object> map = new HashMap<>();
                                     map.put("style","marker");
+                                    map.put("name",list_name.get(finalI+2));
                                     map.put("des",list_des.get(finalI));
                                     Graphic ph = new Graphic(list_point.get(finalI), map, pictureMarkerSymbol);
                                     graphicsOverlay.getGraphics().add(ph);
                                     TextSymbol t = new TextSymbol(12f, list_name.get(finalI+2), Color.GREEN, TextSymbol.HorizontalAlignment.LEFT, TextSymbol.VerticalAlignment.TOP);
-                                    Graphic graphic_text = new Graphic(list_point.get(finalI),t);
+                                    Map<String,Object> map2 = new HashMap<>();
+                                    map2.put("style","text");
+                                    Graphic graphic_text = new Graphic(list_point.get(finalI),map2,t);
                                     graphicsOverlay.getGraphics().add(graphic_text);
                                 }
                             });
                         }
                         for (int i = 0 ; i < list_collection.size() ; i++){
                             Polyline polyline = new Polyline(list_collection.get(i));
-                            Graphic line = new Graphic(polyline,simpleLineSymbol);
+                            Map<String,Object> map = new HashMap<>();
+                            map.put("style","line");
+                            Graphic line = new Graphic(polyline,map,simpleLineSymbol);
                             graphicsOverlay_info.getGraphics().add(line);
                             TextSymbol textSymbol = new TextSymbol(12f, list_des_info.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
-                            Graphic ts = new Graphic(polyline,textSymbol);
+                            Map<String,Object> map2 = new HashMap<>();
+                            map2.put("style","text");
+                            Graphic ts = new Graphic(polyline,map2,textSymbol);
                             graphicsOverlay_info.getGraphics().add(ts);
                         }
                         info.setVisibility(View.GONE);
@@ -458,17 +491,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         SimpleMarkerSymbol s = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.BLACK,3);
                         SimpleLineSymbol s2 = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
                         SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,Color.argb(75,255,255,0),null);
-
                         Point p = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(),(int)e.getY()));
                         collection.add(p);
                         GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
                         list_graphicsOverlays.add(graphicsOverlay);
                         mMapView.getGraphicsOverlays().add(graphicsOverlay);
-                        graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),s));
+                        Map<String,Object> map2 = new HashMap<>();
+                        map2.put("style","point");
+                        graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),map2,s));
                         if (collection.size()==2){
                             //添加线元素
                             Polyline polyline = new Polyline(collection);
-                            Graphic line = new Graphic(polyline,s2);
+                            Map<String,Object> map = new HashMap<>();
+                            map.put("style","line");
+                            Graphic line = new Graphic(polyline,map,s2);
                             list_graphic.add(line);
                             graphicsOverlay.getGraphics().add(line);
                             //计算距离
@@ -479,7 +515,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             //添加面元素
                             list_graphic.get(list_graphic.size()-1).setVisible(false);
                             Polygon polygon=new Polygon(collection);
-                            Graphic fill = new Graphic(polygon, s3);
+                            Map<String,Object> map = new HashMap<>();
+                            map.put("style","polygon");
+                            Graphic fill = new Graphic(polygon, map,s3);
                             list_graphic.add(fill);
                             graphicsOverlay.getGraphics().add(fill);
                             //计算面积
@@ -492,8 +530,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             result.setText("面积为:"+area+"平方米/"+mu1+"亩");
                         }
                     }else{
+                        //异步查询
                         android.graphics.Point screenPoint = new android.graphics.Point((int)e.getX(),(int)e.getY());
-                        ListenableFuture<List<IdentifyGraphicsOverlayResult>> identifyFuture =mapView.identifyGraphicsOverlaysAsync(screenPoint,20,false,25);
+                        ListenableFuture<List<IdentifyGraphicsOverlayResult>> identifyFuture =mapView.identifyGraphicsOverlaysAsync(screenPoint,30,false,20);
                         identifyFuture.addDoneListener(new Runnable() {
                             @Override
                             public void run() {
@@ -502,7 +541,38 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                     for (IdentifyGraphicsOverlayResult identifyGraphicsOverlayResult : identifyLayerResults){
                                         List<Graphic> graphics_resule = identifyGraphicsOverlayResult.getGraphics();
                                         for (Graphic graphic : graphics_resule){
-                                            //if (graphic.getGeometry().getGeometryType().toString().equals("POINT"))
+                                            if (graphic.getGeometry().getGeometryType().toString().equals("POINT")){
+                                                if (graphic.getAttributes().get("style").equals("marker")){
+                                                    LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.marker_dialog,null);
+                                                    AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).setTitle("").setView(linearLayout).show();
+                                                    TextView tv_name = dialog.findViewById(R.id.name_tv);
+                                                    TextView tv_des = dialog.findViewById(R.id.des_tv);
+                                                    Button btn_open = dialog.findViewById(R.id.open);
+                                                    tv_name.setText(graphic.getAttributes().get("name").toString());
+                                                    tv_des.setText(graphic.getAttributes().get("des").toString());
+                                                    btn_open.setOnClickListener(new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View v) {
+                                                            for (int i = 0 ; i < list_ezdevices.size() ; i++){
+                                                                if (list_ezdevices.get(i).getDeviceName().equals(tv_name.getText())){
+                                                                    EZDeviceInfo deviceInfo = list_ezdevices.get(i);
+                                                                    if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1){
+                                                                        EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo,0);
+                                                                        if (cameraInfo == null){
+                                                                            return;
+                                                                        }
+                                                                        Intent intent = new Intent(MainActivity.this , EZRealPlayActivity.class);
+                                                                        intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
+                                                                        intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                                                                        startActivityForResult(intent, REQUEST_CODE);
+                                                                        return;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                            }
                                         }
                                     }
                                 }catch (Exception e1){
@@ -513,6 +583,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
                     return true;
                 }
+
+                @Override
+                public void onLongPress(MotionEvent e) {
+
+                    super.onLongPress(e);
+                }
             });
         }
     }
@@ -521,5 +597,45 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         list_graphicsOverlays.clear();
         mapView.getGraphicsOverlays().clear();
     }
+    /**
+     * 获取事件消息任务
+     */
+    private class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>>{
+        private int mErrorCode = 0;
+        @Override
+        protected List<EZDeviceInfo> doInBackground(Void... voids) {
+            if (MainActivity.this.isFinishing()){
+                return null;
+            }
+            if (!ConnectionDetector.isNetworkAvailable(MainActivity.this)){
+                mErrorCode = ErrorCode.ERROR_WEB_NET_EXCEPTION;
+                return null;
+            }
+            try {
+                List<EZDeviceInfo> result = null;
+                if (mLoadType == LOAD_MY_DEVICE) {
+                    result = getOpenSDK().getDeviceList(0, 30);
+                    list_ezdevices.addAll(result);
+                }
+            }catch (BaseException e){
+                ErrorInfo errorInfo = (ErrorInfo) e.getObject();
+                mErrorCode = errorInfo.errorCode;
+                Log.i("TAG","eooro = "+errorInfo.toString());
+            }
+            return null;
+        }
 
+        @Override
+        protected void onPostExecute(List<EZDeviceInfo> ezDeviceInfos) {
+            super.onPostExecute(ezDeviceInfos);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_CODE){
+
+        }
+    }
 }
