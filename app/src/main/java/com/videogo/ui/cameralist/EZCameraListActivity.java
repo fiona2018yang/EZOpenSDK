@@ -33,6 +33,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -447,7 +448,9 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
                         result = getOpenSDK().getSharedDeviceList((mAdapter.getCount() / 20) + (mAdapter.getCount() % 20 > 0 ? 1 : 0), 20);
                     }
                 }
-
+                String cover = result.get(0).getDeviceCover();
+                result.get(0).setDeviceCover(Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/双塔(203571341)/160607604.jpg");
+                Log.i("TAG","cover="+cover);
                 return result;
 
             } catch (BaseException e) {
