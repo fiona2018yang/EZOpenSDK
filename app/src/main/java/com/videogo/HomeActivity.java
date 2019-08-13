@@ -5,21 +5,27 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SimpleAdapter;
-import android.widget.Toast;
-
 import com.bigkoo.convenientbanner.ConvenientBanner;
 import com.bigkoo.convenientbanner.holder.CBViewHolderCreator;
 import com.bigkoo.convenientbanner.holder.Holder;
+import com.videogo.errorlayer.ErrorInfo;
+import com.videogo.exception.BaseException;
+import com.videogo.exception.ErrorCode;
+import com.videogo.openapi.bean.EZDeviceInfo;
+import com.videogo.util.ConnectionDetector;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,12 +34,18 @@ import java.util.Map;
 
 import ezviz.ezopensdk.R;
 
+import static com.videogo.EzvizApplication.getOpenSDK;
+
 public class HomeActivity extends Activity {
 
     private GridView   HomeGView;
     private ConvenientBanner convenientBanner;
     private List<Map<String, Object>> data_list;
     private List<Integer> imgs=new ArrayList<>();
+    public final static int REQUEST_CODE = 100;
+    public final static int RESULT_CODE = 101;
+    private final static int LOAD_MY_DEVICE = 0;
+    private int mLoadType = LOAD_MY_DEVICE;
     private static String[] allpermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_NETWORK_STATE,
@@ -49,6 +61,7 @@ public class HomeActivity extends Activity {
     private int[] icon = { R.mipmap.home_icon_real_map,R.mipmap.home_icon_preview,R.mipmap.home_icon_baidu_map,
             R.mipmap.home_icon_alarm_information,R.mipmap.home_icon_show_video,R.mipmap.home_icon__show_picture };
     private String[] iconName = { "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"};
+    private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +80,9 @@ public class HomeActivity extends Activity {
         imgs.add(R.mipmap.bg_home_1);
         imgs.add(R.mipmap.bg_home_2);
         imgs.add(R.mipmap.bg_home_3);
+
+        MyTask myTask = new MyTask();
+        myTask.execute();
 
         HomeGView = (GridView) findViewById(R.id.gv_home);
         //新建List
@@ -100,6 +116,7 @@ public class HomeActivity extends Activity {
                 switch (position) {
                     case 0://实景地图
                         Intent iRealMap = new Intent(view.getContext(), com.videogo.MainActivity.class);
+                        iRealMap.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezdevices);
                         startActivity(iRealMap);
                         break;
                     case 1://画面预览
@@ -108,6 +125,7 @@ public class HomeActivity extends Activity {
                         break;
                     case 2://百度地图
                         Intent iBaiduMap = new Intent(view.getContext(), com.videogo.BaiduMapActivity.class);
+                        iBaiduMap.putParcelableArrayListExtra("devices_baidu", (ArrayList<? extends Parcelable>) list_ezdevices);
                         startActivity(iBaiduMap);
                         break;
                     case 3: //报警信息
@@ -115,6 +133,9 @@ public class HomeActivity extends Activity {
                     case 4://视频查看
                         break;
                     case 5://图片查看
+                        Intent iPicView = new Intent(view.getContext(),ScanPicActivity.class);
+                        iPicView.putParcelableArrayListExtra("devices_pic", (ArrayList<? extends Parcelable>) list_ezdevices);
+                        startActivity(iPicView);
                         break;
                     default:
                         break;
@@ -206,11 +227,42 @@ public class HomeActivity extends Activity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         for(int  i = 0 ;i<grantResults.length;i++){
             if(grantResults[i]==PackageManager.PERMISSION_GRANTED){
-                Toast.makeText(HomeActivity.this, permissions[i]+"已授权",Toast.LENGTH_SHORT).show();
                 isNeedCheck = false;
             }else{
-                Toast.makeText(HomeActivity.this,permissions[i]+"拒绝授权",Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+    /**
+     * 获取事件消息任务
+     */
+    private class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>> {
+        private int mErrorCode = 0;
+        @Override
+        protected List<EZDeviceInfo> doInBackground(Void... voids) {
+            if (HomeActivity.this.isFinishing()){
+                return null;
+            }
+            if (!ConnectionDetector.isNetworkAvailable(HomeActivity.this)){
+                mErrorCode = ErrorCode.ERROR_WEB_NET_EXCEPTION;
+                return null;
+            }
+            try {
+                List<EZDeviceInfo> result = null;
+                if (mLoadType == LOAD_MY_DEVICE) {
+                    result = getOpenSDK().getDeviceList(0, 30);
+                    list_ezdevices.addAll(result);
+                }
+            }catch (BaseException e){
+                ErrorInfo errorInfo = (ErrorInfo) e.getObject();
+                mErrorCode = errorInfo.errorCode;
+                Log.i("TAG","eooro = "+errorInfo.toString());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(List<EZDeviceInfo> ezDeviceInfos) {
+            super.onPostExecute(ezDeviceInfos);
         }
     }
 }

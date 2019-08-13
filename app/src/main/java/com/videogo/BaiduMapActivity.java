@@ -1,10 +1,13 @@
 package com.videogo;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
@@ -13,7 +16,9 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.baidu.location.BDAbstractLocationListener;
 import com.baidu.location.BDLocation;
@@ -28,6 +33,7 @@ import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
@@ -43,11 +49,25 @@ import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.PointCollection;
+import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.videogo.constant.IntentConsts;
+import com.videogo.errorlayer.ErrorInfo;
+import com.videogo.exception.BaseException;
+import com.videogo.exception.ErrorCode;
+import com.videogo.openapi.bean.EZCameraInfo;
+import com.videogo.openapi.bean.EZDeviceInfo;
+import com.videogo.ui.realplay.EZRealPlayActivity;
+import com.videogo.ui.util.EZUtils;
+import com.videogo.util.ConnectionDetector;
+
 import java.math.BigDecimal;
+import java.sql.BatchUpdateException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import ezviz.ezopensdk.R;
+
+import static com.videogo.EzvizApplication.getOpenSDK;
 
 public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private MapView mapView = null;
@@ -67,6 +87,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private List<LatLng> points = new ArrayList<LatLng>();
     private List<Overlay> Overlays = new ArrayList<Overlay>();
     private List<Overlay> Overlays_info = new ArrayList<Overlay>();
+    private List<Overlay> os = new ArrayList<>();
     private List<OverlayOptions> options = new ArrayList<>();
     private List<OverlayOptions> options2 = new ArrayList<>();
     private List<String> list_name = new ArrayList<>();
@@ -75,6 +96,11 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private List<String> list_name_info = new ArrayList<>();
     private List<String> list_des_info = new ArrayList<>();
     private List<PointCollection> list_collection = new ArrayList<>();
+    private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
+    public final static int REQUEST_CODE = 100;
+    public final static int RESULT_CODE = 101;
+    private final static int LOAD_MY_DEVICE = 0;
+    private int mLoadType = LOAD_MY_DEVICE;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -99,11 +125,14 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         position_sel = findViewById(R.id.position_ibtn_sel);
         sharedPreferences = getSharedPreferences("style", 0);
         style = sharedPreferences.getString("mapstyle", "");
-        String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
-        String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
+        list_ezdevices = getIntent().getParcelableArrayListExtra("devices_baidu");
+        //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
+        //String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
+        String url = "camera.kml";
+        String url2 = "info.kml";
         try {
-            ReadKml readKml = new ReadKml(url,list_name,list_des,list_point);
-            ReadKml readKml2 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection);
+            ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,BaiduMapActivity.this);
+            ReadKml readKml2 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,BaiduMapActivity.this);
             readKml.parseKml();
             readKml2.parseKml();
         }catch (Exception e){
@@ -167,29 +196,39 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                     BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.mipmap.point1);
                     //构建MarkerOption，用于在地图上添加Marker
                     OverlayOptions option = new MarkerOptions().position(latLng).icon(bitmap);
-                    mBaiduMap.addOverlay(option);
+                    Overlay o = mBaiduMap.addOverlay(option);
+                    os.add(o);
                     if (points.size() == 2){
                         //添加线元素
                         OverlayOptions mOverlayOptions = new PolylineOptions().width(3).color(Color.BLACK).points(points);
                         Overlay mPolyline = mBaiduMap.addOverlay(mOverlayOptions);
                         Overlays.add(mPolyline);
+                        //隐藏marker图标
+                        os.get(0).setVisible(false);
+                        o.setVisible(false);
                         //计算距离
                         double distance = DistanceUtil. getDistance(points.get(0), points.get(1));
-                        result.setText("距离为:"+distance+"米");
+                        BigDecimal b = new BigDecimal(distance);
+                        //保留小数点后两位
+                        double distances = b.setScale(4,BigDecimal.ROUND_HALF_UP).doubleValue();
+                        result.setText("距离为:"+distances+"米");
                     }else if(points.size()>2){
                         //添加面元素
                         PolygonOptions mPolygonOptions = new PolygonOptions().points(points).fillColor(Color.argb(75,255,255,0)).stroke(new Stroke(0, R.color.simple_fill_color)); //边框宽度和颜色
                         Overlays.get(Overlays.size()-1).setVisible(false);
                         Overlay mPolygon = mBaiduMap.addOverlay(mPolygonOptions);
                         Overlays.add(mPolygon);
+                        o.setVisible(false);
                         //计算面积
                         String area = measure_area();
                         double mu = Double.parseDouble(area)*0.0015;
                         BigDecimal b = new BigDecimal(mu);
                         //保留小数点后两位
-                        double mu1 = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+                        double mu1 = b.setScale(4,BigDecimal.ROUND_HALF_UP).doubleValue();
                         result.setText("面积为:"+area+"平方米/"+mu1+"亩");
                     }
+                }else{
+
                 }
             }
 
@@ -198,8 +237,48 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 return false;
             }
         });
+        mBaiduMap.setOnMarkerClickListener(new BaiduMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Bundle bundle = marker.getExtraInfo();
+                showDialog(bundle.getString("name"),bundle.getString("des"));
+                return false;
+            }
+        });
     }
-
+    /**
+     * marker弹窗
+     */
+    private void showDialog(String name , String des){
+        LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.marker_dialog,null);
+        AlertDialog dialog = new AlertDialog.Builder(BaiduMapActivity.this).setTitle("").setView(linearLayout).show();
+        TextView tv_name = dialog.findViewById(R.id.name_tv);
+        TextView tv_des = dialog.findViewById(R.id.des_tv);
+        Button btn_open = dialog.findViewById(R.id.open);
+        tv_name.setText(name);
+        tv_des.setText(des);
+        btn_open.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i = 0 ; i < list_ezdevices.size() ; i++){
+                    if (list_ezdevices.get(i).getDeviceName().equals(tv_name.getText())){
+                        EZDeviceInfo deviceInfo = list_ezdevices.get(i);
+                        if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1){
+                            EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo,0);
+                            if (cameraInfo == null){
+                                return;
+                            }
+                            Intent intent = new Intent(BaiduMapActivity.this , EZRealPlayActivity.class);
+                            intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
+                            intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                            startActivityForResult(intent, REQUEST_CODE);
+                            return;
+                        }
+                    }
+                }
+            }
+        });
+    }
     /**
      * 添加图标
      */
@@ -208,8 +287,10 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             //坐标转换
             CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(list_point.get(i)));
             LatLng latLng = converter.convert();
-            Log.i("TAG","latlng="+latLng);
-            OverlayOptions marker_option = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker));
+            Bundle bundle = new Bundle();
+            bundle.putString("name",list_name.get(i+2));
+            bundle.putString("des",list_des.get(i));
+            OverlayOptions marker_option = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.fromResource(R.mipmap.marker)).extraInfo(bundle);
             OverlayOptions text_option = new TextOptions().text(list_name.get(i+2)).fontSize(25).position(latLng).fontColor(Color.GREEN);
             options.add(marker_option);
             options.add(text_option);
@@ -330,13 +411,19 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 result.setVisibility(View.VISIBLE);
                 break;
             case R.id.measure_ibtn_sel:
+                for (Overlay overlay : Overlays){
+                    overlay.setVisible(false);
+                };
+                for (Overlay overlay :os){
+                    overlay.setVisible(false);
+                };
                 measure.setVisibility(View.VISIBLE);
                 measure_sel.setVisibility(View.GONE);
                 result.setVisibility(View.GONE);
                 points.clear();
                 Overlays.clear();
+                os.clear();
                 result.setText("");
-                mBaiduMap.clear();
                 break;
             case R.id.zoom_in_ibtn:
                 ZoomIn();
@@ -463,7 +550,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         myOrientationListener.stop();
         mapView.onDestroy();
     }
-
     /**
      *地图切换
      */

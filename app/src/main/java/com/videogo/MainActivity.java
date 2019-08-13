@@ -55,15 +55,10 @@ import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
 import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
 import com.esri.arcgisruntime.symbology.TextSymbol;
 import com.videogo.constant.IntentConsts;
-import com.videogo.errorlayer.ErrorInfo;
-import com.videogo.exception.BaseException;
-import com.videogo.exception.ErrorCode;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.ui.realplay.EZRealPlayActivity;
 import com.videogo.ui.util.EZUtils;
-import com.videogo.util.ConnectionDetector;
-
 import java.io.File;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -71,11 +66,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.Inflater;
-
 import ezviz.ezopensdk.R;
-
-import static com.videogo.EzvizApplication.getOpenSDK;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
@@ -97,7 +88,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
     private final static int LOAD_MY_DEVICE = 0;
-    private int mLoadType = LOAD_MY_DEVICE;
 
 
     @Override
@@ -143,8 +133,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
         //加载tif
         loadlayer(path);
-        MyTask myTask = new MyTask();
-        myTask.execute();
+        list_ezdevices = getIntent().getParcelableArrayListExtra("devices_main");
+        Log.i("TAG","list.size="+list_ezdevices.size());
     }
 
     @Override
@@ -410,8 +400,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 public void run() {
                     mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
                     collection = new PointCollection(mapView.getSpatialReference());
-                    String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
-                    String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
+                    //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
+                    //String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
+                    String url = "camera.kml";
+                    String url2 = "info.kml";
                     GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
                     graphicsOverlay_info = new GraphicsOverlay();
                     mapView.getGraphicsOverlays().add(graphicsOverlay);
@@ -426,9 +418,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         List<String> list_name_info = new ArrayList<>();
                         List<String> list_des_info = new ArrayList<>();
                         List<PointCollection> list_collection = new ArrayList<>();
-                        ReadKml readKml = new ReadKml(url,list_name,list_des,list_point);
+                        ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,MainActivity.this);
                         readKml.parseKml();
-                        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection);
+                        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
                         readKml1.parseKml();
                         for (int i = 0 ; i < list_point.size()  ; i++){
                             int finalI = i;
@@ -543,34 +535,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                         for (Graphic graphic : graphics_resule){
                                             if (graphic.getGeometry().getGeometryType().toString().equals("POINT")){
                                                 if (graphic.getAttributes().get("style").equals("marker")){
-                                                    LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.marker_dialog,null);
-                                                    AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).setTitle("").setView(linearLayout).show();
-                                                    TextView tv_name = dialog.findViewById(R.id.name_tv);
-                                                    TextView tv_des = dialog.findViewById(R.id.des_tv);
-                                                    Button btn_open = dialog.findViewById(R.id.open);
-                                                    tv_name.setText(graphic.getAttributes().get("name").toString());
-                                                    tv_des.setText(graphic.getAttributes().get("des").toString());
-                                                    btn_open.setOnClickListener(new View.OnClickListener() {
-                                                        @Override
-                                                        public void onClick(View v) {
-                                                            for (int i = 0 ; i < list_ezdevices.size() ; i++){
-                                                                if (list_ezdevices.get(i).getDeviceName().equals(tv_name.getText())){
-                                                                    EZDeviceInfo deviceInfo = list_ezdevices.get(i);
-                                                                    if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1){
-                                                                        EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo,0);
-                                                                        if (cameraInfo == null){
-                                                                            return;
-                                                                        }
-                                                                        Intent intent = new Intent(MainActivity.this , EZRealPlayActivity.class);
-                                                                        intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
-                                                                        intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
-                                                                        startActivityForResult(intent, REQUEST_CODE);
-                                                                        return;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    });
+                                                    showDialog(graphic);
                                                 }
                                             }
                                         }
@@ -598,44 +563,36 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         mapView.getGraphicsOverlays().clear();
     }
     /**
-     * 获取事件消息任务
+     * marker弹窗
      */
-    private class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>>{
-        private int mErrorCode = 0;
-        @Override
-        protected List<EZDeviceInfo> doInBackground(Void... voids) {
-            if (MainActivity.this.isFinishing()){
-                return null;
-            }
-            if (!ConnectionDetector.isNetworkAvailable(MainActivity.this)){
-                mErrorCode = ErrorCode.ERROR_WEB_NET_EXCEPTION;
-                return null;
-            }
-            try {
-                List<EZDeviceInfo> result = null;
-                if (mLoadType == LOAD_MY_DEVICE) {
-                    result = getOpenSDK().getDeviceList(0, 30);
-                    list_ezdevices.addAll(result);
+    private void showDialog(Graphic graphic){
+        LinearLayout linearLayout = (LinearLayout) getLayoutInflater().inflate(R.layout.marker_dialog,null);
+        AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).setTitle("").setView(linearLayout).show();
+        TextView tv_name = dialog.findViewById(R.id.name_tv);
+        TextView tv_des = dialog.findViewById(R.id.des_tv);
+        Button btn_open = dialog.findViewById(R.id.open);
+        tv_name.setText(graphic.getAttributes().get("name").toString());
+        tv_des.setText(graphic.getAttributes().get("des").toString());
+        btn_open.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i = 0 ; i < list_ezdevices.size() ; i++){
+                    if (list_ezdevices.get(i).getDeviceName().equals(tv_name.getText())){
+                        EZDeviceInfo deviceInfo = list_ezdevices.get(i);
+                        if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1){
+                            EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo,0);
+                            if (cameraInfo == null){
+                                return;
+                            }
+                            Intent intent = new Intent(MainActivity.this , EZRealPlayActivity.class);
+                            intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
+                            intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                            startActivityForResult(intent, REQUEST_CODE);
+                            return;
+                        }
+                    }
                 }
-            }catch (BaseException e){
-                ErrorInfo errorInfo = (ErrorInfo) e.getObject();
-                mErrorCode = errorInfo.errorCode;
-                Log.i("TAG","eooro = "+errorInfo.toString());
             }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(List<EZDeviceInfo> ezDeviceInfos) {
-            super.onPostExecute(ezDeviceInfos);
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_CODE){
-
-        }
+        });
     }
 }

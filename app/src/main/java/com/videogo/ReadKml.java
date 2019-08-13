@@ -1,5 +1,6 @@
 package com.videogo;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.esri.arcgisruntime.geometry.Point;
@@ -24,25 +25,29 @@ public class ReadKml {
     private List<String> list_des;
     private List<Point> list_point;
     private List<PointCollection> list_collection;
+    private Context context;
 
-    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point) {
+    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point,Context context) {
         this.path = path;
         this.list_name = list_name;
         this.list_des = list_des;
         this.list_point = list_point;
+        this.context = context;
     }
 
-    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point, List<PointCollection> list_collection) {
+    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point, List<PointCollection> list_collection,Context context) {
         this.path = path;
         this.list_name = list_name;
         this.list_des = list_des;
         this.list_point = list_point;
         this.list_collection = list_collection;
+        this.context = context;
     }
 
     public  void parseKml(){
         try {
-            InputStream inputStream = new FileInputStream(path);
+            //InputStream inputStream = new FileInputStream(path);
+            InputStream inputStream = context.getAssets().open(path);
             SAXReader reader = new SAXReader();
             Document document = null;
             try {
