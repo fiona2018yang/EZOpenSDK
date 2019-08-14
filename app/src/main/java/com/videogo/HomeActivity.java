@@ -25,6 +25,8 @@ import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
 import com.videogo.openapi.bean.EZDeviceInfo;
+import com.videogo.scanpic.ScanPicActivity;
+import com.videogo.scanvideo.ScanVideoActivity;
 import com.videogo.util.ConnectionDetector;
 
 import java.util.ArrayList;
@@ -131,9 +133,12 @@ public class HomeActivity extends Activity {
                     case 3: //报警信息
                         break;
                     case 4://视频查看
+                        Intent ivideoView = new Intent(view.getContext(), ScanVideoActivity.class);
+                        ivideoView.putParcelableArrayListExtra("devices_video", (ArrayList<? extends Parcelable>) list_ezdevices);
+                        startActivity(ivideoView);
                         break;
                     case 5://图片查看
-                        Intent iPicView = new Intent(view.getContext(),ScanPicActivity.class);
+                        Intent iPicView = new Intent(view.getContext(), ScanPicActivity.class);
                         iPicView.putParcelableArrayListExtra("devices_pic", (ArrayList<? extends Parcelable>) list_ezdevices);
                         startActivity(iPicView);
                         break;

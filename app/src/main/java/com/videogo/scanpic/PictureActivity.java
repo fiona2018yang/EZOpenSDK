@@ -1,4 +1,4 @@
-package com.videogo;
+package com.videogo.scanpic;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;

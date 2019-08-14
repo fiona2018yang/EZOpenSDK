@@ -1,4 +1,4 @@
-package com.videogo;
+package com.videogo.scanpic;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -33,6 +33,11 @@ public class ScanPicActivity extends Activity {
         LinearLayoutManager layoutManager =new LinearLayoutManager(this);
         rv.setLayoutManager(layoutManager);
         list_ezdevices = getIntent().getParcelableArrayListExtra("devices_pic");
+
+        EZDeviceInfo info = new EZDeviceInfo();
+        info.setDeviceName("最近");
+        list_ezdevices.add(0,info);
+
         rv.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         adapter = new ScanPicAdapter(list_ezdevices);
         rv.setAdapter(adapter);
@@ -45,7 +50,7 @@ public class ScanPicActivity extends Activity {
         adapter.setOnItemClickListener(new ScanPicAdapter.ItemClickListener() {
             @Override
             public void onItemClick(View v, int position) {
-                Intent icamera = new Intent(v.getContext(),CameraPicActivity.class);
+                Intent icamera = new Intent(v.getContext(), CameraPicActivity.class);
                 icamera.putExtra("pic",list_ezdevices.get(position).getDeviceName());
                 startActivity(icamera);
             }

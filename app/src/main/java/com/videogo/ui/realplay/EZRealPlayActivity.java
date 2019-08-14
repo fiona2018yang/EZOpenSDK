@@ -4,11 +4,14 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -53,6 +56,7 @@ import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.videogo.EzvizApplication;
+import com.videogo.MyDatabaseHelper;
 import com.videogo.constant.Config;
 import com.videogo.constant.Constant;
 import com.videogo.constant.IntentConsts;
@@ -76,6 +80,7 @@ import com.videogo.ui.realplay.RealPlaySquareInfo;
 import com.videogo.ui.util.ActivityUtils;
 import com.videogo.ui.util.AudioPlayUtil;
 import com.videogo.ui.util.DataManager;
+import com.videogo.ui.util.DataUtils;
 import com.videogo.ui.util.EZUtils;
 import com.videogo.ui.util.VerifyCodeInput;
 import com.videogo.util.ConnectionDetector;
@@ -97,7 +102,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -326,6 +333,9 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private boolean isFaster = false;
     private int my_speed = EZConstants.PTZ_SPEED_DEFAULT;
 
+    private MyDatabaseHelper dbHelper;
+    private SQLiteDatabase db;
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -513,6 +523,10 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
     // 初始化数据对象
     private void initData() {
+        dbHelper = new MyDatabaseHelper(EZRealPlayActivity.this, "filepath.db", null, 1);
+        db = dbHelper.getWritableDatabase();
+
+
         // 获取本地信息
         Application application = (Application) getApplication();
         mAudioPlayUtil = AudioPlayUtil.getInstance(application);
@@ -1983,9 +1997,31 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
             // 可以采用deviceSerial+时间作为文件命名，demo中简化，只用时间命名
             java.util.Date date = new java.util.Date();
-            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/Records/" + String.format("%tY", date)
-                    + String.format("%tm", date) + String.format("%td", date) + "/"
+//            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/Records/" + String.format("%tY", date)
+//                    + String.format("%tm", date) + String.format("%td", date) + "/"
+//                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
+            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CaptureVideo/" + mDeviceInfo.getDeviceName()+"/"
                     + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
+
+
+            //保存路径
+            List<String> files = new ArrayList<>();
+            Cursor cursor = db.query("videofilepath", null, null, null, null, null, null);
+            if (cursor.moveToFirst()){
+                do {
+                    String file_path = cursor.getString(cursor.getColumnIndex("path"));
+                    files.add(file_path);
+                }while (cursor.moveToNext());
+            }
+            cursor.close();
+            if (files.size()>=10){
+                db.delete("videofilepath", "path=?", new String[]{String.valueOf(files.get(0))});
+            }
+            ContentValues values = new ContentValues();
+            values.put("path",strRecordFile);
+            values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
+            db.insert("videofilepath",null,values);
+
 
             if (mEZPlayer.startLocalRecordWithFile(strRecordFile)) {
                 handleRecordSuccess(strRecordFile);
@@ -2084,9 +2120,11 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
                             // 可以采用deviceSerial+时间作为文件命名，demo中简化，只用时间命名
                             java.util.Date date = new java.util.Date();
-                            final String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" + String.format("%tY", date)
-                                    + String.format("%tm", date) + String.format("%td", date) + "/"
-                                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".jpg";
+//                            final String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" + String.format("%tY", date)
+//                                    + String.format("%tm", date) + String.format("%td", date) + "/"
+//                                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".jpg";
+                            final String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +mDeviceInfo.getDeviceName()+"/"
+                                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
 
                             if (TextUtils.isEmpty(path)) {
                                 bmp.recycle();
@@ -2095,6 +2133,23 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                             }
                             EZUtils.saveCapturePictrue(path, bmp);
 
+                            //保存路径
+                            List<String> files = new ArrayList<>();
+                            Cursor cursor = db.query("picfilepath", null, null, null, null, null, null);
+                            if (cursor.moveToFirst()){
+                                do {
+                                    String file_path = cursor.getString(cursor.getColumnIndex("path"));
+                                    files.add(file_path);
+                                }while (cursor.moveToNext());
+                            }
+                            cursor.close();
+                            if (files.size()>=10){
+                                db.delete("picfilepath", "path=?", new String[]{String.valueOf(files.get(0))});
+                            }
+                            ContentValues values = new ContentValues();
+                            values.put("path",path);
+                            values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
+                            db.insert("picfilepath",null,values);
 
                             MediaScanner mMediaScanner = new MediaScanner(EZRealPlayActivity.this);
                             mMediaScanner.scanFile(path, "jpg");

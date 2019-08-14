@@ -93,11 +93,15 @@
             android:theme="@style/Theme.AppCompat.DayNight"
             android:launchMode="singleTask"
             android:screenOrientation="portrait" />
-        <activity android:name="com.videogo.PictureActivity"
+        <activity android:name="com.videogo.scanpic.PictureActivity"
             android:theme="@style/Theme.AppCompat.DayNight"/>
-        <activity android:name="com.videogo.ScanPicActivity"
+        <activity android:name="com.videogo.scanpic.ScanPicActivity"
             android:theme="@style/Theme.AppCompat.DayNight"/>
-        <activity android:name="com.videogo.CameraPicActivity"
+        <activity android:name="com.videogo.scanpic.CameraPicActivity"
+            android:theme="@style/Theme.AppCompat.DayNight"/>
+        <activity android:name="com.videogo.scanvideo.ScanVideoActivity"
+            android:theme="@style/Theme.AppCompat.DayNight"/>
+        <activity android:name="com.videogo.scanvideo.CameraVideoActivity"
             android:theme="@style/Theme.AppCompat.DayNight"/>
         <activity
             android:name="com.videogo.ui.realplay.EZRealPlayActivity"

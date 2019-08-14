@@ -17,11 +17,9 @@ public class DataUtils {
         List<String> urlList = new ArrayList<>();
         // 得到sd卡内image文件夹的路径   File.separator(/)
         //String filePath = Environment.getExternalStorageState().toString()+ File.separator+"Pictures";
-        File filePath = Environment.getExternalStorageDirectory();
-        //File filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         // 得到该路径文件夹下所有的文件
         //File fileAll = new File(filePath.toString()+"/Camera");
-        File fileAll = new File(filePath.toString()+"/EZOpenSDK/CapturePicture/"+path);
+        File fileAll = new File(path);
         if (!fileAll.exists()){
             fileAll.mkdir();
         }
@@ -65,11 +63,11 @@ public class DataUtils {
             public int compare(File f1, File f2) {
                 long diff = f1.lastModified() - f2.lastModified();
                 if (diff > 0)
-                    return 1;
+                    return -1;
                 else if (diff == 0)
                     return 0;
                 else
-                    return -1;//如果 if 中修改为 返回-1 同时此处修改为返回 1  排序就会是递减
+                    return 1;//如果 if 中修改为 返回-1 同时此处修改为返回 1  排序就会是递减
             }
             public boolean equals(Object obj) {
                 return true;

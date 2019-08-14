@@ -10,7 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.videogo.PictureActivity;
+import com.videogo.scanpic.PictureActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,6 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
     private List<List<String>> file_list;
     private int width;
     private ImageRecyclerAdapter imageRecyclerAdapter;
-
     public TitleAdapter(Context context,List<String> titile_list, List<List<String>> file_list , int width) {
         this.context = context;
         this.titile_list = titile_list;

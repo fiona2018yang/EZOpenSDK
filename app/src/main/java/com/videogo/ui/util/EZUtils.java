@@ -6,6 +6,7 @@ import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.text.TextUtils;
+import android.text.format.DateUtils;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
@@ -29,12 +30,59 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import ezviz.ezopensdk.R;
 
 public class EZUtils {
+    public static void saveRecentPictrue(String filePath , Bitmap bitmap) throws InnerException{
+        if (TextUtils.isEmpty(filePath)){
+            return;
+        }
+        File filepath = new File(filePath);
+        File parent = filepath.getParentFile();
+        if (parent == null || !parent.exists() || parent.isFile()){
+            parent.mkdirs();
+        }
+        FileOutputStream out = null;
+        List<String> list_file = DataUtils.getImagePathFromSD(parent.getPath());
+        if (list_file.size()>=20){
+            File file = new File(list_file.remove(0));
+            file.delete();
+        }else{
+            try {
+                // 保存原图
+
+                if (!TextUtils.isEmpty(filePath)) {
+                    out = new FileOutputStream(filepath);
+                    bitmap.compress(CompressFormat.JPEG, 100, out);
+                    //out.write(tempBuf, 0, size);
+                    out.flush();
+                    out.close();
+                    out = null;
+                }
 
 
+            } catch (FileNotFoundException e) {
+//            throw new InnerException(e.getLocalizedMessage());
+                e.printStackTrace();
+            } catch (IOException e) {
+//            throw new InnerException(e.getLocalizedMessage());
+                e.printStackTrace();
+            } finally {
+                if (out != null) {
+                    try {
+                        out.close();
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    //保存图片
     public static void saveCapturePictrue(String filePath, Bitmap bitmap) throws InnerException {
         if (TextUtils.isEmpty(filePath)){
             LogUtil.d("EZUtils","saveCapturePictrue file is null");

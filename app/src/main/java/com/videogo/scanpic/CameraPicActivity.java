@@ -1,12 +1,13 @@
-package com.videogo;
+package com.videogo.scanpic;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
@@ -14,8 +15,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
-import com.videogo.adapter.ImageRecyclerAdapter;
-import com.videogo.adapter.OnRecyclerItemClickListener;
+
+import com.videogo.MyDatabaseHelper;
 import com.videogo.adapter.TitleAdapter;
 import com.videogo.ui.util.DataUtils;
 import java.io.File;
@@ -35,6 +36,8 @@ public class CameraPicActivity extends Activity {
     private TitleAdapter adapter;
     private String device_name;
     private int width;
+    private MyDatabaseHelper dbHelper;
+    private SQLiteDatabase db;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +45,8 @@ public class CameraPicActivity extends Activity {
         initView();
     }
     private void initView() {
+        dbHelper = new MyDatabaseHelper(CameraPicActivity.this, "filepath.db", null, 1);
+        db = dbHelper.getWritableDatabase();
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         tv = (TextView) findViewById(R.id.text);
         device_name = getIntent().getStringExtra("pic");
@@ -57,20 +62,45 @@ public class CameraPicActivity extends Activity {
     private void initData() {
         datalist = new ArrayList<>();
         title_list = new ArrayList<>();
-        //获取所有文件的路径
-        datalist = DataUtils.getImagePathFromSD(device_name);
-        //获取所有文件最后修改时间
-        time_list = getFileTime(datalist);
-        //获取时间相同的文件的下标
-        index_list = getIndex(time_list);
-        //根据下标，截取出时间相同的文件集合
-        file_list = getData(datalist,index_list);
-        if (datalist.size()==0){
-            rv.setVisibility(View.GONE);
-            tv.setVisibility(View.VISIBLE);
-        }
-        for (int i = 0 ; i < index_list.size() ; i++){
-            title_list.add(time_list.get(i));
+
+        if (!device_name.equals("最近")){
+            //获取所有文件的路径
+            String path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/"+device_name;
+            datalist = DataUtils.getImagePathFromSD(path);
+            //获取所有文件最后修改时间
+            time_list = getFileTime(datalist);
+            Log.i("TAG","time_list="+time_list);
+            //获取时间相同的文件的下标
+            index_list = getIndex(time_list);
+            Log.i("TAG","index_list="+index_list);
+            //根据下标，截取出时间相同的文件集合
+            file_list = getData(datalist,index_list);
+            if (datalist.size()==0){
+                rv.setVisibility(View.GONE);
+                tv.setVisibility(View.VISIBLE);
+            }
+            for (int i = 0 ; i < index_list.size() ; i++){
+                title_list.add(time_list.get(index_list.get(i)));
+            }
+        }else{
+            Cursor cursor = db.query("picfilepath", null, null, null, null, null, null);
+            if (cursor.moveToFirst()){
+                do {
+                    String file_path = cursor.getString(cursor.getColumnIndex("path"));
+                    datalist.add(file_path);
+                }while (cursor.moveToNext());
+            }
+            cursor.close();
+            time_list = getFileTime(datalist);
+            index_list = getIndex(time_list);
+            file_list = getData(datalist,index_list);
+            if (datalist.size()==0){
+                rv.setVisibility(View.GONE);
+                tv.setVisibility(View.VISIBLE);
+            }
+            for (int i = 0 ; i < index_list.size() ; i++){
+                title_list.add(time_list.get(index_list.get(i)));
+            }
         }
     }
 
@@ -138,7 +168,7 @@ public class CameraPicActivity extends Activity {
         return width;
     }
     public static void startActivity(Context context, ArrayList<String> list, int position){
-        Intent intent = new Intent(context,PictureActivity.class);
+        Intent intent = new Intent(context, PictureActivity.class);
         intent.putExtra("position",position);
         intent.putStringArrayListExtra("list", (ArrayList<String>) list);
         context.startActivity(intent);
