@@ -212,9 +212,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
                 }
             }
-            Log.i("TAG","pt="+pt);
             String pp = pt.substring(0, pt.length() - 1);
-            Log.i("TAG","pp="+pp);
             String[] pp1 = pp.split(";");
             for (String ppap : pp1) {
                 String[] temp = ppap.split(",");
@@ -312,7 +310,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             position.setVisibility(View.GONE);
             position_sel.setVisibility(View.VISIBLE);
             locationDisplay.startAsync();
-            Log.i("TAG","startlocation");
         }
     }
 
@@ -401,7 +398,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
                     collection = new PointCollection(mapView.getSpatialReference());
                     //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
-                    //String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
                     String url = "camera.kml";
                     String url2 = "info.kml";
                     GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
