@@ -16,7 +16,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.videogo.EzvizApplication;
 import com.videogo.MyDatabaseHelper;
+import com.videogo.adapter.ImageRecyclerAdapter;
+import com.videogo.adapter.OnRecyclerItemLongClickListener;
 import com.videogo.adapter.TitleAdapter;
 import com.videogo.scanpic.PictureActivity;
 import com.videogo.ui.util.DataUtils;
@@ -36,10 +39,11 @@ public class CameraVideoActivity extends Activity {
     private List<Integer> index_list;
     private List<List<String>> file_list ;
     private List<String> title_list;
+    private List<String> path_checked_list;
     private TitleAdapter adapter;
     private String device_name;
+    private Boolean show_flag = true;
     private int width;
-    private MyDatabaseHelper dbHelper;
     private SQLiteDatabase db;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,8 +52,7 @@ public class CameraVideoActivity extends Activity {
         initView();
     }
     private void initView() {
-        dbHelper = new MyDatabaseHelper(CameraVideoActivity.this, "filepath.db", null, 1);
-        db = dbHelper.getWritableDatabase();
+        db = ((EzvizApplication) getApplication()).getDatebase();
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         tv = (TextView) findViewById(R.id.text);
         device_name = getIntent().getStringExtra("video");
@@ -57,7 +60,32 @@ public class CameraVideoActivity extends Activity {
         initData();
         if(adapter == null){
             rv.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new TitleAdapter(this,title_list,file_list,width);
+            adapter = new TitleAdapter(this, title_list, file_list, width, show_flag, new TitleAdapter.Callback() {
+                @Override
+                public void callback(boolean flag) {
+                    if (flag){
+                        show_flag = false;
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                    }else{
+                        show_flag = true;
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+
+                @Override
+                public void addStringPath(int p1, int p2) {
+                    path_checked_list.add(file_list.get(p1).get(p2));
+                    Log.i("TAG","size="+path_checked_list.size());
+                }
+
+                @Override
+                public void removeStringPath(int p1, int p2) {
+                    path_checked_list.remove(file_list.get(p1).get(p2));
+                    Log.i("TAG","size="+path_checked_list.size());
+                }
+            });
             rv.setAdapter(adapter);
         }
     }
@@ -65,6 +93,7 @@ public class CameraVideoActivity extends Activity {
     private void initData() {
         datalist = new ArrayList<>();
         title_list = new ArrayList<>();
+        path_checked_list = new ArrayList<>();
 
         if (!device_name.equals("最近")){
             //获取所有文件的路径

@@ -61,6 +61,7 @@
     <dimen name="remoteplayback_channel_text_size">9dp</dimen>
     <dimen name="remoteplayback_button_text_size">15dp</dimen>
     <dimen name="remoteplayback_ratio_text_size">24dp</dimen>
+    <dimen name="divider">3dp</dimen>
 
     <!-- 回放列表 -->
     <dimen name="remotelist_time_text_size">9dp</dimen>

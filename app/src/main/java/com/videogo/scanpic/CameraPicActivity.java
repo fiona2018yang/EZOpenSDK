@@ -5,18 +5,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.videogo.EzvizApplication;
 import com.videogo.MyDatabaseHelper;
+import com.videogo.MyImageButton;
+import com.videogo.ToastNotRepeat;
+import com.videogo.adapter.ImageRecyclerAdapter;
+import com.videogo.adapter.MyPaddingDecoration;
 import com.videogo.adapter.TitleAdapter;
 import com.videogo.ui.util.DataUtils;
 import java.io.File;
@@ -25,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import ezviz.ezopensdk.R;
 
-public class CameraPicActivity extends Activity {
+public class CameraPicActivity extends Activity  {
     private RecyclerView rv;
     private TextView tv;
     private List<String> datalist;
@@ -33,11 +43,17 @@ public class CameraPicActivity extends Activity {
     private List<Integer> index_list;
     private List<List<String>> file_list ;
     private List<String> title_list;
+    private List<String> path_checked_list;
     private TitleAdapter adapter;
     private String device_name;
+    private Boolean show_flag = true;
     private int width;
-    private MyDatabaseHelper dbHelper;
     private SQLiteDatabase db;
+    private LinearLayout linearLayout;
+    private LinearLayout linear_1;
+    private LinearLayout linear_2;
+    private MyImageButton myImageButton1 = null;
+    private MyImageButton myImageButton2 = null;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,23 +61,98 @@ public class CameraPicActivity extends Activity {
         initView();
     }
     private void initView() {
-        dbHelper = new MyDatabaseHelper(CameraPicActivity.this, "filepath.db", null, 1);
-        db = dbHelper.getWritableDatabase();
+        db = ((EzvizApplication) getApplication()).getDatebase();
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         tv = (TextView) findViewById(R.id.text);
+        linearLayout = findViewById(R.id.linearLayout);
+        linear_1 = findViewById(R.id.linear_1);
+        linear_2 = findViewById(R.id.linear_2);
         device_name = getIntent().getStringExtra("pic");
         width = getScreenProperty();
+        myImageButton1 = new MyImageButton(this,R.mipmap.send,"发送",60,60);
+        myImageButton2 = new MyImageButton(this,R.mipmap.delate,"删除",60,60);
+        linear_1.addView(myImageButton1);
+        linear_2.addView(myImageButton2);
         initData();
+        addClickListner();
         if(adapter == null){
             rv.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new TitleAdapter(this,title_list,file_list,width);
+            adapter = new TitleAdapter(this, title_list, file_list, width, show_flag, new TitleAdapter.Callback() {
+                @Override
+                public void callback(boolean flag) {
+                    if (flag){
+                        show_flag = false;
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.GONE);
+                    }else{
+                        show_flag = true;
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.VISIBLE);
+                    }
+                }
+                //选中Checkbox
+                @Override
+                public void addStringPath(int p1, int p2) {
+                    path_checked_list.add(file_list.get(p1).get(p2));
+                    Log.i("TAG","size="+path_checked_list.size());
+                }
+                //取消Checkbox
+                @Override
+                public void removeStringPath(int p1, int p2) {
+                    path_checked_list.remove(file_list.get(p1).get(p2));
+                    Log.i("TAG","size="+path_checked_list.size());
+                }
+            });
             rv.setAdapter(adapter);
         }
+    }
+
+    private void addClickListner() {
+        myImageButton1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList <Uri> files = new ArrayList<>();
+                //发送
+                for (int i = 0 ; i < path_checked_list.size() ; i++){
+                    Uri uri = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(path_checked_list.get(i)));
+                    files.add(uri);
+                }
+//                String str1 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/data/093611790.jpg";
+//                String str2 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/data/093635480.jpg";
+//                String str3 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/data/093703090.jpg";
+//                Uri uri1 = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(str1));
+//                Uri uri2 = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(str2));
+//                Uri uri3 = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(str3));
+//                files.add(uri1);
+//                files.add(uri2);
+//                files.add(uri3);
+                Log.i("TAG","files.size="+files.size());
+                Log.i("TAG","files="+files.toString());
+                senfiles("分享","分享","分享",files);
+            }
+        });
+        myImageButton2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i = 0 ; i < path_checked_list.size() ; i++){
+                    File file = new File(path_checked_list.get(i));
+                    if (file.exists()){
+                        file.delete();
+                    }
+                }
+                initData();
+                adapter.notifyDataSetChanged();
+                ToastNotRepeat.show(CameraPicActivity.this,"删除成功");
+            }
+        });
     }
 
     private void initData() {
         datalist = new ArrayList<>();
         title_list = new ArrayList<>();
+        path_checked_list = new ArrayList<>();
 
         if (!device_name.equals("最近")){
             //获取所有文件的路径
@@ -178,5 +269,35 @@ public class CameraPicActivity extends Activity {
         super.onResume();
         initData();
         adapter.notifyDataSetChanged();
+    }
+
+    /**
+     * 文件发送
+     * @param dlgTitle
+     * @param subject
+     * @param content
+     * @param files
+     */
+    private void senfiles(String dlgTitle, String subject, String content,ArrayList<Uri> files) {
+        if (files.size() == 0) {
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        //Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
+        intent.setType("*/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+//        if (subject != null && !"".equals(subject)) {
+//            intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+//        }
+//        if (content != null && !"".equals(content)) {
+//            intent.putExtra(Intent.EXTRA_TEXT, content);
+//        }
+        // 设置弹出框标题
+        if (dlgTitle != null && !"".equals(dlgTitle)) { // 自定义标题
+            startActivity(Intent.createChooser(intent, dlgTitle));
+        } else { // 系统默认标题
+            startActivity(intent);
+        }
     }
 }

@@ -333,7 +333,6 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private boolean isFaster = false;
     private int my_speed = EZConstants.PTZ_SPEED_DEFAULT;
 
-    private MyDatabaseHelper dbHelper;
     private SQLiteDatabase db;
 
     /**
@@ -523,8 +522,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
     // 初始化数据对象
     private void initData() {
-        dbHelper = new MyDatabaseHelper(EZRealPlayActivity.this, "filepath.db", null, 1);
-        db = dbHelper.getWritableDatabase();
+        db = ((EzvizApplication)getApplication()).getDatebase();
 
 
         // 获取本地信息

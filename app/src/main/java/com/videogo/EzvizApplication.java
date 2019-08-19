@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
@@ -27,6 +28,7 @@ import com.baidu.mapapi.SDKInitializer;
 import com.videogo.constant.Constant;
 import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.bean.EZAccessToken;
+import com.videogo.scanvideo.CameraVideoActivity;
 import com.videogo.ui.cameralist.EZCameraListActivity;
 import com.videogo.util.LogUtil;
 
@@ -39,6 +41,8 @@ public class EzvizApplication extends Application {
     //开发者需要填入自己申请的appkey//ABC
     //public static String AppKey = "76d8a02ae81a4260a02e470ebb48077d";
     public static String AppKey = "bec27f333fd04a95a352bec49d466754";
+    private MyDatabaseHelper dbHelper;
+    private  SQLiteDatabase db;
     private IntentFilter intentFilter;
     private EzvizBroadcastReceiver receiver;
     public static EZOpenSDK getOpenSDK() {
@@ -54,12 +58,16 @@ public class EzvizApplication extends Application {
     }
 
     private void initData() {
+        dbHelper = new MyDatabaseHelper(this, "filepath.db", null, 1);
+        db = dbHelper.getWritableDatabase();
         intentFilter = new IntentFilter();
         intentFilter.addAction("com.videogo.action.ADD_DEVICE_SUCCESS_ACTION");
         intentFilter.addAction("com.videogo.action.OAUTH_SUCCESS_ACTION");
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         receiver = new EzvizBroadcastReceiver();
         registerReceiver(receiver,intentFilter);
+
+
     }
 
     @Override
@@ -73,7 +81,9 @@ public class EzvizApplication extends Application {
         super.attachBaseContext(base);
         MultiDex.install(this);
     }
-
+    public  SQLiteDatabase getDatebase(){
+        return db;
+    }
     private void initSDK() {
         {
             /**

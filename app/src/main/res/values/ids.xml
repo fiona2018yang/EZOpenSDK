@@ -15,7 +15,6 @@
  limitations under the License.
 -->
 <resources>
-
     <!-- Messages IDs -->
     <item name="auto_focus" type="id"/>
     <item name="decode" type="id"/>
@@ -28,5 +27,7 @@
     <item name="restart_preview" type="id"/>
     <item name="return_scan_result" type="id"/>
     <item name="tag_key_position" type="id"/>
+    <item name="tag_first" type="id"/>
+    <item name="tag_second" type="id"/>
 
 </resources>
