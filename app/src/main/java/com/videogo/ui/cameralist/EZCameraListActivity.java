@@ -449,8 +449,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
                     }
                 }
                 String cover = result.get(0).getDeviceCover();
-                result.get(0).setDeviceCover(Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/双塔(203571341)/160607604.jpg");
-                Log.i("TAG","cover="+cover);
                 return result;
 
             } catch (BaseException e) {
@@ -489,6 +487,11 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
                 } else if (mHeaderOrFooter) {
                     mListView.setFooterRefreshEnabled(true);
                     mListView.getRefreshableView().removeFooterView(mNoMoreView);
+                }
+                if (result.size()>0){
+                    result.get(0).setDeviceCover("file:///android_asset/bg_shuangta.jpg");
+                    result.get(1).setDeviceCover("file:///android_asset/bg_hewan.jpg");
+                    result.get(2).setDeviceCover("file:///android_asset/bg_dayunhe.jpg");
                 }
                 addCameraList(result);
                 mAdapter.notifyDataSetChanged();

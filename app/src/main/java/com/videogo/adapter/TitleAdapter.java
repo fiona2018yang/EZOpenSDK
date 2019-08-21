@@ -31,7 +31,7 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
     //新增itemType
     public static final int ITEM_TYPE = 100;
     private ImageRecyclerAdapter imageRecyclerAdapter;
-    public TitleAdapter(Context context,List<String> titile_list, List<List<String>> file_list , int width,Boolean showCheck,Callback callback) {
+    public TitleAdapter(Context context,List<String> titile_list, List<List<String>> file_list , int width , Boolean showCheck , Callback callback) {
         this.context = context;
         this.titile_list = titile_list;
         this.file_list = file_list;
@@ -59,13 +59,11 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
     @Override
     public void onBindViewHolder(TitleHolder holder, int position) {
         holder.title.setText(titile_list.get(position));
-        holder.list.clear();
-        holder.list.addAll(file_list.get(position));
         if (holder.imageRecyclerAdapter == null){
             holder.recyclerView.setHasFixedSize(true);
             holder.recyclerView.setLayoutManager(new GridLayoutManager(context,width/350));
             holder.recyclerView.setItemAnimator(new DefaultItemAnimator());
-            holder.imageRecyclerAdapter = new ImageRecyclerAdapter(context,holder.list);
+            holder.imageRecyclerAdapter = new ImageRecyclerAdapter(context,file_list.get(position),showCheck);
             holder.recyclerView.setAdapter(holder.imageRecyclerAdapter);
         }
         if(!showCheck){
@@ -82,8 +80,6 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
             @Override
             protected void click(View item, int p) {
                 if (holder.imageRecyclerAdapter.getShowChecked()){
-                    Log.i("TAG","position="+position);
-                    Log.i("TAG","p="+p);
                     if (((CheckBox)item.getTag()).isChecked()){
                         ((CheckBox)item.getTag()).setChecked(false);
                         callback.removeStringPath(position,p);
@@ -100,7 +96,6 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
            @Override
            protected void longClick(View item, int p) {
                showCheck = holder.imageRecyclerAdapter.getShowChecked();
-               Log.i("TAG","showcheck="+showCheck);
                callback.callback(showCheck);
            }
        });
@@ -120,7 +115,6 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
         private TextView title;
         private RecyclerView recyclerView;
         private ImageRecyclerAdapter imageRecyclerAdapter;
-        private List<String> list = new ArrayList<>();
         public TitleHolder(View itemView,ImageRecyclerAdapter imageRecyclerAdapter) {
             super(itemView);
             title = itemView.findViewById(R.id.title_tv);

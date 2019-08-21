@@ -29,9 +29,16 @@ import com.videogo.adapter.ImageRecyclerAdapter;
 import com.videogo.adapter.MyPaddingDecoration;
 import com.videogo.adapter.TitleAdapter;
 import com.videogo.ui.util.DataUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import ezviz.ezopensdk.R;
 
@@ -39,11 +46,10 @@ public class CameraPicActivity extends Activity  {
     private RecyclerView rv;
     private TextView tv;
     private List<String> datalist;
-    private List<String> time_list;
-    private List<Integer> index_list;
     private List<List<String>> file_list ;
     private List<String> title_list;
     private List<String> path_checked_list;
+    private HashMap<String,List<String>> data_map;
     private TitleAdapter adapter;
     private String device_name;
     private Boolean show_flag = true;
@@ -69,6 +75,10 @@ public class CameraPicActivity extends Activity  {
         linear_2 = findViewById(R.id.linear_2);
         device_name = getIntent().getStringExtra("pic");
         width = getScreenProperty();
+        title_list = new ArrayList<>();
+        file_list = new ArrayList<>();
+        datalist = new ArrayList<>();
+        path_checked_list = new ArrayList<>();
         myImageButton1 = new MyImageButton(this,R.mipmap.send,"发送",60,60);
         myImageButton2 = new MyImageButton(this,R.mipmap.delate,"删除",60,60);
         linear_1.addView(myImageButton1);
@@ -77,16 +87,14 @@ public class CameraPicActivity extends Activity  {
         addClickListner();
         if(adapter == null){
             rv.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new TitleAdapter(this, title_list, file_list, width, show_flag, new TitleAdapter.Callback() {
+            adapter = new TitleAdapter(this, title_list, file_list, width, show_flag,new TitleAdapter.Callback() {
                 @Override
                 public void callback(boolean flag) {
                     if (flag){
-                        show_flag = false;
                         path_checked_list.clear();
                         adapter.notifyDataSetChanged();
                         linearLayout.setVisibility(View.GONE);
                     }else{
-                        show_flag = true;
                         path_checked_list.clear();
                         adapter.notifyDataSetChanged();
                         linearLayout.setVisibility(View.VISIBLE);
@@ -96,13 +104,11 @@ public class CameraPicActivity extends Activity  {
                 @Override
                 public void addStringPath(int p1, int p2) {
                     path_checked_list.add(file_list.get(p1).get(p2));
-                    Log.i("TAG","size="+path_checked_list.size());
                 }
                 //取消Checkbox
                 @Override
                 public void removeStringPath(int p1, int p2) {
                     path_checked_list.remove(file_list.get(p1).get(p2));
-                    Log.i("TAG","size="+path_checked_list.size());
                 }
             });
             rv.setAdapter(adapter);
@@ -110,29 +116,25 @@ public class CameraPicActivity extends Activity  {
     }
 
     private void addClickListner() {
+        //发送
         myImageButton1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ArrayList <Uri> files = new ArrayList<>();
                 //发送
                 for (int i = 0 ; i < path_checked_list.size() ; i++){
-                    Uri uri = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(path_checked_list.get(i)));
+                    //Uri uri = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(path_checked_list.get(i)));
+                    Uri uri = Uri.parse(path_checked_list.get(i));
                     files.add(uri);
                 }
-//                String str1 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/data/093611790.jpg";
-//                String str2 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/data/093635480.jpg";
-//                String str3 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/data/093703090.jpg";
-//                Uri uri1 = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(str1));
-//                Uri uri2 = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(str2));
-//                Uri uri3 = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(str3));
-//                files.add(uri1);
-//                files.add(uri2);
-//                files.add(uri3);
-                Log.i("TAG","files.size="+files.size());
-                Log.i("TAG","files="+files.toString());
-                senfiles("分享","分享","分享",files);
+                senfiles("分享",files);
+                adapter.setCheck(true);
+                path_checked_list.clear();
+                adapter.notifyDataSetChanged();
+                linearLayout.setVisibility(View.GONE);
             }
         });
+        //删除
         myImageButton2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -142,36 +144,54 @@ public class CameraPicActivity extends Activity  {
                         file.delete();
                     }
                 }
-                initData();
+                //更新数据
+                Iterator ia = file_list.iterator();
+                while (ia.hasNext()){
+                    List<String> s = (List<String>) ia.next();
+                    Iterator ib = s.iterator();
+                    while (ib.hasNext()){
+                        String str = (String) ib.next();
+                        for (int m = 0 ; m < path_checked_list.size() ; m++){
+                            if (str.equals(path_checked_list.get(m))){
+                                ib.remove();
+                            }
+                        }
+                    }
+                }
+                adapter.setCheck(true);
+                path_checked_list.clear();
                 adapter.notifyDataSetChanged();
+                linearLayout.setVisibility(View.GONE);
                 ToastNotRepeat.show(CameraPicActivity.this,"删除成功");
             }
         });
     }
 
     private void initData() {
-        datalist = new ArrayList<>();
-        title_list = new ArrayList<>();
-        path_checked_list = new ArrayList<>();
+        title_list.clear();
+        file_list.clear();
+        datalist.clear();
+        List<String> time_list = new ArrayList<>();
+        List<Integer> index_list = new ArrayList<>();
 
         if (!device_name.equals("最近")){
             //获取所有文件的路径
             String path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/"+device_name;
-            datalist = DataUtils.getImagePathFromSD(path);
-            //获取所有文件最后修改时间
-            time_list = getFileTime(datalist);
-            Log.i("TAG","time_list="+time_list);
-            //获取时间相同的文件的下标
-            index_list = getIndex(time_list);
-            Log.i("TAG","index_list="+index_list);
-            //根据下标，截取出时间相同的文件集合
-            file_list = getData(datalist,index_list);
-            if (datalist.size()==0){
+            datalist.addAll(DataUtils.getImagePathFromSD(path));
+            Log.i("TAG","datalist.size="+datalist.size());
+            if (datalist.size() != 0){
+                //获取所有文件最后修改时间
+                time_list.addAll(getFileTime(datalist));
+                //获取时间相同的文件的下标
+                index_list.addAll(getIndex(time_list));
+                //根据下标，截取出时间相同的文件集合
+                file_list.addAll(getData(datalist,index_list));
+                for (int i = 0 ; i < index_list.size() ; i++){
+                    title_list.add(time_list.get(index_list.get(i)));
+                }
+            }else{
                 rv.setVisibility(View.GONE);
                 tv.setVisibility(View.VISIBLE);
-            }
-            for (int i = 0 ; i < index_list.size() ; i++){
-                title_list.add(time_list.get(index_list.get(i)));
             }
         }else{
             Cursor cursor = db.query("picfilepath", null, null, null, null, null, null);
@@ -182,15 +202,16 @@ public class CameraPicActivity extends Activity  {
                 }while (cursor.moveToNext());
             }
             cursor.close();
-            time_list = getFileTime(datalist);
-            index_list = getIndex(time_list);
-            file_list = getData(datalist,index_list);
-            if (datalist.size()==0){
+            if (datalist.size() != 0){
+                time_list = getFileTime(datalist);
+                index_list = getIndex(time_list);
+                file_list.addAll(getData(datalist,index_list));
+                for (int i = 0 ; i < index_list.size() ; i++){
+                    title_list.add(time_list.get(index_list.get(i)));
+                }
+            }else{
                 rv.setVisibility(View.GONE);
                 tv.setVisibility(View.VISIBLE);
-            }
-            for (int i = 0 ; i < index_list.size() ; i++){
-                title_list.add(time_list.get(index_list.get(i)));
             }
         }
     }
@@ -201,7 +222,7 @@ public class CameraPicActivity extends Activity  {
      * @param index_list
      * @return
      */
-    private List<List<String>> getData(List<String> datalist,List<Integer> index_list){
+    private List<List<String>> getData( List<String> datalist,List<Integer> index_list){
         List<List<String>> list = new ArrayList<>();
         for (int  i = 0 ; i < index_list.size() ; i++){
             List<String> list_a = new ArrayList<>();
@@ -274,11 +295,9 @@ public class CameraPicActivity extends Activity  {
     /**
      * 文件发送
      * @param dlgTitle
-     * @param subject
-     * @param content
      * @param files
      */
-    private void senfiles(String dlgTitle, String subject, String content,ArrayList<Uri> files) {
+    private void senfiles(String dlgTitle,ArrayList<Uri> files) {
         if (files.size() == 0) {
             return;
         }
@@ -287,12 +306,6 @@ public class CameraPicActivity extends Activity  {
         intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
         intent.setType("*/*");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-//        if (subject != null && !"".equals(subject)) {
-//            intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-//        }
-//        if (content != null && !"".equals(content)) {
-//            intent.putExtra(Intent.EXTRA_TEXT, content);
-//        }
         // 设置弹出框标题
         if (dlgTitle != null && !"".equals(dlgTitle)) { // 自定义标题
             startActivity(Intent.createChooser(intent, dlgTitle));

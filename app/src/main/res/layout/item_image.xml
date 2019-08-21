@@ -24,8 +24,14 @@
         android:id="@+id/cb_item"
         android:visibility="gone"
         android:clickable="false"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:background="@drawable/check_box"
+        android:button="@null"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="8dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentBottom="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="15dp"
+        android:layout_height="15dp" />
 </RelativeLayout>

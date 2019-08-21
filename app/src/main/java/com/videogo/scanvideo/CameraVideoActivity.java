@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
@@ -14,19 +15,24 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.videogo.EzvizApplication;
 import com.videogo.MyDatabaseHelper;
+import com.videogo.MyImageButton;
+import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.ImageRecyclerAdapter;
 import com.videogo.adapter.OnRecyclerItemLongClickListener;
 import com.videogo.adapter.TitleAdapter;
+import com.videogo.scanpic.CameraPicActivity;
 import com.videogo.scanpic.PictureActivity;
 import com.videogo.ui.util.DataUtils;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import ezviz.ezopensdk.R;
@@ -35,8 +41,6 @@ public class CameraVideoActivity extends Activity {
     private RecyclerView rv;
     private TextView tv;
     private List<String> datalist;
-    private List<String> time_list;
-    private List<Integer> index_list;
     private List<List<String>> file_list ;
     private List<String> title_list;
     private List<String> path_checked_list;
@@ -45,6 +49,11 @@ public class CameraVideoActivity extends Activity {
     private Boolean show_flag = true;
     private int width;
     private SQLiteDatabase db;
+    private LinearLayout linearLayout;
+    private LinearLayout linear_1;
+    private LinearLayout linear_2;
+    private MyImageButton myImageButton1 = null;
+    private MyImageButton myImageButton2 = null;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,62 +64,127 @@ public class CameraVideoActivity extends Activity {
         db = ((EzvizApplication) getApplication()).getDatebase();
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         tv = (TextView) findViewById(R.id.text);
+        linearLayout = findViewById(R.id.linearLayout);
+        linear_1 = findViewById(R.id.linear_1);
+        linear_2 = findViewById(R.id.linear_2);
         device_name = getIntent().getStringExtra("video");
         width = getScreenProperty();
+        title_list = new ArrayList<>();
+        file_list = new ArrayList<>();
+        datalist = new ArrayList<>();
+        path_checked_list = new ArrayList<>();
+        myImageButton1 = new MyImageButton(this,R.mipmap.send,"发送",60,60);
+        myImageButton2 = new MyImageButton(this,R.mipmap.delate,"删除",60,60);
+        linear_1.addView(myImageButton1);
+        linear_2.addView(myImageButton2);
         initData();
+        addClickListner();
         if(adapter == null){
             rv.setLayoutManager(new LinearLayoutManager(this));
             adapter = new TitleAdapter(this, title_list, file_list, width, show_flag, new TitleAdapter.Callback() {
                 @Override
                 public void callback(boolean flag) {
                     if (flag){
-                        show_flag = false;
                         path_checked_list.clear();
                         adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.GONE);
                     }else{
-                        show_flag = true;
                         path_checked_list.clear();
                         adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.VISIBLE);
                     }
                 }
 
                 @Override
                 public void addStringPath(int p1, int p2) {
                     path_checked_list.add(file_list.get(p1).get(p2));
-                    Log.i("TAG","size="+path_checked_list.size());
                 }
 
                 @Override
                 public void removeStringPath(int p1, int p2) {
                     path_checked_list.remove(file_list.get(p1).get(p2));
-                    Log.i("TAG","size="+path_checked_list.size());
                 }
             });
             rv.setAdapter(adapter);
         }
     }
 
+    private void addClickListner() {
+        //发送
+        myImageButton1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList <Uri> files = new ArrayList<>();
+                //发送
+                for (int i = 0 ; i < path_checked_list.size() ; i++){
+                    //Uri uri = FileProvider.getUriForFile(CameraPicActivity.this,"ezviz.ezopensdk.fileprovider",new File(path_checked_list.get(i)));
+                    Uri uri = Uri.parse(path_checked_list.get(i));
+                    files.add(uri);
+                }
+                senfiles("分享",files);
+                adapter.setCheck(true);
+                path_checked_list.clear();
+                adapter.notifyDataSetChanged();
+                linearLayout.setVisibility(View.GONE);
+            }
+        });
+        //删除
+        myImageButton2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (int i = 0 ; i < path_checked_list.size() ; i++){
+                    File file = new File(path_checked_list.get(i));
+                    if (file.exists()){
+                        file.delete();
+                    }
+                }
+                //更新数据
+                Iterator ia = file_list.iterator();
+                while (ia.hasNext()){
+                    List<String> s = (List<String>) ia.next();
+                    Iterator ib = s.iterator();
+                    while (ib.hasNext()){
+                        String str = (String) ib.next();
+                        for (int m = 0 ; m < path_checked_list.size() ; m++){
+                            if (str.equals(path_checked_list.get(m))){
+                                ib.remove();
+                            }
+                        }
+                    }
+                }
+                adapter.setCheck(true);
+                path_checked_list.clear();
+                adapter.notifyDataSetChanged();
+                linearLayout.setVisibility(View.GONE);
+                ToastNotRepeat.show(CameraVideoActivity.this,"删除成功");
+            }
+        });
+    }
+
     private void initData() {
-        datalist = new ArrayList<>();
-        title_list = new ArrayList<>();
-        path_checked_list = new ArrayList<>();
+        title_list.clear();
+        file_list.clear();
+        datalist.clear();
+        List<String> time_list = new ArrayList<>();
+        List<Integer> index_list = new ArrayList<>();
 
         if (!device_name.equals("最近")){
             //获取所有文件的路径
             String path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CaptureVideo/"+device_name;
             datalist = DataUtils.getImagePathFromSD(path);
-            //获取所有文件最后修改时间
-            time_list = getFileTime(datalist);
-            //获取时间相同的文件的下标
-            index_list = getIndex(time_list);
-            //根据下标，截取出时间相同的文件集合
-            file_list = getData(datalist,index_list);
-            if (datalist.size()==0){
+            if (datalist.size() != 0){
+                //获取所有文件最后修改时间
+                time_list.addAll(getFileTime(datalist));
+                //获取时间相同的文件的下标
+                index_list.addAll(getIndex(time_list));
+                //根据下标，截取出时间相同的文件集合
+                file_list.addAll(getData(datalist,index_list));
+                for (int i = 0 ; i < index_list.size() ; i++){
+                    title_list.add(time_list.get(index_list.get(i)));
+                }
+            }else{
                 rv.setVisibility(View.GONE);
                 tv.setVisibility(View.VISIBLE);
-            }
-            for (int i = 0 ; i < index_list.size() ; i++){
-                title_list.add(time_list.get(index_list.get(i)));
             }
         }else{
             Cursor cursor = db.query("videofilepath", null, null, null, null, null, null);
@@ -121,15 +195,16 @@ public class CameraVideoActivity extends Activity {
                 }while (cursor.moveToNext());
             }
             cursor.close();
-            time_list = getFileTime(datalist);
-            index_list = getIndex(time_list);
-            file_list = getData(datalist,index_list);
-            if (datalist.size()==0){
+            if (datalist.size() != 0){
+                time_list = getFileTime(datalist);
+                index_list = getIndex(time_list);
+                file_list.addAll(getData(datalist,index_list));
+                for (int i = 0 ; i < index_list.size() ; i++){
+                    title_list.add(time_list.get(index_list.get(i)));
+                }
+            }else{
                 rv.setVisibility(View.GONE);
                 tv.setVisibility(View.VISIBLE);
-            }
-            for (int i = 0 ; i < index_list.size() ; i++){
-                title_list.add(time_list.get(index_list.get(i)));
             }
         }
     }
@@ -208,5 +283,26 @@ public class CameraVideoActivity extends Activity {
         super.onResume();
         initData();
         adapter.notifyDataSetChanged();
+    }
+    /**
+     * 文件发送
+     * @param dlgTitle
+     * @param files
+     */
+    private void senfiles(String dlgTitle,ArrayList<Uri> files) {
+        if (files.size() == 0) {
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_SEND_MULTIPLE);
+        //Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
+        intent.setType("*/*");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        // 设置弹出框标题
+        if (dlgTitle != null && !"".equals(dlgTitle)) { // 自定义标题
+            startActivity(Intent.createChooser(intent, dlgTitle));
+        } else { // 系统默认标题
+            startActivity(intent);
+        }
     }
 }

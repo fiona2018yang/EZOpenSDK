@@ -24,14 +24,15 @@ public class ImageRecyclerAdapter extends RecyclerView.Adapter<ImageRecyclerAdap
     private List<String> dataList;
     private Context context;
     private LayoutInflater inflater;
-    private Boolean showChecked = false;
+    private Boolean showChecked ;
     private OnRecyclerItemClickListener itemClickListener;
     private OnRecyclerItemLongClickListener itemLongClickListener;
     private MyVideoThumbLoader mVideoThumbLoader;
 
-    public ImageRecyclerAdapter(Context context, List<String> dataList) {
+    public ImageRecyclerAdapter(Context context, List<String> dataList,Boolean showChecked) {
         this.dataList = dataList;
         this.context = context;
+        this.showChecked = showChecked;
         inflater = LayoutInflater.from(context);
         mVideoThumbLoader = new MyVideoThumbLoader(context);// 初始化缩略图载入方法
     }
