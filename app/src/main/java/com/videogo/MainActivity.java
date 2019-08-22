@@ -70,7 +70,7 @@ import ezviz.ezopensdk.R;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
-    private ImageButton change,info,info_sel,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
+    private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
     private ArcGISMap mMap;
     private String path;
@@ -84,6 +84,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private List<GraphicsOverlay> list_graphicsOverlays = new ArrayList<>();
     private List<GraphicsOverlay> list_graphicsOverlays_info = new ArrayList<>();
     private GraphicsOverlay graphicsOverlay_info;
+    private GraphicsOverlay graphicsOverlay_camera;
 
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
@@ -100,7 +101,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         mapView = (MapView) findViewById(R.id.map);
         change = findViewById(R.id.change_ibtn);
         info = findViewById(R.id.info_ibtn);
-        info_sel = findViewById(R.id.info_ibtn_sel);
         warning = findViewById(R.id.warning_ibtn);
         robot = findViewById(R.id.robot_ibtn);
         measure = findViewById(R.id.measure_ibtn);
@@ -114,7 +114,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
-        info_sel.setOnClickListener(this);
         warning.setOnClickListener(this);
         robot.setOnClickListener(this);
         measure.setOnClickListener(this);
@@ -144,18 +143,24 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 selectfile();
                 break;
             case R.id.info_ibtn:
-                info.setVisibility(View.GONE);
-                info_sel.setVisibility(View.VISIBLE);
-                graphicsOverlay_info.setVisible(true);
-                break;
-            case R.id.info_ibtn_sel:
-                info.setVisibility(View.VISIBLE);
-                info_sel.setVisibility(View.GONE);
-                graphicsOverlay_info.setVisible(false);
+                if (graphicsOverlay_info.isVisible()){
+                    graphicsOverlay_info.setVisible(false);
+                    info.setBackgroundResource(R.mipmap.xinxi);
+                }else{
+                    graphicsOverlay_info.setVisible(true);
+                    info.setBackgroundResource(R.mipmap.xinxi_sel);
+                }
                 break;
             case R.id.warning_ibtn:
                 break;
             case R.id.robot_ibtn:
+                if (graphicsOverlay_camera.isVisible()){
+                    graphicsOverlay_camera.setVisible(false);
+                    robot.setBackgroundResource(R.mipmap.jiqiren);
+                }else{
+                    graphicsOverlay_camera.setVisible(true);
+                    robot.setBackgroundResource(R.mipmap.jiqiren_sel);
+                }
                 break;
             case R.id.measure_ibtn:
                 measure.setVisibility(View.GONE);
@@ -400,9 +405,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
                     String url = "camera.kml";
                     String url2 = "info.kml";
-                    GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
+                    graphicsOverlay_camera = new GraphicsOverlay();
                     graphicsOverlay_info = new GraphicsOverlay();
-                    mapView.getGraphicsOverlays().add(graphicsOverlay);
+                    mapView.getGraphicsOverlays().add(graphicsOverlay_camera);
                     mapView.getGraphicsOverlays().add(graphicsOverlay_info);
                     PictureMarkerSymbol pictureMarkerSymbol = new PictureMarkerSymbol((BitmapDrawable) getResources().getDrawable(R.mipmap.marker));
                     SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
@@ -428,12 +433,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                     map.put("name",list_name.get(finalI+2));
                                     map.put("des",list_des.get(finalI));
                                     Graphic ph = new Graphic(list_point.get(finalI), map, pictureMarkerSymbol);
-                                    graphicsOverlay.getGraphics().add(ph);
+                                    graphicsOverlay_camera.getGraphics().add(ph);
                                     TextSymbol t = new TextSymbol(12f, list_name.get(finalI+2), Color.GREEN, TextSymbol.HorizontalAlignment.LEFT, TextSymbol.VerticalAlignment.TOP);
                                     Map<String,Object> map2 = new HashMap<>();
                                     map2.put("style","text");
                                     Graphic graphic_text = new Graphic(list_point.get(finalI),map2,t);
-                                    graphicsOverlay.getGraphics().add(graphic_text);
+                                    graphicsOverlay_camera.getGraphics().add(graphic_text);
                                 }
                             });
                         }
@@ -449,8 +454,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             Graphic ts = new Graphic(polyline,map2,textSymbol);
                             graphicsOverlay_info.getGraphics().add(ts);
                         }
-                        info.setVisibility(View.GONE);
-                        info_sel.setVisibility(View.VISIBLE);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

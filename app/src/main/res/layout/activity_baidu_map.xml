@@ -19,17 +19,6 @@
         android:layout_height="40dp" />
     <ImageButton
         android:id="@+id/info_ibtn"
-        android:visibility="visible"
-        android:layout_below="@+id/change_ibtn"
-        android:layout_marginTop="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_alignParentRight="true"
-        android:background="@mipmap/xinxi"
-        android:layout_width="40dp"
-        android:layout_height="40dp" />
-    <ImageButton
-        android:id="@+id/info_ibtn_sel"
-        android:visibility="gone"
         android:layout_below="@+id/change_ibtn"
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
@@ -39,8 +28,8 @@
         android:layout_height="40dp" />
     <ImageButton
         android:id="@+id/warning_ibtn"
-        android:layout_below="@+id/change_ibtn"
-        android:layout_marginTop="80dp"
+        android:layout_below="@+id/info_ibtn"
+        android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
         android:layout_alignParentRight="true"
         android:background="@drawable/imagebutton_warning_selector"
@@ -52,7 +41,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
         android:layout_alignParentRight="true"
-        android:background="@drawable/imagebutton_robot_selector"
+        android:background="@mipmap/jiqiren_sel"
         android:layout_width="40dp"
         android:layout_height="40dp" />
     <ImageButton

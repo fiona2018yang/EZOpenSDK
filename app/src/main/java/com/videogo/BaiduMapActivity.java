@@ -77,7 +77,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private LocationClient locationClient;
     private MyLocationListener myLocationListener;
     private LatLng latLng ;
-    private ImageButton change,info,info_sel,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
+    private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
     private String style;
     private float angle;
@@ -87,6 +87,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private List<LatLng> points = new ArrayList<LatLng>();
     private List<Overlay> Overlays = new ArrayList<Overlay>();
     private List<Overlay> Overlays_info = new ArrayList<Overlay>();
+    private List<Overlay> Overlays_camera = new ArrayList<Overlay>();
     private List<Overlay> os = new ArrayList<>();
     private List<OverlayOptions> options = new ArrayList<>();
     private List<OverlayOptions> options2 = new ArrayList<>();
@@ -97,6 +98,8 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private List<String> list_des_info = new ArrayList<>();
     private List<PointCollection> list_collection = new ArrayList<>();
     private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
+    private Boolean show_camera = false;
+    private Boolean show_info = false;
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
     private final static int LOAD_MY_DEVICE = 0;
@@ -113,7 +116,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         mapView = findViewById(R.id.map);
         change = findViewById(R.id.change_ibtn);
         info = findViewById(R.id.info_ibtn);
-        info_sel = findViewById(R.id.info_ibtn_sel);
         warning = findViewById(R.id.warning_ibtn);
         robot = findViewById(R.id.robot_ibtn);
         measure = findViewById(R.id.measure_ibtn);
@@ -177,7 +179,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
-        info_sel.setOnClickListener(this);
         warning.setOnClickListener(this);
         robot.setOnClickListener(this);
         measure.setOnClickListener(this);
@@ -295,7 +296,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             options.add(marker_option);
             options.add(text_option);
         }
-        mBaiduMap.addOverlays(options);
+        Overlays_camera =  mBaiduMap.addOverlays(options);
     }
 
     /**
@@ -317,8 +318,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             options2.add(option);
         }
         Overlays_info = mBaiduMap.addOverlays(options2);
-        info.setVisibility(View.GONE);
-        info_sel.setVisibility(View.VISIBLE);
     }
     private LatLng tramsform(Point p ){
         LatLng latLng = new LatLng(p.getY(),p.getX());
@@ -388,22 +387,36 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 selectfile();
                 break;
             case R.id.info_ibtn:
-                info.setVisibility(View.GONE);
-                info_sel.setVisibility(View.VISIBLE);
-                for (Overlay overlay : Overlays_info){
+                if (show_info){
+                    for (Overlay overlay : Overlays_info){
                         overlay.setVisible(true);
-                };
-                break;
-            case R.id.info_ibtn_sel:
-                info.setVisibility(View.VISIBLE);
-                info_sel.setVisibility(View.GONE);
-                for (Overlay overlay : Overlays_info){
-                    overlay.setVisible(false);
-                };
+                    };
+                    info.setBackgroundResource(R.mipmap.xinxi_sel);
+                    show_info = false;
+                }else{
+                    for (Overlay overlay : Overlays_info){
+                        overlay.setVisible(false);
+                    };
+                    info.setBackgroundResource(R.mipmap.xinxi);
+                    show_info = true;
+                }
                 break;
             case R.id.warning_ibtn:
                 break;
             case R.id.robot_ibtn:
+                if (show_camera){
+                    for (Overlay overlay : Overlays_camera){
+                        overlay.setVisible(true);
+                    }
+                    robot.setBackgroundResource(R.mipmap.jiqiren_sel);
+                    show_camera = false;
+                }else{
+                    for (Overlay overlay : Overlays_camera){
+                        overlay.setVisible(false);
+                    }
+                    robot.setBackgroundResource(R.mipmap.jiqiren);
+                    show_camera = true;
+                }
                 break;
             case R.id.measure_ibtn:
                 measure.setVisibility(View.GONE);
