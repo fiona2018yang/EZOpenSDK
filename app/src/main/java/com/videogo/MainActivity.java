@@ -6,12 +6,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.provider.FontsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -26,6 +28,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.geometry.AngularUnit;
 import com.esri.arcgisruntime.geometry.AngularUnitId;
@@ -85,6 +88,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private List<GraphicsOverlay> list_graphicsOverlays_info = new ArrayList<>();
     private GraphicsOverlay graphicsOverlay_info;
     private GraphicsOverlay graphicsOverlay_camera;
+    private GraphicsOverlay graphicsOverlay_warning;
 
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
@@ -152,6 +156,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 }
                 break;
             case R.id.warning_ibtn:
+                if (graphicsOverlay_warning.isVisible()){
+                    graphicsOverlay_warning.setVisible(false);
+                    warning.setBackgroundResource(R.mipmap.baojing);
+                }else{
+                    graphicsOverlay_warning.setVisible(true);
+                    warning.setBackgroundResource(R.mipmap.baojing_sel);
+                }
                 break;
             case R.id.robot_ibtn:
                 if (graphicsOverlay_camera.isVisible()){
@@ -395,6 +406,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             Raster raster = new Raster(path);
             RasterLayer rasterLayer = new RasterLayer(raster);
             rasterLayer.setDescription("MainLayer");
+            //ArcGISRuntimeEnvironment.setLicense("runtimelite,1000,rud1996533172,none,D7MFA0PL402H8YAJM176");
+            mapView.setAttributionTextVisible(false);
             mMap = new ArcGISMap(new Basemap(rasterLayer));
             mapView.setMap(mMap);
             rasterLayer.addDoneLoadingListener(new Runnable() {
@@ -405,12 +418,16 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
                     String url = "camera.kml";
                     String url2 = "info.kml";
+                    String url3 = "违章种植.kml";
                     graphicsOverlay_camera = new GraphicsOverlay();
                     graphicsOverlay_info = new GraphicsOverlay();
+                    graphicsOverlay_warning = new GraphicsOverlay();
                     mapView.getGraphicsOverlays().add(graphicsOverlay_camera);
                     mapView.getGraphicsOverlays().add(graphicsOverlay_info);
+                    mapView.getGraphicsOverlays().add(graphicsOverlay_warning);
                     PictureMarkerSymbol pictureMarkerSymbol = new PictureMarkerSymbol((BitmapDrawable) getResources().getDrawable(R.mipmap.marker));
                     SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
+                    SimpleLineSymbol simpleLineSymbol_warning = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.WHITE,2);
                     pictureMarkerSymbol.loadAsync();
                     try {
                         List<String> list_name = new ArrayList<>();
@@ -419,10 +436,18 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         List<String> list_name_info = new ArrayList<>();
                         List<String> list_des_info = new ArrayList<>();
                         List<PointCollection> list_collection = new ArrayList<>();
+                        List<String> list_name_warning = new ArrayList<>();
+                        List<String> list_des_warning = new ArrayList<>();
+                        List<PointCollection> list_collection_warning = new ArrayList<>();
                         ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,MainActivity.this);
                         readKml.parseKml();
                         ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
                         readKml1.parseKml();
+                        ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,MainActivity.this);
+                        readKml_warning.parseKml();
+                        Log.i("TAG","name="+list_name_warning.toString());
+                        Log.i("TAG","des="+list_des_warning.toString());
+                        Log.i("TAG","collection="+list_collection_warning.get(0).toString());
                         for (int i = 0 ; i < list_point.size()  ; i++){
                             int finalI = i;
                             pictureMarkerSymbol.addDoneLoadingListener(new Runnable() {
@@ -454,6 +479,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             Graphic ts = new Graphic(polyline,map2,textSymbol);
                             graphicsOverlay_info.getGraphics().add(ts);
                         }
+                        for (int i = 0 ; i < list_collection_warning.size() ; i++){
+                            Polyline polyline = new Polyline(list_collection_warning.get(i));
+                            Map<String,Object> map = new HashMap<>();
+                            map.put("style","line");
+                            Graphic line = new Graphic(polyline,map,simpleLineSymbol_warning);
+                            graphicsOverlay_warning.getGraphics().add(line);
+                            TextSymbol textSymbol = new TextSymbol(12f, list_des_warning.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
+                            Map<String,Object> map2 = new HashMap<>();
+                            map2.put("style","text");
+                            Graphic ts = new Graphic(polyline,map2,textSymbol);
+                            graphicsOverlay_warning.getGraphics().add(ts);
+                        }
+                        graphicsOverlay_warning.setVisible(false);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

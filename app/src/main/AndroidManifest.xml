@@ -113,6 +113,8 @@
             android:theme="@style/Theme.AppCompat.DayNight"/>
         <activity android:name="com.videogo.scanvideo.CameraVideoActivity"
             android:theme="@style/Theme.AppCompat.DayNight"/>
+        <activity android:name="com.videogo.warning.WarningActivity"
+            android:theme="@style/Theme.AppCompat.DayNight"/>
         <activity
             android:name="com.videogo.ui.realplay.EZRealPlayActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"

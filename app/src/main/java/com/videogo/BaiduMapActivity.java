@@ -87,19 +87,25 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private List<LatLng> points = new ArrayList<LatLng>();
     private List<Overlay> Overlays = new ArrayList<Overlay>();
     private List<Overlay> Overlays_info = new ArrayList<Overlay>();
+    private List<Overlay> Overlays_warning = new ArrayList<Overlay>();
     private List<Overlay> Overlays_camera = new ArrayList<Overlay>();
     private List<Overlay> os = new ArrayList<>();
     private List<OverlayOptions> options = new ArrayList<>();
     private List<OverlayOptions> options2 = new ArrayList<>();
+    private List<OverlayOptions> options3 = new ArrayList<>();
     private List<String> list_name = new ArrayList<>();
     private List<String> list_des = new ArrayList<>();
     private List<Point> list_point = new ArrayList<>();
     private List<String> list_name_info = new ArrayList<>();
     private List<String> list_des_info = new ArrayList<>();
+    private List<String> list_name_warning = new ArrayList<>();
+    private List<String> list_des_warning = new ArrayList<>();
+    private List<PointCollection> list_collection_warning = new ArrayList<>();
     private List<PointCollection> list_collection = new ArrayList<>();
     private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
     private Boolean show_camera = false;
     private Boolean show_info = false;
+    private Boolean show_warning = true;
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
     private final static int LOAD_MY_DEVICE = 0;
@@ -132,11 +138,14 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         //String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
         String url = "camera.kml";
         String url2 = "info.kml";
+        String url3 = "违章种植.kml";
         try {
             ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,BaiduMapActivity.this);
             ReadKml readKml2 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,BaiduMapActivity.this);
+            ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,BaiduMapActivity.this);
             readKml.parseKml();
             readKml2.parseKml();
+            readKml_warning.parseKml();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -176,6 +185,8 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         addMarker();
         //添加地块信息
         addInfo();
+        //添加报警信息
+        addWarning();
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
@@ -300,7 +311,30 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     }
 
     /**
-     *添加地块
+     * 添加报警信息
+     */
+    private void addWarning(){
+        for (int i = 0 ; i < list_collection_warning.size() ; i++){
+            List<LatLng> points = new ArrayList<LatLng>();
+            for (int j = 0 ; j < list_collection_warning.get(i).size() ; j++){
+                //坐标转换
+                CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(list_collection_warning.get(i).get(j)  ));
+                LatLng latLng = converter.convert();
+                points.add(latLng);
+            }
+            OverlayOptions mOverlayOptions = new PolylineOptions().width(6).color(Color.WHITE).points(points);
+            options3.add(mOverlayOptions);
+            BitmapDescriptor bitmapDescriptor = stringToBitmapDescriptor(list_des_warning.get(i));
+            OverlayOptions option = new MarkerOptions().icon(bitmapDescriptor).position(getInterPosition(points));
+            options3.add(option);
+        }
+        Overlays_warning = mBaiduMap.addOverlays(options3);
+        for (Overlay overlay : Overlays_warning){
+            overlay.setVisible(false);
+        };
+    }
+    /**
+     *添加地块信息
      */
     private void addInfo(){
         for (int i = 0 ; i < list_collection.size() ; i++){
@@ -402,6 +436,19 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 }
                 break;
             case R.id.warning_ibtn:
+                if (show_warning){
+                    for (Overlay overlay : Overlays_warning){
+                        overlay.setVisible(true);
+                    };
+                    warning.setBackgroundResource(R.mipmap.baojing_sel);
+                    show_info = false;
+                }else{
+                    for (Overlay overlay : Overlays_warning){
+                        overlay.setVisible(false);
+                    };
+                    warning.setBackgroundResource(R.mipmap.baojing_sel);
+                    show_info = true;
+                }
                 break;
             case R.id.robot_ibtn:
                 if (show_camera){

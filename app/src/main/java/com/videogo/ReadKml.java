@@ -26,6 +26,7 @@ public class ReadKml {
     private List<Point> list_point;
     private List<PointCollection> list_collection;
     private Context context;
+    private String type="";
 
     public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point,Context context) {
         this.path = path;
@@ -68,11 +69,21 @@ public class ReadKml {
             //Log.d("当前结点内容：", node.getText());
             //parseHtml(node.getText());
             list_name.add(node.getText());
-        }else if (!(node.getTextTrim().equals("")) && "description".equals(node.getName())){
+        }else if (!(node.getTextTrim().equals("")) && "description".equals(node.getName())) {
             list_des.add(node.getText());
-        }else if (!(node.getTextTrim().equals("")) && "coordinates".equals(node.getName())){
+        }else if ("Point".equals(node.getName())){
+            Log.i("TAG","point");
+            type = "point";
+        }else if("Polygon".equals(node.getName())){
+            Log.i("TAG","polygon");
+            type = "polygon";
+        }else if(!(node.getTextTrim().equals("")) && "coordinates".equals(node.getName())){
+            Log.i("TAG","type="+type);
             String string = node.getText();
-            if (path.contains("info.kml")){
+            if (type.equals("point")){
+                Point p = new Point(Double.parseDouble(string.substring(0,string.indexOf(","))),Double.parseDouble(string.substring(string.indexOf(",")+1,string.lastIndexOf(","))));
+                list_point.add(p);
+            }else{
                 String[] str = string.trim().split(" ");
                 PointCollection  collection = new PointCollection(SpatialReference.create(4326));
                 for (int i = 0 ; i < str.length ; i++){
@@ -81,9 +92,6 @@ public class ReadKml {
                     collection.add(p);
                 }
                 list_collection.add(collection);
-            }else{
-                Point p = new Point(Double.parseDouble(string.substring(0,string.indexOf(","))),Double.parseDouble(string.substring(string.indexOf(",")+1,string.lastIndexOf(","))));
-                list_point.add(p);
             }
         }
         //同一时候迭代当前节点以下的全部子节点
