@@ -29,7 +29,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.ArcGISRuntimeException;
+import com.esri.arcgisruntime.LicenseResult;
 import com.esri.arcgisruntime.concurrent.ListenableFuture;
+import com.esri.arcgisruntime.data.TileCache;
 import com.esri.arcgisruntime.geometry.AngularUnit;
 import com.esri.arcgisruntime.geometry.AngularUnitId;
 import com.esri.arcgisruntime.geometry.GeodeticCurveType;
@@ -42,6 +45,7 @@ import com.esri.arcgisruntime.geometry.PointCollection;
 import com.esri.arcgisruntime.geometry.Polygon;
 import com.esri.arcgisruntime.geometry.Polyline;
 import com.esri.arcgisruntime.geometry.Point;
+import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
 import com.esri.arcgisruntime.layers.RasterLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
@@ -98,6 +102,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //LicenseResult result = ArcGISRuntimeEnvironment.setLicense("runtimelite,1000,rud1996533172,none,D7MFA0PL402H8YAJM176");
+        //Log.i("TAG","result="+result.getLicenseStatus());
+        //result.getLicenseStatus();
         setContentView(R.layout.activity_main);
         initViews();
     }
@@ -403,100 +410,104 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }else{
                 title.setText("西区");
             }
-            Raster raster = new Raster(path);
-            RasterLayer rasterLayer = new RasterLayer(raster);
-            rasterLayer.setDescription("MainLayer");
-            //ArcGISRuntimeEnvironment.setLicense("runtimelite,1000,rud1996533172,none,D7MFA0PL402H8YAJM176");
-            mapView.setAttributionTextVisible(false);
-            mMap = new ArcGISMap(new Basemap(rasterLayer));
+            TileCache tileCache = new TileCache(path);
+            ArcGISTiledLayer arcGISTiledLayer = new ArcGISTiledLayer(tileCache);
+            mMap = new ArcGISMap(new Basemap(arcGISTiledLayer));
             mapView.setMap(mMap);
-            rasterLayer.addDoneLoadingListener(new Runnable() {
-                @Override
-                public void run() {
-                    mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
-                    collection = new PointCollection(mapView.getSpatialReference());
-                    //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
-                    String url = "camera.kml";
-                    String url2 = "info.kml";
-                    String url3 = "违章种植.kml";
-                    graphicsOverlay_camera = new GraphicsOverlay();
-                    graphicsOverlay_info = new GraphicsOverlay();
-                    graphicsOverlay_warning = new GraphicsOverlay();
-                    mapView.getGraphicsOverlays().add(graphicsOverlay_camera);
-                    mapView.getGraphicsOverlays().add(graphicsOverlay_info);
-                    mapView.getGraphicsOverlays().add(graphicsOverlay_warning);
-                    PictureMarkerSymbol pictureMarkerSymbol = new PictureMarkerSymbol((BitmapDrawable) getResources().getDrawable(R.mipmap.marker));
-                    SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
-                    SimpleLineSymbol simpleLineSymbol_warning = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.WHITE,2);
-                    pictureMarkerSymbol.loadAsync();
-                    try {
-                        List<String> list_name = new ArrayList<>();
-                        List<String> list_des = new ArrayList<>();
-                        List<Point> list_point = new ArrayList<>();
-                        List<String> list_name_info = new ArrayList<>();
-                        List<String> list_des_info = new ArrayList<>();
-                        List<PointCollection> list_collection = new ArrayList<>();
-                        List<String> list_name_warning = new ArrayList<>();
-                        List<String> list_des_warning = new ArrayList<>();
-                        List<PointCollection> list_collection_warning = new ArrayList<>();
-                        ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,MainActivity.this);
-                        readKml.parseKml();
-                        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
-                        readKml1.parseKml();
-                        ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,MainActivity.this);
-                        readKml_warning.parseKml();
-                        Log.i("TAG","name="+list_name_warning.toString());
-                        Log.i("TAG","des="+list_des_warning.toString());
-                        Log.i("TAG","collection="+list_collection_warning.get(0).toString());
-                        for (int i = 0 ; i < list_point.size()  ; i++){
-                            int finalI = i;
-                            pictureMarkerSymbol.addDoneLoadingListener(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Map<String,Object> map = new HashMap<>();
-                                    map.put("style","marker");
-                                    map.put("name",list_name.get(finalI+2));
-                                    map.put("des",list_des.get(finalI));
-                                    Graphic ph = new Graphic(list_point.get(finalI), map, pictureMarkerSymbol);
-                                    graphicsOverlay_camera.getGraphics().add(ph);
-                                    TextSymbol t = new TextSymbol(12f, list_name.get(finalI+2), Color.GREEN, TextSymbol.HorizontalAlignment.LEFT, TextSymbol.VerticalAlignment.TOP);
-                                    Map<String,Object> map2 = new HashMap<>();
-                                    map2.put("style","text");
-                                    Graphic graphic_text = new Graphic(list_point.get(finalI),map2,t);
-                                    graphicsOverlay_camera.getGraphics().add(graphic_text);
-                                }
-                            });
-                        }
-                        for (int i = 0 ; i < list_collection.size() ; i++){
-                            Polyline polyline = new Polyline(list_collection.get(i));
-                            Map<String,Object> map = new HashMap<>();
-                            map.put("style","line");
-                            Graphic line = new Graphic(polyline,map,simpleLineSymbol);
-                            graphicsOverlay_info.getGraphics().add(line);
-                            TextSymbol textSymbol = new TextSymbol(12f, list_des_info.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
-                            Map<String,Object> map2 = new HashMap<>();
-                            map2.put("style","text");
-                            Graphic ts = new Graphic(polyline,map2,textSymbol);
-                            graphicsOverlay_info.getGraphics().add(ts);
-                        }
-                        for (int i = 0 ; i < list_collection_warning.size() ; i++){
-                            Polyline polyline = new Polyline(list_collection_warning.get(i));
-                            Map<String,Object> map = new HashMap<>();
-                            map.put("style","line");
-                            Graphic line = new Graphic(polyline,map,simpleLineSymbol_warning);
-                            graphicsOverlay_warning.getGraphics().add(line);
-                            TextSymbol textSymbol = new TextSymbol(12f, list_des_warning.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
-                            Map<String,Object> map2 = new HashMap<>();
-                            map2.put("style","text");
-                            Graphic ts = new Graphic(polyline,map2,textSymbol);
-                            graphicsOverlay_warning.getGraphics().add(ts);
-                        }
-                        graphicsOverlay_warning.setVisible(false);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+//            Raster raster = new Raster(path);
+//            final RasterLayer rasterLayer = new RasterLayer(raster);
+//            rasterLayer.setDescription("MainLayer");
+//            mapView.setAttributionTextVisible(false);
+//            mMap = new ArcGISMap(new Basemap());
+//            mapView.setMap(mMap);
+//            mMap.getOperationalLayers().add(rasterLayer);
+//            rasterLayer.addDoneLoadingListener(new Runnable() {
+//                @Override
+//                public void run() {
+//                    //mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
+//                    collection = new PointCollection(mapView.getSpatialReference());
+//                    //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
+//                    String url = "camera.kml";
+//                    String url2 = "info.kml";
+//                    String url3 = "违章种植.kml";
+//                    graphicsOverlay_camera = new GraphicsOverlay();
+//                    graphicsOverlay_info = new GraphicsOverlay();
+//                    graphicsOverlay_warning = new GraphicsOverlay();
+//                    mapView.getGraphicsOverlays().add(graphicsOverlay_camera);
+//                    mapView.getGraphicsOverlays().add(graphicsOverlay_info);
+//                    mapView.getGraphicsOverlays().add(graphicsOverlay_warning);
+//                    PictureMarkerSymbol pictureMarkerSymbol = new PictureMarkerSymbol((BitmapDrawable) getResources().getDrawable(R.mipmap.marker));
+//                    SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
+//                    SimpleLineSymbol simpleLineSymbol_warning = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.WHITE,2);
+//                    pictureMarkerSymbol.loadAsync();
+//                    try {
+//                        List<String> list_name = new ArrayList<>();
+//                        List<String> list_des = new ArrayList<>();
+//                        List<Point> list_point = new ArrayList<>();
+//                        List<String> list_name_info = new ArrayList<>();
+//                        List<String> list_des_info = new ArrayList<>();
+//                        List<PointCollection> list_collection = new ArrayList<>();
+//                        List<String> list_name_warning = new ArrayList<>();
+//                        List<String> list_des_warning = new ArrayList<>();
+//                        List<PointCollection> list_collection_warning = new ArrayList<>();
+//                        ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,MainActivity.this);
+//                        readKml.parseKml();
+//                        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
+//                        readKml1.parseKml();
+//                        ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,MainActivity.this);
+//                        readKml_warning.parseKml();
+//                        Log.i("TAG","name="+list_name_warning.toString());
+//                        Log.i("TAG","des="+list_des_warning.toString());
+//                        Log.i("TAG","collection="+list_collection_warning.get(0).toString());
+//                        for (int i = 0 ; i < list_point.size()  ; i++){
+//                            int finalI = i;
+//                            pictureMarkerSymbol.addDoneLoadingListener(new Runnable() {
+//                                @Override
+//                                public void run() {
+//                                    Map<String,Object> map = new HashMap<>();
+//                                    map.put("style","marker");
+//                                    map.put("name",list_name.get(finalI+2));
+//                                    map.put("des",list_des.get(finalI));
+//                                    Graphic ph = new Graphic(list_point.get(finalI), map, pictureMarkerSymbol);
+//                                    graphicsOverlay_camera.getGraphics().add(ph);
+//                                    TextSymbol t = new TextSymbol(12f, list_name.get(finalI+2), Color.GREEN, TextSymbol.HorizontalAlignment.LEFT, TextSymbol.VerticalAlignment.TOP);
+//                                    Map<String,Object> map2 = new HashMap<>();
+//                                    map2.put("style","text");
+//                                    Graphic graphic_text = new Graphic(list_point.get(finalI),map2,t);
+//                                    graphicsOverlay_camera.getGraphics().add(graphic_text);
+//                                }
+//                            });
+//                        }
+//                        for (int i = 0 ; i < list_collection.size() ; i++){
+//                            Polyline polyline = new Polyline(list_collection.get(i));
+//                            Map<String,Object> map = new HashMap<>();
+//                            map.put("style","line");
+//                            Graphic line = new Graphic(polyline,map,simpleLineSymbol);
+//                            graphicsOverlay_info.getGraphics().add(line);
+//                            TextSymbol textSymbol = new TextSymbol(12f, list_des_info.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
+//                            Map<String,Object> map2 = new HashMap<>();
+//                            map2.put("style","text");
+//                            Graphic ts = new Graphic(polyline,map2,textSymbol);
+//                            graphicsOverlay_info.getGraphics().add(ts);
+//                        }
+//                        for (int i = 0 ; i < list_collection_warning.size() ; i++){
+//                            Polyline polyline = new Polyline(list_collection_warning.get(i));
+//                            Map<String,Object> map = new HashMap<>();
+//                            map.put("style","line");
+//                            Graphic line = new Graphic(polyline,map,simpleLineSymbol_warning);
+//                            graphicsOverlay_warning.getGraphics().add(line);
+//                            TextSymbol textSymbol = new TextSymbol(12f, list_des_warning.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
+//                            Map<String,Object> map2 = new HashMap<>();
+//                            map2.put("style","text");
+//                            Graphic ts = new Graphic(polyline,map2,textSymbol);
+//                            graphicsOverlay_warning.getGraphics().add(ts);
+//                        }
+//                        graphicsOverlay_warning.setVisible(false);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            });
             //添加KML图层
 //            KmlDataset kmlDataset = new KmlDataset(url);
 //            KmlLayer kmlLayer = new KmlLayer(kmlDataset);
