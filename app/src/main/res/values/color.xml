@@ -147,6 +147,7 @@
 
     <color name="Lightgray">#07171016</color><!--浅灰 -->
     <color name="z_white">#FFFFFF</color>
+    <color name="z_white_border">#B3AAAA</color>
     <color name="colorBlack">#ff000000</color>
     
 </resources>

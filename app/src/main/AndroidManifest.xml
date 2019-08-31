@@ -1,12 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="ezviz.ezopensdk">
-
-
-    <!--<uses-sdk-->
-        <!--android:minSdkVersion="10"-->
-        <!--android:targetSdkVersion="21" />-->
-
+    <!-- <uses-sdk -->
+    <!-- android:minSdkVersion="10" -->
+    <!-- android:targetSdkVersion="21" /> -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
@@ -29,12 +27,9 @@
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FLASHLIGHT" />
-
-
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" /> <!-- Keeps the processor from sleeping when a message is received. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
 
     <application
         android:name="com.videogo.EzvizApplication"
@@ -44,48 +39,48 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Light.NoTitleBar"
         tools:replace="android:label">
+        <activity android:name="com.videogo.SignupActivity"
+            android:theme="@style/Theme.AppCompat.DayNight"
+            ></activity>
+
         <provider
-            android:authorities="ezviz.ezopensdk.fileprovider"
             android:name="android.support.v4.content.FileProvider"
+            android:authorities="ezviz.ezopensdk.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"
-                />
+                android:resource="@xml/provider_paths" />
         </provider>
-        <activity android:name="com.videogo.HomeActivity">
 
-        </activity>
+        <activity android:name="com.videogo.HomeActivity"></activity>
 
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="RDHc9PkGmgiesKV0k1qmNIoO0WvaKCFU" />
+
         <service
             android:name="com.baidu.location.f"
             android:enabled="true"
-            android:process=":remote"></service>
+            android:process=":remote" />
+
         <activity
             android:name="com.videogo.LoginSelectActivity"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="portrait" />
-
         <activity
             android:name="com.videogo.main.EzvizWebViewActivity"
             android:configChanges="orientation|keyboardHidden"
             android:screenOrientation="portrait" />
-
         <activity
             android:name="com.videogo.SplashActivity"
             android:screenOrientation="portrait">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.videogo.remoteplayback.list.PlayBackListActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -95,26 +90,29 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.MainActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.DayNight" />
         <activity
             android:name="com.videogo.BaiduMapActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait" />
-        <activity android:name="com.videogo.scanpic.PictureActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"/>
-        <activity android:name="com.videogo.scanpic.ScanPicActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"/>
-        <activity android:name="com.videogo.scanpic.CameraPicActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"/>
-        <activity android:name="com.videogo.scanvideo.ScanVideoActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"/>
-        <activity android:name="com.videogo.scanvideo.CameraVideoActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"/>
-        <activity android:name="com.videogo.warning.WarningActivity"
-            android:theme="@style/Theme.AppCompat.DayNight"/>
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <activity
+            android:name="com.videogo.scanpic.PictureActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <activity
+            android:name="com.videogo.scanpic.ScanPicActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <activity
+            android:name="com.videogo.scanpic.CameraPicActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <activity
+            android:name="com.videogo.scanvideo.ScanVideoActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <activity
+            android:name="com.videogo.scanvideo.CameraVideoActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
         <activity
             android:name="com.videogo.ui.realplay.EZRealPlayActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -141,7 +139,6 @@
         <activity
             android:name="com.videogo.ui.cameralist.GalleryActivity"
             android:screenOrientation="portrait" />
-
         <activity
             android:name="com.videogo.scan.main.CaptureActivity"
             android:screenOrientation="portrait" />
@@ -171,8 +168,6 @@
         <activity
             android:name="com.videogo.ui.LanDevice.LanDevicePlayActivity"
             android:screenOrientation="portrait" />
-
-
         <activity
             android:name="com.videogo.ui.LanDevice.LanDeviceActivateActivity"
             android:screenOrientation="portrait" />

@@ -15,7 +15,7 @@ import com.videogo.ui.cameralist.CountDownView;
 import ezviz.ezopensdk.R;
 
 /**
- * Created by 软件组02 on 2018/10/17.
+ * 登录页
  */
 
 public class SplashActivity extends Activity {
@@ -52,7 +52,13 @@ public class SplashActivity extends Activity {
                 }
             }
         });
-
+        btnSignup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent it = new Intent(SplashActivity.this, SignupActivity.class);//启动注册页面
+                startActivity(it);
+            }
+        });
 
 
 
