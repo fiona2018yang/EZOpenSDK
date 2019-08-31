@@ -1,114 +1,91 @@
 package com.videogo;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.provider.FontsContract;
-import android.support.annotation.NonNull;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
-import com.esri.arcgisruntime.ArcGISRuntimeException;
-import com.esri.arcgisruntime.LicenseResult;
-import com.esri.arcgisruntime.concurrent.ListenableFuture;
-import com.esri.arcgisruntime.data.TileCache;
-import com.esri.arcgisruntime.geometry.AngularUnit;
-import com.esri.arcgisruntime.geometry.AngularUnitId;
-import com.esri.arcgisruntime.geometry.GeodeticCurveType;
-import com.esri.arcgisruntime.geometry.GeodeticDistanceResult;
-import com.esri.arcgisruntime.geometry.Geometry;
-import com.esri.arcgisruntime.geometry.GeometryEngine;
-import com.esri.arcgisruntime.geometry.LinearUnit;
-import com.esri.arcgisruntime.geometry.LinearUnitId;
-import com.esri.arcgisruntime.geometry.PointCollection;
-import com.esri.arcgisruntime.geometry.Polygon;
-import com.esri.arcgisruntime.geometry.Polyline;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.layers.ArcGISTiledLayer;
-import com.esri.arcgisruntime.layers.RasterLayer;
-import com.esri.arcgisruntime.mapping.ArcGISMap;
-import com.esri.arcgisruntime.mapping.Basemap;
-import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
-import com.esri.arcgisruntime.mapping.view.Graphic;
-import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
-import com.esri.arcgisruntime.mapping.view.IdentifyGraphicsOverlayResult;
-import com.esri.arcgisruntime.mapping.view.LocationDisplay;
-import com.esri.arcgisruntime.mapping.view.MapView;
-import com.esri.arcgisruntime.raster.Raster;
-import com.esri.arcgisruntime.symbology.PictureMarkerSymbol;
-import com.esri.arcgisruntime.symbology.SimpleFillSymbol;
-import com.esri.arcgisruntime.symbology.SimpleLineSymbol;
-import com.esri.arcgisruntime.symbology.SimpleMarkerSymbol;
-import com.esri.arcgisruntime.symbology.TextSymbol;
+import com.esri.android.map.GraphicsLayer;
+import com.esri.android.map.LocationDisplayManager;
+import com.esri.android.map.MapView;
+import com.esri.android.map.RasterLayer;
+import com.esri.android.map.event.OnSingleTapListener;
+import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.android.runtime.ArcGISRuntime;
+import com.esri.core.geometry.AreaUnit;
+import com.esri.core.geometry.CompositeGeographicTransformation;
+import com.esri.core.geometry.Envelope;
+import com.esri.core.geometry.Geometry;
+import com.esri.core.geometry.GeometryEngine;
+import com.esri.core.geometry.LinearUnit;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.Polygon;
+import com.esri.core.geometry.Polyline;
+import com.esri.core.geometry.ProjectionTransformation;
+import com.esri.core.map.Graphic;
+import com.esri.core.raster.FileRasterSource;
+import com.esri.core.symbol.PictureMarkerSymbol;
+import com.esri.core.symbol.SimpleFillSymbol;
+import com.esri.core.symbol.SimpleLineSymbol;
+import com.esri.core.symbol.SimpleMarkerSymbol;
+import com.esri.core.symbol.TextSymbol;
 import com.videogo.constant.IntentConsts;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.ui.realplay.EZRealPlayActivity;
+import com.videogo.ui.util.CopyFontFile;
 import com.videogo.ui.util.EZUtils;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.math.BigDecimal;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import ezviz.ezopensdk.R;
+
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
     private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
-    private ArcGISMap mMap;
     private String path;
-    private Point point;
     private TextView title;
     private SharedPreferences sharedPreferences;
-    private PointCollection collection ;
     private List<EZDeviceInfo> list_ezdevices;
-    public LocationDisplay locationDisplay;
     private List<Graphic> list_graphic = new ArrayList<>();
-    private List<GraphicsOverlay> list_graphicsOverlays = new ArrayList<>();
-    private List<GraphicsOverlay> list_graphicsOverlays_info = new ArrayList<>();
-    private GraphicsOverlay graphicsOverlay_info;
-    private GraphicsOverlay graphicsOverlay_camera;
-    private GraphicsOverlay graphicsOverlay_warning;
-
+    private List<Point> pointList = new ArrayList<>();
+    private List<Point> pointList_xml ;
+    private GraphicsLayer graphicsLayer;
+    private GraphicsLayer graphicsLayer_camera;
+    private GraphicsLayer graphicsLayer_info;
+    private GraphicsLayer graphicsLayer_warning;
+    private LocationDisplayManager locationDisplayManager = null;
     public final static int REQUEST_CODE = 100;
-    public final static int RESULT_CODE = 101;
-    private final static int LOAD_MY_DEVICE = 0;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //LicenseResult result = ArcGISRuntimeEnvironment.setLicense("runtimelite,1000,rud1996533172,none,D7MFA0PL402H8YAJM176");
-        //Log.i("TAG","result="+result.getLicenseStatus());
-        //result.getLicenseStatus();
         setContentView(R.layout.activity_main);
         initViews();
     }
     private void initViews() {
+        //设置授权
+        ArcGISRuntime.setClientId("Gxw2gDOFkkdudimV");
         mapView = (MapView) findViewById(R.id.map);
         change = findViewById(R.id.change_ibtn);
         info = findViewById(R.id.info_ibtn);
@@ -122,6 +99,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         result = findViewById(R.id.result);
         position_sel = findViewById(R.id.position_ibtn_sel);
         title = findViewById(R.id.title_tv);
+        CopyFontFile mCopyData_File = new CopyFontFile(this);
+        mCopyData_File.DoCopy();
+
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
@@ -137,14 +117,23 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         sharedPreferences = getSharedPreferences("path", 0);
         path = sharedPreferences.getString("earthPath", "");
         list_ezdevices = new ArrayList<>();
-        Log.i("TAG","path="+path);
+        list_ezdevices = getIntent().getParcelableArrayListExtra("devices_main");
         if (path.equals("")||path == null){
             path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
+            //path =Environment.getExternalStorageDirectory().getPath()+"/z_tangxunfu_GPS/tangxunhu(3).tif";
         }
         //加载tif
         loadlayer(path);
-        list_ezdevices = getIntent().getParcelableArrayListExtra("devices_main");
-        Log.i("TAG","list.size="+list_ezdevices.size());
+        locationDisplayManager = mapView.getLocationDisplayManager();
+        try {
+            locationDisplayManager.setAllowNetworkLocation(true);
+            locationDisplayManager.setAccuracyCircleOn(true);
+            locationDisplayManager.setShowLocation(true);
+            locationDisplayManager.setAccuracySymbol(new SimpleFillSymbol(Color.GREEN).setAlpha(20));
+            locationDisplayManager.setAutoPanMode(LocationDisplayManager.AutoPanMode.OFF);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -154,29 +143,29 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 selectfile();
                 break;
             case R.id.info_ibtn:
-                if (graphicsOverlay_info.isVisible()){
-                    graphicsOverlay_info.setVisible(false);
+                if (graphicsLayer_info.isVisible()){
+                    graphicsLayer_info.setVisible(false);
                     info.setBackgroundResource(R.mipmap.xinxi);
                 }else{
-                    graphicsOverlay_info.setVisible(true);
+                    graphicsLayer_info.setVisible(true);
                     info.setBackgroundResource(R.mipmap.xinxi_sel);
                 }
                 break;
             case R.id.warning_ibtn:
-                if (graphicsOverlay_warning.isVisible()){
-                    graphicsOverlay_warning.setVisible(false);
+                if (graphicsLayer_warning.isVisible()){
+                    graphicsLayer_warning.setVisible(false);
                     warning.setBackgroundResource(R.mipmap.baojing);
                 }else{
-                    graphicsOverlay_warning.setVisible(true);
+                    graphicsLayer_warning.setVisible(true);
                     warning.setBackgroundResource(R.mipmap.baojing_sel);
                 }
                 break;
             case R.id.robot_ibtn:
-                if (graphicsOverlay_camera.isVisible()){
-                    graphicsOverlay_camera.setVisible(false);
+                if (graphicsLayer_camera.isVisible()){
+                    graphicsLayer_camera.setVisible(false);
                     robot.setBackgroundResource(R.mipmap.jiqiren);
                 }else{
-                    graphicsOverlay_camera.setVisible(true);
+                    graphicsLayer_camera.setVisible(true);
                     robot.setBackgroundResource(R.mipmap.jiqiren_sel);
                 }
                 break;
@@ -185,168 +174,54 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 measure_sel.setVisibility(View.VISIBLE);
                 result.setVisibility(View.VISIBLE);
                 title.setVisibility(View.GONE);
+                graphicsLayer.removeAll();
+                pointList.clear();
                 break;
             case R.id.measure_ibtn_sel:
                 measure.setVisibility(View.VISIBLE);
                 measure_sel.setVisibility(View.GONE);
                 result.setVisibility(View.GONE);
                 title.setVisibility(View.VISIBLE);
-                collection.clear();
                 list_graphic.clear();
                 result.setText("");
-                mapView.getGraphicsOverlays().removeAll(list_graphicsOverlays);
+                graphicsLayer.removeAll();
+                pointList.clear();
                 break;
             case R.id.zoom_in_ibtn:
-                ZoomIn();
+                mapView.zoomin();
                 break;
             case R.id.zoom_out_ibtn:
-                ZoomOut();
+                mapView.zoomout();
                 break;
             case R.id.position_ibtn:
-                Location();
+                if (!locationDisplayManager.isStarted()){
+                    locationDisplayManager.start();
+                    position.setVisibility(View.GONE);
+                    position_sel.setVisibility(View.VISIBLE);
+                    new Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            double la = locationDisplayManager.getLocation().getLatitude();
+                            double ln = locationDisplayManager.getLocation().getLongitude();
+                            Point p = new Point(ln,la);
+                            Envelope e = mapView.getMaxExtent();
+                            if (!e.contains(p)){
+                                locationDisplayManager.stop();
+                                position.setVisibility(View.VISIBLE);
+                                position_sel.setVisibility(View.GONE);
+                                ToastNotRepeat.show(MainActivity.this,"超出地图范围！");
+                            }
+                        }
+                    },1500);
+                }
                 break;
             case R.id.position_ibtn_sel:
-                StopLocation();
+                if (locationDisplayManager.isStarted()){
+                    locationDisplayManager.stop();
+                    position.setVisibility(View.VISIBLE);
+                    position_sel.setVisibility(View.GONE);
+                }
                 break;
-        }
-    }
-    /**
-     * 测量面积
-     */
-    public String measure_area() {
-        DecimalFormat df = new DecimalFormat("0.000");
-        List<double[]> points = new ArrayList<double[]>();
-        double earthRadiusMeters = 6378137.0;
-        double metersPerDegree = 2.0 * Math.PI * earthRadiusMeters / 360.0;
-        double radiansPerDegree = Math.PI / 180.0;
-        String pt = "";
-        //获取图形，并提示
-        //if (list_graphic.get(list_graphic.size()-1).getGeometry().getGeometryType() == GeometryType.POLYGON){
-            //计算面积
-            for (int i = 0 ; i < collection.size() ; i++){
-                if ((i+1) >= collection.size()){
-                    if ((i+1) == collection.size()){
-                        pt = pt + collection.get(i).getX() + "," + collection.get(i).getY() + ",";
-                    }
-                }else{
-                    if (collection.get(i).getX() == collection.get(i+1).getX() && collection.get(i).getY() == collection.get(i+1).getY()){
-                    }else{
-                        pt = pt + collection.get(i).getX() + "," + collection.get(i).getY() + ",";
-                    }
-                }
-            }
-            String pp = pt.substring(0, pt.length() - 1);
-            String[] pp1 = pp.split(";");
-            for (String ppap : pp1) {
-                String[] temp = ppap.split(",");
-                for (int i = 0; i < temp.length; ) {
-                    double[] point = {Double.parseDouble(temp[i]), Double.parseDouble(temp[i + 1])};
-                    points.add(point);
-                    i = i + 2;
-                }
-            }
-            //经纬度计算多边形面积
-            double a = 0.0;
-            for (int i = 0; i < points.size(); ++i) {
-                int j = (i + 1) % points.size();
-                double xi = points.get(i)[0] * metersPerDegree * Math.cos(points.get(i)[1] * radiansPerDegree);
-                double yi = points.get(i)[1] * metersPerDegree;
-                double xj = points.get(j)[0] * metersPerDegree * Math.cos(points.get(j)[1] * radiansPerDegree);
-                double yj = points.get(j)[1] * metersPerDegree;
-                a += xi * yj - xj * yi;
-            }
-            double s = Math.abs(a / 2.0);
-       // }
-        return df.format(s);
-    }
-
-
-    /**
-     * 缩小
-     */
-    private void ZoomOut() {
-        try{
-            Double scales=mapView.getMapScale();
-            mapView.setViewpointScaleAsync(scales*2);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 放大
-     */
-    private void ZoomIn() {
-        try{
-            Double scales=mapView.getMapScale();
-            mapView.setViewpointScaleAsync(scales*0.5);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-    }
-    /**
-     * 定位
-     */
-    private void Location(){
-        android.graphics.Point p1 = new android.graphics.Point(mapView.getWidth()/2,mapView.getHeight()/2);
-        point =mapView.screenToLocation(p1);
-        locationDisplay=mapView.getLocationDisplay();
-        locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
-        locationDisplay.addDataSourceStatusChangedListener(new LocationDisplay.DataSourceStatusChangedListener() {
-            @Override
-            public void onStatusChanged(LocationDisplay.DataSourceStatusChangedEvent dataSourceStatusChangedEvent) {
-                if (dataSourceStatusChangedEvent.isStarted())
-                    return;
-                if (dataSourceStatusChangedEvent.getError() == null)
-                    return;
-            }
-        });
-        locationDisplay.addLocationChangedListener(new LocationDisplay.LocationChangedListener() {
-            @Override
-            public void onLocationChanged(LocationDisplay.LocationChangedEvent locationChangedEvent) {
-
-            }
-        });
-        if (!locationDisplay.isStarted()){
-            Geometry g=mapView.getMap().getInitialViewpoint().getTargetGeometry();
-            Geometry a=GeometryEngine.project(g, mapView.getSpatialReference());
-            Geometry p=GeometryEngine.project(locationDisplay.getMapLocation(),mapView.getSpatialReference());
-            boolean x=GeometryEngine.within(p,a);
-            if (!x){
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        ToastNotRepeat.show(MainActivity.this,"定位失败！");
-                        locationDisplay.stop();
-                        mapView.setViewpointCenterAsync(point);
-                        position.setVisibility(View.VISIBLE);
-                        position_sel.setVisibility(View.GONE);
-                    }
-                },1200);
-            }else {
-                locationDisplay.setShowAccuracy(true);
-                locationDisplay.setShowLocation(true);
-                locationDisplay.setShowPingAnimation(true);
-                locationDisplay.setUseCourseSymbolOnMovement(true);
-            }
-            position.setVisibility(View.GONE);
-            position_sel.setVisibility(View.VISIBLE);
-            locationDisplay.startAsync();
-        }
-    }
-
-    /**
-     * 取消定位
-     */
-    private void StopLocation(){
-        try{
-            locationDisplay.stop();
-            mapView.setViewpointCenterAsync(point);
-            position.setVisibility(View.VISIBLE);
-            position_sel.setVisibility(View.GONE);
-        }catch(Exception e){
-            e.printStackTrace();
         }
     }
     /**
@@ -374,23 +249,20 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 //        picker.show();
         if (path.equals("")||path==null||(path.substring(path.indexOf(".")-1)).equals("2.tif")){
             path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
-            loadlayer(path);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("earthPath", path);
             editor.commit();
-            ClearMap();
         }else if ((path.substring(path.indexOf(".")-1)).equals("1.tif")){
             path =Environment.getExternalStorageDirectory().getPath()+"/2.tif";
-            loadlayer(path);
-            mapView.getGraphicsOverlays().clear();
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("earthPath", path);
             editor.commit();
-            ClearMap();
         }
-        list_graphic.clear();
-        result.setText("");
-        mapView.getGraphicsOverlays().clear();
+        finish();
+        Intent i = new Intent(MainActivity.this, MainActivity.class);
+        i.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezdevices);
+        startActivity(i);
+        overridePendingTransition(0, 0);
     }
 
     @Override
@@ -410,205 +282,197 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }else{
                 title.setText("西区");
             }
-            TileCache tileCache = new TileCache(path);
-            ArcGISTiledLayer arcGISTiledLayer = new ArcGISTiledLayer(tileCache);
-            mMap = new ArcGISMap(new Basemap(arcGISTiledLayer));
-            mapView.setMap(mMap);
-//            Raster raster = new Raster(path);
-//            final RasterLayer rasterLayer = new RasterLayer(raster);
-//            rasterLayer.setDescription("MainLayer");
-//            mapView.setAttributionTextVisible(false);
-//            mMap = new ArcGISMap(new Basemap());
-//            mapView.setMap(mMap);
-//            mMap.getOperationalLayers().add(rasterLayer);
-//            rasterLayer.addDoneLoadingListener(new Runnable() {
-//                @Override
-//                public void run() {
-//                    //mapView.setViewpointGeometryAsync(rasterLayer.getFullExtent(),50);
-//                    collection = new PointCollection(mapView.getSpatialReference());
-//                    //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
-//                    String url = "camera.kml";
-//                    String url2 = "info.kml";
-//                    String url3 = "违章种植.kml";
-//                    graphicsOverlay_camera = new GraphicsOverlay();
-//                    graphicsOverlay_info = new GraphicsOverlay();
-//                    graphicsOverlay_warning = new GraphicsOverlay();
-//                    mapView.getGraphicsOverlays().add(graphicsOverlay_camera);
-//                    mapView.getGraphicsOverlays().add(graphicsOverlay_info);
-//                    mapView.getGraphicsOverlays().add(graphicsOverlay_warning);
-//                    PictureMarkerSymbol pictureMarkerSymbol = new PictureMarkerSymbol((BitmapDrawable) getResources().getDrawable(R.mipmap.marker));
-//                    SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
-//                    SimpleLineSymbol simpleLineSymbol_warning = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.WHITE,2);
-//                    pictureMarkerSymbol.loadAsync();
-//                    try {
-//                        List<String> list_name = new ArrayList<>();
-//                        List<String> list_des = new ArrayList<>();
-//                        List<Point> list_point = new ArrayList<>();
-//                        List<String> list_name_info = new ArrayList<>();
-//                        List<String> list_des_info = new ArrayList<>();
-//                        List<PointCollection> list_collection = new ArrayList<>();
-//                        List<String> list_name_warning = new ArrayList<>();
-//                        List<String> list_des_warning = new ArrayList<>();
-//                        List<PointCollection> list_collection_warning = new ArrayList<>();
-//                        ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,MainActivity.this);
-//                        readKml.parseKml();
-//                        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
-//                        readKml1.parseKml();
-//                        ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,MainActivity.this);
-//                        readKml_warning.parseKml();
-//                        Log.i("TAG","name="+list_name_warning.toString());
-//                        Log.i("TAG","des="+list_des_warning.toString());
-//                        Log.i("TAG","collection="+list_collection_warning.get(0).toString());
-//                        for (int i = 0 ; i < list_point.size()  ; i++){
-//                            int finalI = i;
-//                            pictureMarkerSymbol.addDoneLoadingListener(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    Map<String,Object> map = new HashMap<>();
-//                                    map.put("style","marker");
-//                                    map.put("name",list_name.get(finalI+2));
-//                                    map.put("des",list_des.get(finalI));
-//                                    Graphic ph = new Graphic(list_point.get(finalI), map, pictureMarkerSymbol);
-//                                    graphicsOverlay_camera.getGraphics().add(ph);
-//                                    TextSymbol t = new TextSymbol(12f, list_name.get(finalI+2), Color.GREEN, TextSymbol.HorizontalAlignment.LEFT, TextSymbol.VerticalAlignment.TOP);
-//                                    Map<String,Object> map2 = new HashMap<>();
-//                                    map2.put("style","text");
-//                                    Graphic graphic_text = new Graphic(list_point.get(finalI),map2,t);
-//                                    graphicsOverlay_camera.getGraphics().add(graphic_text);
-//                                }
-//                            });
-//                        }
-//                        for (int i = 0 ; i < list_collection.size() ; i++){
-//                            Polyline polyline = new Polyline(list_collection.get(i));
-//                            Map<String,Object> map = new HashMap<>();
-//                            map.put("style","line");
-//                            Graphic line = new Graphic(polyline,map,simpleLineSymbol);
-//                            graphicsOverlay_info.getGraphics().add(line);
-//                            TextSymbol textSymbol = new TextSymbol(12f, list_des_info.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
-//                            Map<String,Object> map2 = new HashMap<>();
-//                            map2.put("style","text");
-//                            Graphic ts = new Graphic(polyline,map2,textSymbol);
-//                            graphicsOverlay_info.getGraphics().add(ts);
-//                        }
-//                        for (int i = 0 ; i < list_collection_warning.size() ; i++){
-//                            Polyline polyline = new Polyline(list_collection_warning.get(i));
-//                            Map<String,Object> map = new HashMap<>();
-//                            map.put("style","line");
-//                            Graphic line = new Graphic(polyline,map,simpleLineSymbol_warning);
-//                            graphicsOverlay_warning.getGraphics().add(line);
-//                            TextSymbol textSymbol = new TextSymbol(12f, list_des_warning.get(i), Color.BLACK, TextSymbol.HorizontalAlignment.CENTER, TextSymbol.VerticalAlignment.MIDDLE);
-//                            Map<String,Object> map2 = new HashMap<>();
-//                            map2.put("style","text");
-//                            Graphic ts = new Graphic(polyline,map2,textSymbol);
-//                            graphicsOverlay_warning.getGraphics().add(ts);
-//                        }
-//                        graphicsOverlay_warning.setVisible(false);
-//                    } catch (Exception e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//            });
-            //添加KML图层
-//            KmlDataset kmlDataset = new KmlDataset(url);
-//            KmlLayer kmlLayer = new KmlLayer(kmlDataset);
-//            mMap.getOperationalLayers().add(kmlLayer);
-//            mapView.setMap(mMap);
-//            kmlDataset.addDoneLoadingListener(new Runnable() {
-//                @Override
-//                public void run() {
-//                    List<KmlNode> list = kmlDataset.getRootNodes();
-//                }
-//            });
+            FileRasterSource rasterSource = null;
+            try {
+                rasterSource = new FileRasterSource(path);
+                rasterSource.project(mapView.getSpatialReference());
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            RasterLayer rasterLayer = new RasterLayer(rasterSource);
+            mapView.addLayer(rasterLayer);
+            graphicsLayer = new GraphicsLayer();
+            graphicsLayer_camera = new GraphicsLayer();
+            graphicsLayer_info = new GraphicsLayer();
+            graphicsLayer_warning = new GraphicsLayer();
+            mapView.addLayer(graphicsLayer);
+            mapView.addLayer(graphicsLayer_camera);
+            mapView.addLayer(graphicsLayer_info);
+            mapView.addLayer(graphicsLayer_warning);
+            rasterLayer.setOnStatusChangedListener(new OnStatusChangedListener() {
+                @Override
+                public void onStatusChanged(Object o, STATUS status) {
+                    if (status == STATUS.INITIALIZED){
+                        Log.i("TAG","加载成功");
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                pointList_xml = new ArrayList<>();
+                                String url = "camera.kml";
+                                String url2 = "info.kml";
+                                String url3 = "违章种植.kml";
+                                loadCamera(url);
+                                loadinfo(url2);
+                                loadwarning(url3);
+                            }
+                        }).start();
+                    }else if(status == STATUS.INITIALIZATION_FAILED || status == STATUS.LAYER_LOADING_FAILED){
+                        Log.i("TAG","加载失败");
+                    }
+                }
+            });
+
             /**
              * mapview监听
              */
-            mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(this,mapView){
+            mapView.setOnSingleTapListener(new OnSingleTapListener() {
                 @Override
-                //点击屏幕
-                public boolean onSingleTapConfirmed(MotionEvent e) {
+                public void onSingleTap(float v, float v1) {
                     if (measure_sel.getVisibility() == View.VISIBLE){
+                        Point p = mapView.toMapPoint(v,v1);
+                        pointList.add(p);
                         //点，线，面样式
-                        SimpleMarkerSymbol s = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.BLACK,3);
-                        SimpleLineSymbol s2 = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID,Color.BLACK,2);
-                        SimpleFillSymbol s3 = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID,Color.argb(75,255,255,0),null);
-                        Point p = mMapView.screenToLocation(new android.graphics.Point((int)e.getX(),(int)e.getY()));
-                        collection.add(p);
-                        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
-                        list_graphicsOverlays.add(graphicsOverlay);
-                        mMapView.getGraphicsOverlays().add(graphicsOverlay);
-                        Map<String,Object> map2 = new HashMap<>();
-                        map2.put("style","point");
-                        graphicsOverlay.getGraphics().add(new Graphic(collection.get(collection.size()-1),map2,s));
-                        if (collection.size()==2){
-                            //添加线元素
-                            Polyline polyline = new Polyline(collection);
-                            Map<String,Object> map = new HashMap<>();
-                            map.put("style","line");
-                            Graphic line = new Graphic(polyline,map,s2);
-                            list_graphic.add(line);
-                            graphicsOverlay.getGraphics().add(line);
-                            //计算距离
-                            GeodeticDistanceResult georesult = GeometryEngine.distanceGeodetic(collection.get(0),collection.get(1),new LinearUnit(LinearUnitId.METERS),new AngularUnit(AngularUnitId.DEGREES), GeodeticCurveType.GEODESIC);
-                            double distance = georesult.getDistance();
-                            result.setText("距离为:"+distance+"米");
-                        }else if (collection.size() > 2){
-                            //添加面元素
-                            list_graphic.get(list_graphic.size()-1).setVisible(false);
-                            Polygon polygon=new Polygon(collection);
-                            Map<String,Object> map = new HashMap<>();
-                            map.put("style","polygon");
-                            Graphic fill = new Graphic(polygon, map,s3);
-                            list_graphic.add(fill);
-                            graphicsOverlay.getGraphics().add(fill);
-                            //计算面积
-                            //double area = GeometryEngine.areaGeodetic(list_graphic.get(list_graphic.size()-1).getGeometry(), new AreaUnit(AreaUnitId.SQUARE_METERS),GeodeticCurveType.GEODESIC);
-                            String area = measure_area();
-                            double mu = Double.parseDouble(area)*0.0015;
+                        SimpleMarkerSymbol simpleMarkerSymbol = new SimpleMarkerSymbol(Color.BLACK, 6, SimpleMarkerSymbol.STYLE.CIRCLE);
+                        SimpleLineSymbol simpleLineSymbol = new SimpleLineSymbol(Color.BLACK, 2);
+                        SimpleFillSymbol simpleFillSymbol = new SimpleFillSymbol(Color.YELLOW);
+                        simpleFillSymbol.setAlpha(90);
+                        simpleFillSymbol.setOutline(new SimpleLineSymbol(Color.argb(0,0,0,0),1));
+                        if (pointList.size() == 1){
+                            Graphic point = new Graphic(p,simpleMarkerSymbol);
+                            graphicsLayer.addGraphic(point);
+                        }else if (pointList.size() == 2){
+                            graphicsLayer.removeAll();
+                            Polyline polyline = new Polyline();
+                            polyline.startPath(pointList.get(0));
+                            polyline.lineTo(p);
+                            Graphic line = new Graphic(polyline,simpleLineSymbol);
+                            graphicsLayer.addGraphic(line);
+                            double distance = GeometryEngine.geodesicDistance(pointList.get(0),pointList.get(1),mapView.getSpatialReference(),new LinearUnit(LinearUnit.Code.METER));
+                            double distance_2 = new BigDecimal(distance).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+                            result.setText("距离为:"+distance_2+"米");
+                        }else if(pointList.size() > 2){
+                            graphicsLayer.removeAll();
+                            Polygon polygon = new Polygon();
+                            polygon.startPath(pointList.get(0));
+                            for (int i = 1 ; i < pointList.size() ; i++){
+                                polygon.lineTo(pointList.get(i));
+                            }
+                            Graphic gon = new Graphic(polygon,simpleFillSymbol);
+                            graphicsLayer.addGraphic(gon);
+                            double area = GeometryEngine.geodesicArea(polygon,mapView.getSpatialReference(),new AreaUnit(AreaUnit.Code.SQUARE_METER));
+                            double area_2 = new BigDecimal(area).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+                            double mu = area*0.0015;
                             BigDecimal b = new BigDecimal(mu);
                             //保留小数点后两位
-                            double mu1 = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
-                            result.setText("面积为:"+area+"平方米/"+mu1+"亩");
+                            double mu_2 = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+                            result.setText("面积为:"+area_2+"平方米/"+mu_2+"亩");
                         }
                     }else{
-                        //异步查询
-                        android.graphics.Point screenPoint = new android.graphics.Point((int)e.getX(),(int)e.getY());
-                        ListenableFuture<List<IdentifyGraphicsOverlayResult>> identifyFuture =mapView.identifyGraphicsOverlaysAsync(screenPoint,30,false,20);
-                        identifyFuture.addDoneListener(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    List<IdentifyGraphicsOverlayResult> identifyLayerResults = identifyFuture.get();
-                                    for (IdentifyGraphicsOverlayResult identifyGraphicsOverlayResult : identifyLayerResults){
-                                        List<Graphic> graphics_resule = identifyGraphicsOverlayResult.getGraphics();
-                                        for (Graphic graphic : graphics_resule){
-                                            if (graphic.getGeometry().getGeometryType().toString().equals("POINT")){
-                                                if (graphic.getAttributes().get("style").equals("marker")){
-                                                    showDialog(graphic);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }catch (Exception e1){
-                                    e1.printStackTrace();
+                        int[] objectIds = graphicsLayer_camera.getGraphicIDs(v,v1,20);
+                        if (objectIds != null && objectIds.length > 0){
+                            for (int i = 0 ; i < objectIds.length ; i++){
+                                Graphic graphic = graphicsLayer_camera.getGraphic(objectIds[i]);
+                                if (graphic.getAttributes().get("style").equals("marker")){
+                                    showDialog(graphic);
                                 }
                             }
-                        });
+                        }
                     }
-                    return true;
-                }
-
-                @Override
-                public void onLongPress(MotionEvent e) {
-
-                    super.onLongPress(e);
                 }
             });
         }
     }
-    private void ClearMap(){
-        list_graphic.clear();
-        list_graphicsOverlays.clear();
-        mapView.getGraphicsOverlays().clear();
+
+    /**
+     * 加载机器人信息
+     * @param url
+     */
+    private void loadCamera(String url){
+        PictureMarkerSymbol pictureMarkerSymbol = new PictureMarkerSymbol((BitmapDrawable) getResources().getDrawable(R.mipmap.marker_1));
+        List<String> list_name = new ArrayList<>();
+        List<String> list_des = new ArrayList<>();
+        List<Point> list_point = new ArrayList<>();
+        ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,MainActivity.this);
+        readKml.parseKml();
+        for (int i = 0 ; i < list_point.size()  ; i++){
+            int finalI = i;
+            Map<String,Object> map = new HashMap<>();
+            map.put("style","marker");
+            map.put("name",list_name.get(finalI+2));
+            map.put("des",list_des.get(finalI));
+            Graphic pointGraphic = new Graphic(list_point.get(i), pictureMarkerSymbol,map);
+            graphicsLayer_camera.addGraphic(pointGraphic);
+            TextSymbol t = new TextSymbol(12, list_name.get(finalI+2), Color.GREEN);
+            t.setFontFamily(new File(CopyFontFile.FONT_PATH).getPath());
+            t.setOffsetX(-10);
+            t.setOffsetY(-22);
+            Map<String,Object> map2 = new HashMap<>();
+            map2.put("style","text");
+            Graphic graphic_text = new Graphic(list_point.get(finalI),t,map2);
+            graphicsLayer_camera.addGraphic(graphic_text);
+        }
+    }
+
+    /**
+     * 加载地块信息
+     * @param url2
+     */
+    private void loadinfo(String url2){
+        List<String> list_name_info = new ArrayList<>();
+        List<String> list_des_info = new ArrayList<>();
+        List<List<Point>> list_collection = new ArrayList<>();
+        SimpleLineSymbol simpleLineSymbol_info = new SimpleLineSymbol(Color.BLACK, 2);
+        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
+        readKml1.parseKml();
+        for (int i = 0 ; i < list_collection.size() ; i++){
+            Polyline polyline = new Polyline();
+            polyline.startPath(list_collection.get(i).get(0));
+            for (int j = 1 ; j < list_collection.get(i).size() ; j++){
+                polyline.lineTo(list_collection.get(i).get(j));
+            }
+            Map<String,Object> map = new HashMap<>();
+            map.put("style","line");
+            Graphic line = new Graphic(polyline,simpleLineSymbol_info,map);
+            graphicsLayer_info.addGraphic(line);
+            TextSymbol t = new TextSymbol(12, list_des_info.get(i), Color.BLACK);
+            t.setFontFamily(new File(CopyFontFile.FONT_PATH).getPath());
+            t.setOffsetX(-20);
+            Map<String,Object> map2 = new HashMap<>();
+            map2.put("style","text");
+            Graphic ts = new Graphic(polyline,t,map2);
+            graphicsLayer_info.addGraphic(ts);
+        }
+    }
+    /**
+     * 加载地块信息
+     * @param url2
+     */
+    private void loadwarning(String url2){
+        List<String> list_name_info = new ArrayList<>();
+        List<String> list_des_info = new ArrayList<>();
+        List<List<Point>> list_collection = new ArrayList<>();
+        SimpleLineSymbol simpleLineSymbol_warning = new SimpleLineSymbol(Color.WHITE,2);
+        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
+        readKml1.parseKml();
+        for (int i = 0 ; i < list_collection.size() ; i++){
+            Polyline polyline = new Polyline();
+            polyline.startPath(list_collection.get(i).get(0));
+            for (int j = 1 ; j < list_collection.get(i).size() ; j++){
+                polyline.lineTo(list_collection.get(i).get(j));
+            }
+            Map<String,Object> map = new HashMap<>();
+            map.put("style","line");
+            Graphic line = new Graphic(polyline,simpleLineSymbol_warning,map);
+            graphicsLayer_warning.addGraphic(line);
+            TextSymbol t = new TextSymbol(12, list_des_info.get(i), Color.YELLOW);
+            t.setFontFamily(new File(CopyFontFile.FONT_PATH).getPath());
+            t.setOffsetX(-20);
+            Map<String,Object> map2 = new HashMap<>();
+            map2.put("style","text");
+            Graphic ts = new Graphic(polyline,t,map2);
+            graphicsLayer_warning.addGraphic(ts);
+        }
+        graphicsLayer_warning.setVisible(false);
     }
     /**
      * marker弹窗

@@ -5,13 +5,10 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
-import android.util.Base64;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -47,21 +44,13 @@ import com.baidu.mapapi.map.UiSettings;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.mapapi.utils.DistanceUtil;
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.PointCollection;
-import com.esri.arcgisruntime.mapping.view.Graphic;
+import com.esri.core.geometry.Point;
 import com.videogo.constant.IntentConsts;
-import com.videogo.errorlayer.ErrorInfo;
-import com.videogo.exception.BaseException;
-import com.videogo.exception.ErrorCode;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.ui.realplay.EZRealPlayActivity;
 import com.videogo.ui.util.EZUtils;
-import com.videogo.util.ConnectionDetector;
-
 import java.math.BigDecimal;
-import java.sql.BatchUpdateException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -100,8 +89,8 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private List<String> list_des_info = new ArrayList<>();
     private List<String> list_name_warning = new ArrayList<>();
     private List<String> list_des_warning = new ArrayList<>();
-    private List<PointCollection> list_collection_warning = new ArrayList<>();
-    private List<PointCollection> list_collection = new ArrayList<>();
+    private List<List<Point>> list_collection_warning = new ArrayList<>();
+    private List<List<Point>> list_collection = new ArrayList<>();
     private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
     private Boolean show_camera = false;
     private Boolean show_info = false;
@@ -134,8 +123,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         sharedPreferences = getSharedPreferences("style", 0);
         style = sharedPreferences.getString("mapstyle", "");
         list_ezdevices = getIntent().getParcelableArrayListExtra("devices_baidu");
-        //String url = Environment.getExternalStorageDirectory().getPath()+"/camera.kml";
-        //String url2 = Environment.getExternalStorageDirectory().getPath()+"/info.kml";
         String url = "camera.kml";
         String url2 = "info.kml";
         String url3 = "违章种植.kml";
@@ -146,6 +133,9 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             readKml.parseKml();
             readKml2.parseKml();
             readKml_warning.parseKml();
+            Log.i("TAG","size1 = "+list_name.size());
+            Log.i("TAG","size2 = "+list_des.size());
+            Log.i("TAG","size3 = "+list_point.size());
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -441,13 +431,13 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                         overlay.setVisible(true);
                     };
                     warning.setBackgroundResource(R.mipmap.baojing_sel);
-                    show_info = false;
+                    show_warning = false;
                 }else{
                     for (Overlay overlay : Overlays_warning){
                         overlay.setVisible(false);
                     };
-                    warning.setBackgroundResource(R.mipmap.baojing_sel);
-                    show_info = true;
+                    warning.setBackgroundResource(R.mipmap.baojing);
+                    show_warning = true;
                 }
                 break;
             case R.id.robot_ibtn:

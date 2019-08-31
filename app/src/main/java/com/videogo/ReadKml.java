@@ -3,18 +3,16 @@ package com.videogo;
 import android.content.Context;
 import android.util.Log;
 
-import com.esri.arcgisruntime.geometry.Point;
-import com.esri.arcgisruntime.geometry.PointCollection;
-import com.esri.arcgisruntime.geometry.SpatialReference;
-import com.esri.arcgisruntime.mapping.view.MapView;
+import com.esri.core.geometry.Point;
+import com.esri.core.geometry.SpatialReference;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -24,7 +22,7 @@ public class ReadKml {
     private List<String> list_name;
     private List<String> list_des;
     private List<Point> list_point;
-    private List<PointCollection> list_collection;
+    private List<List<Point>> list_collection;
     private Context context;
     private String type="";
 
@@ -36,7 +34,7 @@ public class ReadKml {
         this.context = context;
     }
 
-    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point, List<PointCollection> list_collection,Context context) {
+    public ReadKml(String path, List<String> list_name, List<String> list_des, List<Point> list_point, List<List<Point>> list_collection,Context context) {
         this.path = path;
         this.list_name = list_name;
         this.list_des = list_des;
@@ -72,26 +70,23 @@ public class ReadKml {
         }else if (!(node.getTextTrim().equals("")) && "description".equals(node.getName())) {
             list_des.add(node.getText());
         }else if ("Point".equals(node.getName())){
-            Log.i("TAG","point");
             type = "point";
         }else if("Polygon".equals(node.getName())){
-            Log.i("TAG","polygon");
             type = "polygon";
         }else if(!(node.getTextTrim().equals("")) && "coordinates".equals(node.getName())){
-            Log.i("TAG","type="+type);
             String string = node.getText();
             if (type.equals("point")){
                 Point p = new Point(Double.parseDouble(string.substring(0,string.indexOf(","))),Double.parseDouble(string.substring(string.indexOf(",")+1,string.lastIndexOf(","))));
                 list_point.add(p);
             }else{
                 String[] str = string.trim().split(" ");
-                PointCollection  collection = new PointCollection(SpatialReference.create(4326));
+                List<Point> list = new ArrayList<>();
                 for (int i = 0 ; i < str.length ; i++){
                     String t = str[i];
-                    Point p = new Point(Double.parseDouble(t.substring(0,t.indexOf(","))),Double.parseDouble(t.substring(t.indexOf(",")+1,t.lastIndexOf(","))),SpatialReference.create(4326));
-                    collection.add(p);
+                    Point p = new Point(Double.parseDouble(t.substring(0,t.indexOf(","))),Double.parseDouble(t.substring(t.indexOf(",")+1,t.lastIndexOf(","))));
+                    list.add(p);
                 }
-                list_collection.add(collection);
+                list_collection.add(list);
             }
         }
         //同一时候迭代当前节点以下的全部子节点

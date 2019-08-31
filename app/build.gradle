@@ -37,6 +37,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    packagingOptions {
+        exclude 'META-INF/LGPL2.1'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
 }
 repositories {
     flatDir {
@@ -53,11 +58,12 @@ dependencies {
     implementation files('libs/BaiduLBS_Android.jar')
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'cn.qqtheme.framework:FilePicker:latest.release'
-    implementation(name: 'arcgis-android-100.5.0', ext: 'aar')
     implementation 'com.android.support:multidex:1.0.1'
     implementation 'com.bigkoo:convenientbanner:2.0.5'
     implementation files('libs/dom4j-1.6.1.jar')
     implementation 'org.jsoup:jsoup:1.9.2'
     implementation 'com.github.chrisbanes.photoview:library:+'
     implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation files('libs/arcgis-android-api.jar')
+    implementation files('libs/jcifs-1.3.17.jar')
 }
