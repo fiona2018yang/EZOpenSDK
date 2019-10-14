@@ -442,7 +442,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
     }
     /**
-     * 加载地块信息
+     * 加载报警信息
      * @param url2
      */
     private void loadwarning(String url2){
