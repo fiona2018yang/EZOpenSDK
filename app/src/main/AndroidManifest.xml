@@ -37,7 +37,7 @@
         android:icon="@mipmap/paper"
         android:label="土地管控"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Light.NoTitleBar"
+        android:theme="@android:style/Theme.Holo.Light.NoActionBar"
         tools:replace="android:label">
         <activity android:name="com.videogo.SignupActivity"
             android:theme="@style/Theme.AppCompat.DayNight"
@@ -102,6 +102,9 @@
             android:name="com.videogo.scanpic.PictureActivity"
             android:theme="@style/Theme.AppCompat.DayNight" />
         <activity
+            android:name="com.videogo.warning.WarningActivity"
+            android:theme="@style/Theme.AppCompat.DayNight" />
+        <activity
             android:name="com.videogo.scanpic.ScanPicActivity"
             android:theme="@style/Theme.AppCompat.DayNight" />
         <activity
@@ -141,6 +144,9 @@
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.scan.main.CaptureActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.videogo.warning.GarbageActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name="com.videogo.ui.devicelist.SeriesNumSearchActivity"

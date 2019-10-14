@@ -21,19 +21,18 @@ import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.LocationDisplayManager;
 import com.esri.android.map.MapView;
 import com.esri.android.map.RasterLayer;
+import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.map.event.OnStatusChangedListener;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AreaUnit;
-import com.esri.core.geometry.CompositeGeographicTransformation;
 import com.esri.core.geometry.Envelope;
-import com.esri.core.geometry.Geometry;
 import com.esri.core.geometry.GeometryEngine;
 import com.esri.core.geometry.LinearUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.Polygon;
 import com.esri.core.geometry.Polyline;
-import com.esri.core.geometry.ProjectionTransformation;
+import com.esri.core.io.UserCredentials;
 import com.esri.core.map.Graphic;
 import com.esri.core.raster.FileRasterSource;
 import com.esri.core.symbol.PictureMarkerSymbol;
@@ -68,7 +67,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private List<EZDeviceInfo> list_ezdevices;
     private List<Graphic> list_graphic = new ArrayList<>();
     private List<Point> pointList = new ArrayList<>();
-    private List<Point> pointList_xml ;
     private GraphicsLayer graphicsLayer;
     private GraphicsLayer graphicsLayer_camera;
     private GraphicsLayer graphicsLayer_info;
@@ -101,7 +99,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         title = findViewById(R.id.title_tv);
         CopyFontFile mCopyData_File = new CopyFontFile(this);
         mCopyData_File.DoCopy();
-
+        mapView.setEsriLogoVisible(false);
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
@@ -291,6 +289,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             RasterLayer rasterLayer = new RasterLayer(rasterSource);
             mapView.addLayer(rasterLayer);
+            mapView.addLayer(rasterLayer);
             graphicsLayer = new GraphicsLayer();
             graphicsLayer_camera = new GraphicsLayer();
             graphicsLayer_info = new GraphicsLayer();
@@ -307,7 +306,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                pointList_xml = new ArrayList<>();
                                 String url = "camera.kml";
                                 String url2 = "info.kml";
                                 String url3 = "违章种植.kml";

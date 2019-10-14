@@ -1,6 +1,7 @@
 package com.videogo.warning;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
@@ -46,6 +47,19 @@ public class WarningActivity  extends Activity {
         adapter = new WarningAdapter(this, list, new WarningAdapter.setOnclick() {
             @Override
             public void onClick(View view,int position) {
+                switch (position){
+                    case 0:
+                        //垃圾倾倒
+                        Intent i1 = new Intent(view.getContext(), GarbageActivity.class);
+                        startActivity(i1);
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        break;
+                }
                 ToastNotRepeat.show(WarningActivity.this,"点击了"+list.get(position));
             }
         });
