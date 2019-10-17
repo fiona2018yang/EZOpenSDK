@@ -64,6 +64,23 @@
             android:enabled="true"
             android:process=":remote" />
 
+        <service android:name="com.videogo.jpush.service.JpushService"
+            android:enabled="true"
+            android:exported="false"
+            android:process=":pushcore">
+            <intent-filter>
+                <action android:name="cn.jiguang.user.service.action" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name="com.videogo.jpush.Reciver.JPushReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="cn.jpush.android.intent.RECEIVE_MESSAGE"/>
+                <category android:name="ezviz.ezopensdk"/>
+            </intent-filter>
+        </receiver>
         <activity
             android:name="com.videogo.LoginSelectActivity"
             android:configChanges="orientation|keyboardHidden"

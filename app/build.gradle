@@ -22,6 +22,11 @@ android {
         ndk {
             abiFilters "armeabi-v7a"
         }
+        manifestPlaceholders = [
+                JPUSH_PKGNAME : applicationId,
+                JPUSH_APPKEY : "d7dcbc60f6f4da800a89ead8", //JPush 上注册的包名对应的 Appkey.
+                JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
+        ]
         multiDexEnabled true
         //启用renderscript
         renderscriptTargetApi = 18
@@ -66,4 +71,6 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation files('libs/arcgis-android-api.jar')
     implementation files('libs/jcifs-1.3.17.jar')
+    implementation files('libs/jcore-android-2.1.6.jar')
+    implementation files('libs/jpush-android-3.3.6.jar')
 }
