@@ -28,7 +28,6 @@ import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.scanpic.ScanPicActivity;
 import com.videogo.scanvideo.ScanVideoActivity;
 import com.videogo.util.ConnectionDetector;
-import com.videogo.warning.WarningActivity;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -132,8 +131,6 @@ public class HomeActivity extends Activity {
                         startActivity(iBaiduMap);
                         break;
                     case 3: //报警信息
-                        Intent iWarning = new Intent(view.getContext(), WarningActivity.class);
-                        startActivity(iWarning);
                         break;
                     case 4://视频查看
                         Intent ivideoView = new Intent(view.getContext(), ScanVideoActivity.class);

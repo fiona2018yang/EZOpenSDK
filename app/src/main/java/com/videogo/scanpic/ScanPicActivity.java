@@ -37,7 +37,7 @@ public class ScanPicActivity extends Activity {
         EZDeviceInfo info = new EZDeviceInfo();
         info.setDeviceName("最近");
         list_ezdevices.add(0,info);
-        //添加分割线
+
         rv.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
         adapter = new ScanPicAdapter(list_ezdevices);
         rv.setAdapter(adapter);

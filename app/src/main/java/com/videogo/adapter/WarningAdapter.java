@@ -44,7 +44,7 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
     }
 
     public interface setOnclick{
-        void onClick(View view,int p);
+        void onClick(View view, int p);
     }
 
     public static class WarningHolder extends RecyclerView.ViewHolder{
