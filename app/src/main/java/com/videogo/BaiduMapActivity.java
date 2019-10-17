@@ -56,7 +56,6 @@ import java.util.ArrayList;
 import java.util.List;
 import ezviz.ezopensdk.R;
 
-import static com.videogo.EzvizApplication.getOpenSDK;
 
 public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private MapView mapView = null;
