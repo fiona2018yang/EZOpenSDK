@@ -118,7 +118,7 @@ public class HomeActivity extends Activity {
                 // "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"
                 switch (position) {
                     case 0://实景地图
-                        Intent iRealMap = new Intent(view.getContext(), com.videogo.MainActivity.class);
+                        Intent iRealMap = new Intent(view.getContext(), MainActivity.class);
                         iRealMap.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezdevices);
                         startActivity(iRealMap);
                         break;
@@ -127,7 +127,7 @@ public class HomeActivity extends Activity {
                         startActivity(iRreview);
                         break;
                     case 2://百度地图
-                        Intent iBaiduMap = new Intent(view.getContext(), com.videogo.BaiduMapActivity.class);
+                        Intent iBaiduMap = new Intent(view.getContext(), BaiduMapActivity.class);
                         iBaiduMap.putParcelableArrayListExtra("devices_baidu", (ArrayList<? extends Parcelable>) list_ezdevices);
                         startActivity(iBaiduMap);
                         break;
