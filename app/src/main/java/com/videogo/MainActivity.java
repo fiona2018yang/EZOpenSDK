@@ -21,9 +21,9 @@ import com.esri.android.map.GraphicsLayer;
 import com.esri.android.map.LocationDisplayManager;
 import com.esri.android.map.MapView;
 import com.esri.android.map.RasterLayer;
-import com.esri.android.map.ags.ArcGISImageServiceLayer;
 import com.esri.android.map.event.OnSingleTapListener;
 import com.esri.android.map.event.OnStatusChangedListener;
+import com.esri.android.map.event.OnZoomListener;
 import com.esri.android.runtime.ArcGISRuntime;
 import com.esri.core.geometry.AreaUnit;
 import com.esri.core.geometry.Envelope;
@@ -32,7 +32,6 @@ import com.esri.core.geometry.LinearUnit;
 import com.esri.core.geometry.Point;
 import com.esri.core.geometry.Polygon;
 import com.esri.core.geometry.Polyline;
-import com.esri.core.io.UserCredentials;
 import com.esri.core.map.Graphic;
 import com.esri.core.raster.FileRasterSource;
 import com.esri.core.symbol.PictureMarkerSymbol;
@@ -40,6 +39,8 @@ import com.esri.core.symbol.SimpleFillSymbol;
 import com.esri.core.symbol.SimpleLineSymbol;
 import com.esri.core.symbol.SimpleMarkerSymbol;
 import com.esri.core.symbol.TextSymbol;
+import com.videogo.been.StyleId;
+import com.videogo.been.StyleMap;
 import com.videogo.constant.IntentConsts;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
@@ -53,7 +54,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import ezviz.ezopensdk.R;
 
 
@@ -70,6 +70,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private GraphicsLayer graphicsLayer;
     private GraphicsLayer graphicsLayer_camera;
     private GraphicsLayer graphicsLayer_info;
+    private GraphicsLayer graphicsLayer_info_text;
     private GraphicsLayer graphicsLayer_warning;
     private LocationDisplayManager locationDisplayManager = null;
     public final static int REQUEST_CODE = 100;
@@ -143,9 +144,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             case R.id.info_ibtn:
                 if (graphicsLayer_info.isVisible()){
                     graphicsLayer_info.setVisible(false);
+                    if (mapView.getScale()<30000){
+                        graphicsLayer_info_text.setVisible(false);
+                    }
                     info.setBackgroundResource(R.mipmap.xinxi);
                 }else{
                     graphicsLayer_info.setVisible(true);
+                    if (mapView.getScale()<30000){
+                        graphicsLayer_info_text.setVisible(true);
+                    }
                     info.setBackgroundResource(R.mipmap.xinxi_sel);
                 }
                 break;
@@ -272,13 +279,16 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
      */
     private void loadlayer(String path){
         File file = new File(path);
+        String url2 = "";
         if (!file.exists()){
             ToastNotRepeat.show(this,"文件不存在！");
         }else{
             if ((path.substring(path.indexOf(".")-1)).equals("2.tif")){
                 title.setText("南区");
+                url2 = "南区.kml";
             }else{
                 title.setText("西区");
+                url2 = "西区.kml";
             }
             FileRasterSource rasterSource = null;
             try {
@@ -293,11 +303,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             graphicsLayer = new GraphicsLayer();
             graphicsLayer_camera = new GraphicsLayer();
             graphicsLayer_info = new GraphicsLayer();
+            graphicsLayer_info_text = new GraphicsLayer();
             graphicsLayer_warning = new GraphicsLayer();
             mapView.addLayer(graphicsLayer);
             mapView.addLayer(graphicsLayer_camera);
             mapView.addLayer(graphicsLayer_info);
+            mapView.addLayer(graphicsLayer_info_text);
             mapView.addLayer(graphicsLayer_warning);
+            graphicsLayer_info_text.setVisible(false);
+            String finalUrl = url2;
             rasterLayer.setOnStatusChangedListener(new OnStatusChangedListener() {
                 @Override
                 public void onStatusChanged(Object o, STATUS status) {
@@ -307,10 +321,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                             @Override
                             public void run() {
                                 String url = "camera.kml";
-                                String url2 = "info.kml";
                                 String url3 = "违章种植.kml";
                                 loadCamera(url);
-                                loadinfo(url2);
+                                loadinfo(finalUrl);
                                 loadwarning(url3);
                             }
                         }).start();
@@ -378,6 +391,25 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
                 }
             });
+            mapView.setOnZoomListener(new OnZoomListener() {
+                @Override
+                public void preAction(float v, float v1, double v2) {
+                    //定义地图默认缩放处理之前的操作。
+                }
+
+                @Override
+                public void postAction(float v, float v1, double v2) {
+                    //定义地图默认缩放处理后的操作。
+                    Log.i("TAG","scale="+mapView.getScale());
+                    if (mapView.getScale() > 30000){
+                        graphicsLayer_info_text.setVisible(false);
+                        Log.i("TAG","1");
+                    }else{
+                        graphicsLayer_info_text.setVisible(true);
+                        Log.i("TAG","2");
+                    }
+                }
+            });
         }
     }
 
@@ -391,7 +423,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         List<String> list_des = new ArrayList<>();
         List<Point> list_point = new ArrayList<>();
         ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,MainActivity.this);
-        readKml.parseKml();
+        readKml.parseKml2();
         for (int i = 0 ; i < list_point.size()  ; i++){
             int finalI = i;
             Map<String,Object> map = new HashMap<>();
@@ -419,9 +451,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         List<String> list_name_info = new ArrayList<>();
         List<String> list_des_info = new ArrayList<>();
         List<List<Point>> list_collection = new ArrayList<>();
-        SimpleLineSymbol simpleLineSymbol_info = new SimpleLineSymbol(Color.BLACK, 2);
-        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
+        List<StyleId> list_styleid = new ArrayList<>();
+        List<StyleMap> list_stylemap = new ArrayList<>();
+        List<String> list_style_url = new ArrayList<>();
+        ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,list_styleid,list_stylemap,list_style_url,MainActivity.this);
         readKml1.parseKml();
+        //线型
         for (int i = 0 ; i < list_collection.size() ; i++){
             Polyline polyline = new Polyline();
             polyline.startPath(list_collection.get(i).get(0));
@@ -430,6 +465,21 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
             Map<String,Object> map = new HashMap<>();
             map.put("style","line");
+            String url = list_style_url.get(i);
+            String linecolor="";
+            String linewidth="";
+            for (StyleMap styleMap : list_stylemap){
+                if (styleMap.getId().equals(url)){
+                    String stylemapUrl = styleMap.getStyleUrl();
+                    for (StyleId styleid : list_styleid){
+                        if (styleid.getId().equals(stylemapUrl)){
+                            linecolor = styleid.getLineColor();
+                            linewidth = styleid.getLineWidth();
+                        }
+                    }
+                }
+            }
+            SimpleLineSymbol simpleLineSymbol_info = new SimpleLineSymbol(Color.parseColor("#"+linecolor), Integer.parseInt(linewidth));
             Graphic line = new Graphic(polyline,simpleLineSymbol_info,map);
             graphicsLayer_info.addGraphic(line);
             TextSymbol t = new TextSymbol(12, list_des_info.get(i), Color.BLACK);
@@ -438,7 +488,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             Map<String,Object> map2 = new HashMap<>();
             map2.put("style","text");
             Graphic ts = new Graphic(polyline,t,map2);
-            graphicsLayer_info.addGraphic(ts);
+            graphicsLayer_info_text.addGraphic(ts);
         }
     }
     /**
@@ -451,7 +501,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         List<List<Point>> list_collection = new ArrayList<>();
         SimpleLineSymbol simpleLineSymbol_warning = new SimpleLineSymbol(Color.WHITE,2);
         ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,MainActivity.this);
-        readKml1.parseKml();
+        readKml1.parseKml2();
         for (int i = 0 ; i < list_collection.size() ; i++){
             Polyline polyline = new Polyline();
             polyline.startPath(list_collection.get(i).get(0));

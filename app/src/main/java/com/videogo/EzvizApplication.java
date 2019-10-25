@@ -32,6 +32,8 @@ import com.videogo.scanvideo.CameraVideoActivity;
 import com.videogo.ui.cameralist.EZCameraListActivity;
 import com.videogo.util.LogUtil;
 
+import cn.jpush.android.api.JPushInterface;
+
 /**
  * 自定义应用
  *
@@ -55,6 +57,7 @@ public class EzvizApplication extends Application {
         initSDK();
         initData();
         SDKInitializer.initialize(this);
+        JPushInterface.init(this);
     }
 
     private void initData() {
@@ -69,7 +72,6 @@ public class EzvizApplication extends Application {
 
 
     }
-
     @Override
     public void onTerminate() {
         super.onTerminate();
