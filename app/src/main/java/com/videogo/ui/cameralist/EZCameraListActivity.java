@@ -488,10 +488,15 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
                     mListView.setFooterRefreshEnabled(true);
                     mListView.getRefreshableView().removeFooterView(mNoMoreView);
                 }
-                if (result.size()>0){
+                if (result.size()==3){
                     result.get(0).setDeviceCover("file:///android_asset/bg_shuangta.jpg");
                     result.get(1).setDeviceCover("file:///android_asset/bg_hewan.jpg");
                     result.get(2).setDeviceCover("file:///android_asset/bg_dayunhe.jpg");
+                }else if(result.size() == 2){
+                    result.get(0).setDeviceCover("file:///android_asset/bg_shuangta.jpg");
+                    result.get(1).setDeviceCover("file:///android_asset/bg_hewan.jpg");
+                }else if (result.size() == 1){
+                    result.get(0).setDeviceCover("file:///android_asset/bg_shuangta.jpg");
                 }
                 addCameraList(result);
                 mAdapter.notifyDataSetChanged();
