@@ -18,11 +18,9 @@ import com.squareup.picasso.Transformation;
 
 public class RoundTransform implements Transformation {
 
-    private Context mContext;
     private int radius;
 
-    public RoundTransform(Context context,int radius) {
-        mContext = context;
+    public RoundTransform(int radius) {
         this.radius = radius;
     }
 
@@ -42,7 +40,7 @@ public class RoundTransform implements Transformation {
         RectF rectF = new RectF(new Rect(0, 0, widthLight, heightLight));
 
         canvas.drawRoundRect(rectF, radius, radius, paintColor);
-//        canvas.drawRoundRect(rectF, widthLight / 5, heightLight / 5, paintColor);
+//        canvas.drawRoundRect(rectF, widthLight / 10, heightLight / 10, paintColor);
 
         Paint paintImage = new Paint();
         paintImage.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_ATOP));

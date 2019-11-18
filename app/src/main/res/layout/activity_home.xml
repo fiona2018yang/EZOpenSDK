@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="@color/z_white">
+    android:background="@mipmap/bg">
 
     <com.bigkoo.convenientbanner.ConvenientBanner
         android:id="@+id/convenientBanner"
@@ -14,10 +14,10 @@
         android:layout_marginTop="0dp"
         />
     <GridView
+        android:layout_marginTop="50dp"
         android:id="@+id/gv_home"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="50dp"
         android:listSelector="@color/transparent_bg"
         android:numColumns="3"
         android:columnWidth="80dp"

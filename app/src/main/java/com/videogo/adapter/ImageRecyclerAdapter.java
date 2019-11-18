@@ -14,6 +14,7 @@ import com.squareup.picasso.Picasso;
 import com.videogo.scanvideo.MyImageView;
 import com.videogo.scanvideo.MyVideoThumbLoader;
 import com.videogo.ui.util.DataUtils;
+import com.videogo.warning.RoundTransform;
 
 import java.io.File;
 import java.util.List;
@@ -59,7 +60,8 @@ public class ImageRecyclerAdapter extends RecyclerView.Adapter<ImageRecyclerAdap
             mVideoThumbLoader.showThumbByAsynctack(dataList.get(position),holder.image,350,200);
             holder.imgPlay.setVisibility(View.VISIBLE);
         }else {
-            Picasso.with(context).load(new File(dataList.get(position))).resize(350,200).centerCrop().into(holder.image);
+            Picasso.with(context).load(new File(dataList.get(position))).resize(350,200).transform(new RoundTransform(10)).into(holder.image);
+            Log.i("TAG","pic");
         }
         if (showChecked){
             holder.image.setPadding(0,6,0,6);

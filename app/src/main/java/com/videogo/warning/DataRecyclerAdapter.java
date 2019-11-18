@@ -30,7 +30,8 @@ public class DataRecyclerAdapter extends RecyclerView.Adapter<DataRecyclerAdapte
     @Override
     public void onBindViewHolder(DataHolder holder, int position) {
         WarningData warningData = dataList.get(position);
-        Picasso.with(context).load(new File(warningData.getPath())).resize(400,300).transform(new RoundTransform(context,20)).into(holder.image);
+        Picasso.with(context).load(new File(warningData.getPath())).resize(400,300).transform(new RoundTransform(20)).into(holder.image);
+        //Picasso.with(context).load(new File(warningData.getPath())).resize(400,300).into(holder.image);
         holder.address.setText(warningData.getAddress());
         holder.location.setText(warningData.getLocation());
     }

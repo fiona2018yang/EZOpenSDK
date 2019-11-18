@@ -45,6 +45,8 @@ import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.CoordinateConverter;
 import com.baidu.mapapi.utils.DistanceUtil;
 import com.esri.core.geometry.Point;
+import com.videogo.been.StyleId;
+import com.videogo.been.StyleMap;
 import com.videogo.constant.IntentConsts;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
@@ -81,6 +83,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private List<OverlayOptions> options = new ArrayList<>();
     private List<OverlayOptions> options2 = new ArrayList<>();
     private List<OverlayOptions> options3 = new ArrayList<>();
+    private List<OverlayOptions> options_text = new ArrayList<>();
     private List<String> list_name = new ArrayList<>();
     private List<String> list_des = new ArrayList<>();
     private List<Point> list_point = new ArrayList<>();
@@ -94,6 +97,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private Boolean show_camera = false;
     private Boolean show_info = false;
     private Boolean show_warning = true;
+    private Boolean show_text = false;
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
     private final static int LOAD_MY_DEVICE = 0;
@@ -127,11 +131,10 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         String url3 = "违章种植.kml";
         try {
             ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,BaiduMapActivity.this);
-            ReadKml readKml2 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,BaiduMapActivity.this);
+
             ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,BaiduMapActivity.this);
-            readKml.parseKml();
-            readKml2.parseKml();
-            readKml_warning.parseKml();
+            readKml.parseKml2();
+            readKml_warning.parseKml2();
             Log.i("TAG","size1 = "+list_name.size());
             Log.i("TAG","size2 = "+list_des.size());
             Log.i("TAG","size3 = "+list_point.size());
@@ -166,14 +169,14 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         mMapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
         //改变地图状态
         mBaiduMap.setMapStatus(mMapStatusUpdate);
-        BaiduMapOptions options = new BaiduMapOptions();
-        options.zoomGesturesEnabled(true);
+        BaiduMapOptions options_statue = new BaiduMapOptions();
+        options_statue.zoomGesturesEnabled(true);
         //初始化定位参数配置
         initLocation();
         //添加图标
         addMarker();
         //添加地块信息
-        addInfo();
+        addInfo(url2);
         //添加报警信息
         addWarning();
 
@@ -244,6 +247,43 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 Bundle bundle = marker.getExtraInfo();
                 showDialog(bundle.getString("name"),bundle.getString("des"));
                 return false;
+            }
+        });
+        mBaiduMap.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener() {
+            @Override
+            public void onMapStatusChangeStart(MapStatus mapStatus) {
+
+            }
+
+            @Override
+            public void onMapStatusChangeStart(MapStatus mapStatus, int i) {
+
+            }
+
+            @Override
+            public void onMapStatusChange(MapStatus mapStatus) {
+
+            }
+
+            @Override
+            public void onMapStatusChangeFinish(MapStatus mapStatus) {
+                float zoom = mapStatus.zoom;
+                if (zoom >= 15 && !show_text){
+                    mBaiduMap.addOverlays(options_text);
+                    show_text = true;
+                }else if (zoom < 15 && show_text){
+                    mBaiduMap.clear();
+                    if (!show_camera){
+                        mBaiduMap.addOverlays(options);
+                    }
+                    if (!show_info){
+                        mBaiduMap.addOverlays(options2);
+                    }
+                    if (!show_warning){
+                        mBaiduMap.addOverlays(options3);
+                    }
+                    show_text = false;
+                }
             }
         });
     }
@@ -325,7 +365,15 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     /**
      *添加地块信息
      */
-    private void addInfo(){
+    private void addInfo(String url2){
+        List<String> list_name_info = new ArrayList<>();
+        List<String> list_des_info = new ArrayList<>();
+        List<List<Point>> list_collection = new ArrayList<>();
+        List<StyleId> list_styleid = new ArrayList<>();
+        List<StyleMap> list_stylemap = new ArrayList<>();
+        List<String> list_style_url = new ArrayList<>();
+        ReadKml readKml = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,list_styleid,list_stylemap,list_style_url,BaiduMapActivity.this);
+        readKml.parseKml();
         for (int i = 0 ; i < list_collection.size() ; i++){
             List<LatLng> points = new ArrayList<LatLng>();
             for (int j = 0 ; j < list_collection.get(i).size() ; j++){
@@ -334,11 +382,25 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 LatLng latLng = converter.convert();
                 points.add(latLng);
             }
-            OverlayOptions mOverlayOptions = new PolylineOptions().width(6).color(Color.BLACK).points(points);
+            String url = list_style_url.get(i);
+            String linecolor="";
+            String linewidth="";
+            for (StyleMap styleMap : list_stylemap){
+                if (styleMap.getId().equals(url)){
+                    String stylemapUrl = styleMap.getStyleUrl();
+                    for (StyleId styleid : list_styleid){
+                        if (styleid.getId().equals(stylemapUrl)){
+                            linecolor = styleid.getLineColor();
+                            linewidth = styleid.getLineWidth();
+                        }
+                    }
+                }
+            }
+            OverlayOptions mOverlayOptions = new PolylineOptions().width(Integer.parseInt(linewidth)).color(Color.parseColor("#"+linecolor)).points(points);
             options2.add(mOverlayOptions);
             BitmapDescriptor bitmapDescriptor = stringToBitmapDescriptor(list_des_info.get(i));
             OverlayOptions option = new MarkerOptions().icon(bitmapDescriptor).position(getInterPosition(points));
-            options2.add(option);
+            options_text.add(option);
         }
         Overlays_info = mBaiduMap.addOverlays(options2);
     }
@@ -411,44 +473,59 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.info_ibtn:
                 if (show_info){
-                    for (Overlay overlay : Overlays_info){
-                        overlay.setVisible(true);
-                    };
+                    mBaiduMap.addOverlays(options2);
                     info.setBackgroundResource(R.mipmap.xinxi_sel);
                     show_info = false;
                 }else{
-                    for (Overlay overlay : Overlays_info){
-                        overlay.setVisible(false);
-                    };
+                    mBaiduMap.clear();
+                    if (!show_warning){
+                        mBaiduMap.addOverlays(options3);
+                    }
+                    if (!show_camera){
+                        mBaiduMap.addOverlays(options);
+                    }
+                    if (show_text){
+                        mBaiduMap.addOverlays(options_text);
+                    }
                     info.setBackgroundResource(R.mipmap.xinxi);
                     show_info = true;
                 }
                 break;
             case R.id.warning_ibtn:
                 if (show_warning){
-                    for (Overlay overlay : Overlays_warning){
-                        overlay.setVisible(true);
-                    };
+                    mBaiduMap.addOverlays(options3);
                     warning.setBackgroundResource(R.mipmap.baojing_sel);
                     show_warning = false;
                 }else{
-                    for (Overlay overlay : Overlays_warning){
-                        overlay.setVisible(false);
-                    };
+                    mBaiduMap.clear();
+                    if (!show_camera){
+                        mBaiduMap.addOverlays(options);
+                    }
+                    if (!show_info){
+                        mBaiduMap.addOverlays(options2);
+                    }
+                    if (show_text){
+                        mBaiduMap.addOverlays(options_text);
+                    }
                     warning.setBackgroundResource(R.mipmap.baojing);
                     show_warning = true;
                 }
                 break;
             case R.id.robot_ibtn:
                 if (show_camera){
-                    for (Overlay overlay : Overlays_camera){
-                        overlay.setVisible(true);
-                    }
+                    mBaiduMap.addOverlays(options);
                     robot.setBackgroundResource(R.mipmap.jiqiren_sel);
                     show_camera = false;
                 }else{
-                    for (Overlay overlay : Overlays_camera){
-                        overlay.setVisible(false);
+                    mBaiduMap.clear();
+                    if (!show_warning){
+                        mBaiduMap.addOverlays(options3);
+                    }
+                    if (!show_info){
+                        mBaiduMap.addOverlays(options2);
+                    }
+                    if (show_text){
+                        mBaiduMap.addOverlays(options_text);
                     }
                     robot.setBackgroundResource(R.mipmap.jiqiren);
                     show_camera = true;

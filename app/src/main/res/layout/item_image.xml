@@ -5,7 +5,7 @@
     android:padding="2dp"
     android:layout_height="100dp">
     <com.videogo.scanvideo.MyImageView
-        android:scaleType="centerCrop"
+        android:scaleType="fitXY"
         android:id="@+id/image"
         android:visibility="visible"
         android:layout_width="match_parent"
@@ -16,9 +16,9 @@
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:visibility="gone"
+        android:scaleType="fitXY"
         android:background="@drawable/icn_play_video"
         android:layout_centerInParent="true"
-        android:scaleType="centerCrop"
         />
     <CheckBox
         android:id="@+id/cb_item"
