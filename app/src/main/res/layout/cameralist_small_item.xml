@@ -3,7 +3,7 @@
     android:id="@+id/camera_item_rl"
     android:layout_width="fill_parent"
     android:layout_height="120dp"
-    android:background="@drawable/display_frame"
+    android:background="@color/transparent"
     android:clickable="true">
 
     <LinearLayout
@@ -75,7 +75,7 @@
                     android:paddingRight="8dp"
                     android:singleLine="true"
                     android:text="camera1"
-                    android:textColor="#333333"
+                    android:textColor="@color/topBarText"
                     android:textSize="15sp" />
 
                 <ImageButton
@@ -237,4 +237,11 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+    <View
+        android:layout_marginRight="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/auto_tip_text"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"/>
 </RelativeLayout>

@@ -2,8 +2,9 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@color/opensdk_cameralist_bg"
+    android:background="@mipmap/bg"
     android:orientation="vertical">
+    <!--    android:background="@color/opensdk_cameralist_bg"-->
 
     <!-- 标题栏 -->
     <RelativeLayout
@@ -13,11 +14,10 @@
 
         <Button
             android:id="@+id/btn_user"
-            android:visibility="gone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             android:layout_marginLeft="10dp"
+            android:layout_centerVertical="true"
             android:background="@drawable/user" />
 
         <LinearLayout
@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:text="我的"
-                android:textColor="@color/orange_text"
+                android:textColor="@color/topBarText"
                 android:textSize="20sp" />
 
             <!--<TextView-->
@@ -79,9 +79,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:gravity="center_vertical"
+                android:textColor="@color/topBarText"
                 android:paddingLeft="16dp"
                 android:text="设备列表"
-                android:textSize="16sp" />
+                android:textSize="14sp" />
 
             <!--<ImageView-->
                 <!--android:id="@+id/page_photos"-->
@@ -158,6 +159,7 @@
 
                 <TextView
                     android:id="@+id/get_camera_list_fail_tv"
+                    android:textColor="@color/topBarText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
