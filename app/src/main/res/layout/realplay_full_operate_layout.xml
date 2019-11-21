@@ -88,6 +88,7 @@
 	        android:layout_alignParentRight="true"
 	        android:background="@anim/play_full_multiple_anim_bg"
 	        android:gravity="center"
+			android:visibility="gone"
 	        android:orientation="vertical" >
 	
 	        <TextView
@@ -97,6 +98,7 @@
 	            android:paddingLeft="4dp"
 	            android:paddingRight="4dp"
 	            android:text="523k/s"
+				android:visibility="gone"
 	            android:textColor="@color/white"
 	            android:textSize="@dimen/realplay_channel_text_size" />
 	
@@ -107,6 +109,7 @@
 	            android:paddingLeft="4dp"
 	            android:paddingRight="4dp"
 	            android:text="345MB"
+				android:visibility="gone"
 	            android:textColor="@color/white"
 	            android:textSize="@dimen/realplay_channel_text_size" />
 	    </LinearLayout>
@@ -140,5 +143,5 @@
 	    android:layout_marginRight="15dp"
 	    android:layout_marginBottom="15dp"
 	    android:background="@drawable/horizontal_fullscreen_button_selector"
-	    android:visibility="gone" />	
+	    android:visibility="gone" />
 </RelativeLayout>

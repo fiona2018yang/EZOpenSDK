@@ -11,6 +11,8 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     private static final String CREATE_VIDEO_PATH ="create table videofilepath("+"id integer primary key autoincrement,"+"path text,"+"name text)";
     //用户名，密码，用户类型
     private static final String USER_DATA ="create table userData("+"id integer primary key autoincrement,"+"name text,"+"password text,"+"type integer)";
+    //设备序列号，验证码
+    private static final String CREATE_VERIFY_CODE = "create table verifycode("+"id integer primary key autoincrement,"+"name text,"+"code text)";
     public MyDatabaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         this.context = context;
@@ -21,6 +23,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_PIC_PATH);
         db.execSQL(CREATE_VIDEO_PATH);
         db.execSQL(USER_DATA);
+        db.execSQL(CREATE_VERIFY_CODE);
     }
 
     @Override
@@ -28,6 +31,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("drop table if exists picfilepath");
         db.execSQL("drop table if exists videofilepath");
         db.execSQL("drop table if exists userData");
+        db.execSQL("drop table if exists verifycode");
         onCreate(db);
     }
 }

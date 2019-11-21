@@ -214,6 +214,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
     private boolean mIsRecording = false;
     private String mRecordTime = null;
+    private SQLiteDatabase db;
     /**
      * 录像时间
      */
@@ -242,6 +243,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private Button mRealPlayQualityBtn = null;
 
     private RelativeLayout mRealPlayFullOperateBar = null;
+    private RelativeLayout mRead_ptz_wnd_landscape = null;
     private ImageButton mRealPlayFullPlayBtn = null;
     private ImageButton mRealPlayFullSoundBtn = null;
     private ImageButton mRealPlayFullTalkBtn = null;
@@ -316,7 +318,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private EZVideoLevel mCurrentQulityMode = EZVideoLevel.VIDEO_LEVEL_HD;
     private EZDeviceInfo mDeviceInfo = null;
     private EZCameraInfo mCameraInfo = null;
-    private String mVerifyCode;
+    private String mVerifyCode ;
 
     /**
      * 存放上一次的流量
@@ -333,7 +335,6 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private boolean isFaster = false;
     private int my_speed = EZConstants.PTZ_SPEED_DEFAULT;
 
-    private SQLiteDatabase db;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -612,6 +613,8 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
     private void initTitleBar() {
         mPortraitTitleBar = (TitleBar) findViewById(R.id.title_bar_portrait);
+        mPortraitTitleBar.setStyle(Color.rgb(0xff, 0xff, 0xff),getResources().getDrawable(R.color.blue_bg),
+                getResources().getDrawable(R.drawable.message_back_selector_1));
         mPortraitTitleBar.addBackButton(new OnClickListener() {
 
             @Override
@@ -1059,6 +1062,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
     private void initFullOperateBarUI() {
         mRealPlayFullOperateBar = (RelativeLayout) findViewById(R.id.realplay_full_operate_bar);
+        mRead_ptz_wnd_landscape = findViewById(R.id.read_ltz_wnd_landscape);
         mRealPlayFullPlayBtn = (ImageButton) findViewById(R.id.realplay_full_play_btn);
         mRealPlayFullSoundBtn = (ImageButton) findViewById(R.id.realplay_full_sound_btn);
         mRealPlayFullTalkBtn = (ImageButton) findViewById(R.id.realplay_full_talk_btn);
@@ -1068,6 +1072,8 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         mRealPlayFullRecordBtn = (ImageButton) findViewById(R.id.realplay_full_video_btn);
         mRealPlayFullRecordStartBtn = (ImageButton) findViewById(R.id.realplay_full_video_start_btn);
         mRealPlayFullOperateBar.setOnTouchListener(this);
+        mRead_ptz_wnd_landscape.setOnClickListener(this);
+        mRead_ptz_wnd_landscape.setOnTouchListener(this);
 
         mRealPlayFullPtzAnimBtn = (ImageButton) findViewById(R.id.realplay_full_ptz_anim_btn);
         mRealPlayFullPtzPromptIv = (ImageView) findViewById(R.id.realplay_full_ptz_prompt_iv);
@@ -1140,16 +1146,20 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
     private void updateOperatorUI() {
         if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
-            // 显示状态栏
+            // 显示状态栏,横屏切换竖屏
             fullScreen(false);
             updateOrientation();
             mPortraitTitleBar.setVisibility(View.VISIBLE);
             mLandscapeTitleBar.setVisibility(View.GONE);
             mRealPlayControlRl.setVisibility(View.VISIBLE);
+            mRead_ptz_wnd_landscape.setVisibility(View.GONE);
+            closePtzPopupWindow();
             if (mRtspUrl == null) {
-                mRealPlayPageLy.setBackgroundColor(getResources().getColor(R.color.common_bg));
+//                mRealPlayPageLy.setBackgroundColor(getResources().getColor(R.color.common_bg));
+                mRealPlayPageLy.setBackgroundResource(R.mipmap.bg);
                 mRealPlayOperateBar.setVisibility(View.VISIBLE);
                 mRealPlayFullOperateBar.setVisibility(View.GONE);
+                mRead_ptz_wnd_landscape.setVisibility(View.GONE);
                 mFullscreenFullButton.setVisibility(View.GONE);
                 if (mIsRecording) {
                     mRealPlayRecordBtn.setVisibility(View.GONE);
@@ -1162,6 +1172,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         } else {
             // 隐藏状态栏
             fullScreen(true);
+            updateOrientation();
             mPortraitTitleBar.setVisibility(View.GONE);
             // hide the
             mRealPlayControlRl.setVisibility(View.GONE);
@@ -1169,9 +1180,9 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                 mLandscapeTitleBar.setVisibility(View.VISIBLE);
             }
             if (mRtspUrl == null) {
-                mRealPlayOperateBar.setVisibility(View.GONE);
                 mRealPlayPageLy.setBackgroundColor(getResources().getColor(R.color.black_bg));
-                mRealPlayFullOperateBar.setVisibility(View.GONE);
+                mRealPlayOperateBar.setVisibility(View.GONE);
+                mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
                 if (!mIsOnTalk && !mIsOnPtz) {
                     mFullscreenFullButton.setVisibility(View.GONE);
                 }
@@ -1237,6 +1248,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                         mEndXy[1] = mStartXy[1];
 
                         mRealPlayFullOperateBar.setVisibility(View.GONE);
+
                         mRealPlayFullTalkAnimBtn.setVisibility(View.VISIBLE);
                         //                        mFullscreenFullButton.setVisibility(View.VISIBLE);
                         ((AnimationDrawable) mRealPlayFullTalkAnimBtn.getBackground()).start();
@@ -1263,9 +1275,9 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     }
 
     private void onOrientationChanged() {
-//        mRealPlaySv.setVisibility(View.INVISIBLE);
+        mRealPlaySv.setVisibility(View.INVISIBLE);
         setRealPlaySvLayout();
-//        mRealPlaySv.setVisibility(View.VISIBLE);
+        mRealPlaySv.setVisibility(View.VISIBLE);
 
         updateOperatorUI();
         updateCaptureUI();
@@ -1356,7 +1368,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             case R.id.realplay_full_ptz_btn:
                 setFullPtzStartUI(true);
                 break;
-            case R.id.realplay_full_ptz_anim_btn:
+            case R.id.ptz_close_btn:
                 setFullPtzStopUI(true);
                 break;
             case R.id.realplay_sound_btn:
@@ -1375,37 +1387,41 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         mIsOnPtz = true;
         setPlayScaleUI(1, null, null);
         if (mLocalInfo.getPtzPromptCount() < 3) {
-            mRealPlayFullPtzPromptIv.setBackgroundResource(R.drawable.ptz_prompt);
-            mRealPlayFullPtzPromptIv.setVisibility(View.VISIBLE);
+//            mRealPlayFullPtzPromptIv.setBackgroundResource(R.drawable.ptz_prompt);
+//            mRealPlayFullPtzPromptIv.setVisibility(View.GONE);
             mLocalInfo.setPtzPromptCount(mLocalInfo.getPtzPromptCount() + 1);
             mHandler.removeMessages(MSG_CLOSE_PTZ_PROMPT);
             mHandler.sendEmptyMessageDelayed(MSG_CLOSE_PTZ_PROMPT, 2000);
         }
         if (startAnim) {
-            mRealPlayFullAnimBtn.setBackgroundResource(R.drawable.yuntai_pressed);
-            mRealPlayFullPtzBtn.getLocationInWindow(mStartXy);
-            mEndXy[0] = Utils.dip2px(this, 20);
-            mEndXy[1] = mStartXy[1];
-            startFullBtnAnim(mRealPlayFullAnimBtn, mStartXy, mEndXy, new AnimationListener() {
-
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    mRealPlayFullPtzAnimBtn.setVisibility(View.VISIBLE);
-                    mRealPlayFullAnimBtn.setVisibility(View.GONE);
-                    onRealPlaySvClick();
-                    //                    mFullscreenFullButton.setVisibility(View.VISIBLE);
-                }
-            });
+            onRealPlaySvClick();
+            mRealPlayFullOperateBar.setVisibility(View.GONE);
+            mRead_ptz_wnd_landscape.setVisibility(View.VISIBLE);
+//            mRealPlayFullAnimBtn.setBackgroundResource(R.drawable.yuntai_pressed);
+//            mRealPlayFullPtzBtn.getLocationInWindow(mStartXy);
+//            mEndXy[0] = Utils.dip2px(this, 20);
+//            mEndXy[1] = mStartXy[1];
+//            startFullBtnAnim(mRealPlayFullAnimBtn, mStartXy, mEndXy, new AnimationListener() {
+//
+//                @Override
+//                public void onAnimationStart(Animation animation) {
+//                }
+//
+//                @Override
+//                public void onAnimationRepeat(Animation animation) {
+//                }
+//
+//                @Override
+//                public void onAnimationEnd(Animation animation) {
+////                    mRealPlayFullPtzAnimBtn.setVisibility(View.VISIBLE);
+////                    mRealPlayFullAnimBtn.setVisibility(View.GONE);
+////                    onRealPlaySvClick();
+//                    //                    mFullscreenFullButton.setVisibility(View.VISIBLE);
+//                }
+//            });
         } else {
             mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
+            mRead_ptz_wnd_landscape.setVisibility(View.GONE);
             mRealPlayFullOperateBar.post(new Runnable() {
 
                 @Override
@@ -1428,26 +1444,32 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         if (startAnim) {
             mRealPlayFullPtzAnimBtn.setVisibility(View.GONE);
             mFullscreenFullButton.setVisibility(View.GONE);
-            mRealPlayFullAnimBtn.setBackgroundResource(R.drawable.yuntai_pressed);
-            startFullBtnAnim(mRealPlayFullAnimBtn, mEndXy, mStartXy, new AnimationListener() {
-
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    mRealPlayFullAnimBtn.setVisibility(View.GONE);
-                    onRealPlaySvClick();
-                }
-            });
+//            mRealPlayFullAnimBtn.setBackgroundResource(R.drawable.yuntai_pressed);
+//            mRealPlayFullAnimBtn.setVisibility(View.GONE);
+            onRealPlaySvClick();
+            mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
+            mRead_ptz_wnd_landscape.setVisibility(View.GONE);
+//            startFullBtnAnim(mRealPlayFullAnimBtn, mEndXy, mStartXy, new AnimationListener() {
+//
+//                @Override
+//                public void onAnimationStart(Animation animation) {
+//                }
+//
+//                @Override
+//                public void onAnimationRepeat(Animation animation) {
+//                }
+//
+//                @Override
+//                public void onAnimationEnd(Animation animation) {
+//
+//                }
+//            });
         } else {
             mRealPlayFullPtzAnimBtn.setVisibility(View.GONE);
             mFullscreenFullButton.setVisibility(View.GONE);
+            mRealPlayFullOperateBar.setVisibility(View.GONE);
+            mRead_ptz_wnd_landscape.setVisibility(View.GONE);
+
         }
         mRealPlayFullPtzPromptIv.setVisibility(View.GONE);
         mHandler.removeMessages(MSG_CLOSE_PTZ_PROMPT);
@@ -2193,15 +2215,20 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         if (mLandscapeTitleBar.getVisibility() == View.VISIBLE || mRealPlayControlRl.getVisibility() == View.VISIBLE) {
             //            mRealPlayControlRl.setVisibility(View.GONE);
             mLandscapeTitleBar.setVisibility(View.GONE);
+            mRealPlayFullOperateBar.setVisibility(View.GONE);
+            mRead_ptz_wnd_landscape.setVisibility(View.GONE);
             closeQualityPopupWindow();
         } else {
             mRealPlayControlRl.setVisibility(View.VISIBLE);
             if (mOrientation == Configuration.ORIENTATION_LANDSCAPE) {
                 if (!mIsOnTalk && !mIsOnPtz) {
                     mLandscapeTitleBar.setVisibility(View.VISIBLE);
+                    mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
                 }
             } else {
                 mLandscapeTitleBar.setVisibility(View.GONE);
+                mRealPlayFullOperateBar.setVisibility(View.GONE);
+                mRead_ptz_wnd_landscape.setVisibility(View.GONE);
             }
             mControlDisplaySec = 0;
         }
@@ -2212,13 +2239,15 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             mRealPlayFullOperateBar.setVisibility(View.GONE);
             if (!mIsOnTalk && !mIsOnPtz) {
                 mFullscreenFullButton.setVisibility(View.GONE);
+                mRealPlayFullOperateBar.setVisibility(View.GONE);
             }
             mLandscapeTitleBar.setVisibility(View.GONE);
         } else {
             if (!mIsOnTalk && !mIsOnPtz) {
-                //mj mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
+                mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
                 //                mFullscreenFullButton.setVisibility(View.VISIBLE);
                 mLandscapeTitleBar.setVisibility(View.VISIBLE);
+                mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
             }
             mControlDisplaySec = 0;
         }
@@ -2259,7 +2288,18 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                 return;
             }
             if (mDeviceInfo.getIsEncrypt() == 1) {
-                mEZPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
+                //mEZPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
+                //查询设备验证码
+                String name = mCameraInfo.getDeviceSerial()+String.valueOf(mCameraInfo.getCameraNo());
+                db = ((EzvizApplication) getApplication()).getDatebase();
+                Cursor cursor = db.query("verifycode", null, "name = ?", new String[]{name}, null, null, null);
+                if (cursor.moveToFirst()){
+                    do {
+                        mVerifyCode = cursor.getString(cursor.getColumnIndex("code"));
+                    }while (cursor.moveToNext());
+                }
+                cursor.close();
+                mEZPlayer.setPlayVerifyCode(mVerifyCode);
             }
 
             mEZPlayer.setHandler(mHandler);
@@ -2427,7 +2467,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         updateOrientation();
         setLoadingSuccess();
         mRealPlayFlowTv.setVisibility(View.VISIBLE);
-        mRealPlayFullFlowLy.setVisibility(View.VISIBLE);
+        mRealPlayFullFlowLy.setVisibility(View.GONE);
         mRealPlayBtn.setBackgroundResource(R.drawable.play_stop_selector);
 
         if (mCameraInfo != null && mDeviceInfo != null) {
@@ -2942,9 +2982,11 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         if (excludeLandscapeTitle && mOrientation == Configuration.ORIENTATION_LANDSCAPE) {
             if (!mIsOnTalk && !mIsOnPtz) {
                 mLandscapeTitleBar.setVisibility(View.VISIBLE);
+                mRealPlayFullOperateBar.setVisibility(View.VISIBLE);
             }
         } else {
             mLandscapeTitleBar.setVisibility(View.GONE);
+            mRealPlayFullOperateBar.setVisibility(View.GONE);
         }
     }
 
@@ -3097,23 +3139,23 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
         LayoutParams loadingR1Lp = new LayoutParams(LayoutParams.MATCH_PARENT,
                 realPlaySvlp.height);
-        //        loadingR1Lp.addRule(RelativeLayout.CENTER_IN_PARENT);
-        //        mRealPlayLoadingRl.setLayoutParams(loadingR1Lp);
-        //        mRealPlayPromptRl.setLayoutParams(loadingR1Lp);
+                loadingR1Lp.addRule(RelativeLayout.CENTER_IN_PARENT);
+                mRealPlayLoadingRl.setLayoutParams(loadingR1Lp);
+                mRealPlayPromptRl.setLayoutParams(loadingR1Lp);
         LayoutParams svLp = new LayoutParams(realPlaySvlp.width, realPlaySvlp.height);
-        //mj svLp.addRule(RelativeLayout.CENTER_IN_PARENT);
+        svLp.addRule(RelativeLayout.CENTER_IN_PARENT);
         mRealPlaySv.setLayoutParams(svLp);
 
         if (mRtspUrl == null) {
-            //            LinearLayout.LayoutParams realPlayPlayRlLp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
-            //                    LayoutParams.WRAP_CONTENT);
-            //            realPlayPlayRlLp.gravity = Gravity.CENTER;
-            //            mRealPlayPlayRl.setLayoutParams(realPlayPlayRlLp);
+                        LinearLayout.LayoutParams realPlayPlayRlLp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
+                                LayoutParams.WRAP_CONTENT);
+                        realPlayPlayRlLp.gravity = Gravity.CENTER;
+                        mRealPlayPlayRl.setLayoutParams(realPlayPlayRlLp);
         } else {
             LinearLayout.LayoutParams realPlayPlayRlLp = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                     LayoutParams.MATCH_PARENT);
             realPlayPlayRlLp.gravity = Gravity.CENTER;
-            //realPlayPlayRlLp.weight = 1;
+            realPlayPlayRlLp.weight = 1;
             mRealPlayPlayRl.setLayoutParams(realPlayPlayRlLp);
         }
         mRealPlayTouchListener.setSacaleRect(Constant.MAX_SCALE, 0, 0, realPlaySvlp.width, realPlaySvlp.height);
@@ -3178,7 +3220,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             // 收到这两个错误码，可以弹出对话框，让用户输入密码后，重新取流预览
             case ErrorCode.ERROR_INNER_VERIFYCODE_NEED:
             case ErrorCode.ERROR_INNER_VERIFYCODE_ERROR: {
-                DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(), null);
+//                DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(), null);
                 VerifyCodeInput.VerifyCodeInputDialog(this, this).show();
             }
             break;
@@ -3444,7 +3486,22 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     @Override
     public void onInputVerifyCode(final String verifyCode) {
         LogUtil.debugLog(TAG, "verify code is " + verifyCode);
-        DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(), verifyCode);
+//        DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(), verifyCode);
+//        存储验证码
+        String name = mCameraInfo.getDeviceSerial()+String.valueOf(mCameraInfo.getCameraNo());
+        LogUtil.debugLog(TAG, "mVerifyCode="+mVerifyCode);
+        if (mVerifyCode == null){
+            ContentValues values=new ContentValues();
+            values.put("name",name);
+            values.put("code",verifyCode);
+            db.insert("verifycode",null,values);
+            LogUtil.debugLog(TAG, "insert seccess ");
+        }else{
+            ContentValues values = new ContentValues();
+            values.put("code",verifyCode);
+            db.update("verifycode", values, "name=?", new String[]{name});
+            LogUtil.debugLog(TAG, "update seccess ");
+        }
         if (mEZPlayer != null) {
             startRealPlay();
         }

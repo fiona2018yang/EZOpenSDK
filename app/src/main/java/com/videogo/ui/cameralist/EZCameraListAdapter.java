@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.videogo.camera.CameraInfo;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.ui.util.EZUtils;
@@ -48,22 +49,30 @@ public class EZCameraListAdapter extends BaseAdapter {
     private static final String TAG = "CameraListAdapter";
 
     private Context mContext = null;
-    private List<EZDeviceInfo> mCameraInfoList = null;
+//    private List<EZDeviceInfo> mCameraInfoList = null;
+    private List<EZCameraInfo > CameraInfo_List = null;
+    private List<EZDeviceInfo> DeviceInfo_list = null;
     /**
      * 监听对象
      */
     private OnClickListener mListener;
     private ExecutorService mExecutorService = null;// 线程池
-    public Map<String, EZDeviceInfo> mExecuteItemMap = null;
+    public Map<String, EZCameraInfo> mExecuteItemMap = null;
 
 
     public void clearAll() {
-        mCameraInfoList.clear();
+ //       mCameraInfoList.clear();
+        CameraInfo_List.clear();
+        DeviceInfo_list.clear();
         notifyDataSetChanged();
     }
 
-    public List<EZDeviceInfo> getDeviceInfoList() {
-        return mCameraInfoList;
+//    public List<EZDeviceInfo> getDeviceInfoList() {
+//        return mCameraInfoList;
+//    }
+
+    public List<EZCameraInfo> getCameraInfoList(){
+        return CameraInfo_List;
     }
 
     /**
@@ -105,29 +114,34 @@ public class EZCameraListAdapter extends BaseAdapter {
 
     public EZCameraListAdapter(Context context) {
         mContext = context;
-        mCameraInfoList = new ArrayList<EZDeviceInfo>();
-        mExecuteItemMap = new HashMap<String, EZDeviceInfo>();
+//        mCameraInfoList = new ArrayList<EZDeviceInfo>();
+        CameraInfo_List = new ArrayList<EZCameraInfo>();
+        DeviceInfo_list = new ArrayList<>();
+        mExecuteItemMap = new HashMap<String, EZCameraInfo>();
     }
 
     public void setOnClickListener(OnClickListener l) {
         mListener = l;
     }
 
-    public void addItem(EZDeviceInfo item) {
-        mCameraInfoList.add(item);
+    public void addItem(EZCameraInfo item,EZDeviceInfo deviceInfo) {
+        DeviceInfo_list.add(deviceInfo);
+        CameraInfo_List.add(item);
     }
 
-    public void removeItem(EZDeviceInfo item) {
-        for (int i = 0; i < mCameraInfoList.size(); i++) {
-            if (item == mCameraInfoList.get(i)) {
-                mCameraInfoList.remove(i);
+    public void removeItem(EZCameraInfo item) {
+        for (int i = 0; i < CameraInfo_List.size(); i++) {
+            if (item == CameraInfo_List.get(i)) {
+                CameraInfo_List.remove(i);
+                DeviceInfo_list.remove(i);
             }
         }
     }
 
     public void clearItem() {
-        //mExecuteItemMap.clear();
-        mCameraInfoList.clear();
+        mExecuteItemMap.clear();
+        CameraInfo_List.clear();
+        DeviceInfo_list.clear();
     }
 
     /* (non-Javadoc)
@@ -135,17 +149,28 @@ public class EZCameraListAdapter extends BaseAdapter {
      */
     @Override
     public int getCount() {
-        return mCameraInfoList.size();
+//        return mCameraInfoList.size();
+        return CameraInfo_List.size();
     }
-
+    public int getDeviceCount(){
+        return DeviceInfo_list.size();
+    }
     /* (non-Javadoc)
      * @see android.widget.Adapter#getItem(int)
      */
     @Override
-    public EZDeviceInfo getItem(int position) {
-        EZDeviceInfo item = null;
+    public EZCameraInfo getItem(int position) {
+        EZCameraInfo item = null;
         if (position >= 0 && getCount() > position) {
-            item = mCameraInfoList.get(position);
+            item = CameraInfo_List.get(position);
+        }
+        return item;
+    }
+
+    public EZDeviceInfo getDeviceInfoItem(int position){
+        EZDeviceInfo item = null;
+        if (position >= 0 && getCount() > position){
+            item = DeviceInfo_list.get(position);
         }
         return item;
     }
@@ -230,9 +255,11 @@ public class EZCameraListAdapter extends BaseAdapter {
         viewHolder.deviceDefenceBtn.setTag(position);
 
 
-        final EZDeviceInfo deviceInfo = getItem(position);
-        final EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, 0);
-        if (deviceInfo != null) {
+ //       final EZDeviceInfo deviceInfo = getItem(position);
+        final EZCameraInfo cameraInfo = getItem(position);
+        final EZDeviceInfo deviceInfo = DeviceInfo_list.get(position);
+ //       final EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, 0);
+        if (cameraInfo != null) {
             if (deviceInfo.getStatus() == 2) {
                 viewHolder.offlineBtn.setVisibility(View.VISIBLE);
                 viewHolder.offlineBgBtn.setVisibility(View.VISIBLE);
@@ -244,9 +271,9 @@ public class EZCameraListAdapter extends BaseAdapter {
                 viewHolder.playBtn.setVisibility(View.VISIBLE);
                 viewHolder.deviceDefenceRl.setVisibility(View.VISIBLE);
             }
-            viewHolder.cameraNameTv.setText(deviceInfo.getDeviceName());
+            viewHolder.cameraNameTv.setText(cameraInfo.getCameraName());
             viewHolder.iconIv.setVisibility(View.VISIBLE);
-            String imageUrl = deviceInfo.getDeviceCover();
+            String imageUrl = cameraInfo.getCameraCover();
             if (!TextUtils.isEmpty(imageUrl)) {
                 Glide.with(mContext).load(imageUrl).placeholder(R.drawable.device_other).into(viewHolder.iconIv);
             }

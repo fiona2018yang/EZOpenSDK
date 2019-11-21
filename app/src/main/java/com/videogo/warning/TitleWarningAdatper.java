@@ -39,7 +39,7 @@ public class TitleWarningAdatper extends RecyclerView.Adapter<TitleWarningAdatpe
             holder.recyclerView.setHasFixedSize(true);
             holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));
             holder.recyclerView.setItemAnimator(new DefaultItemAnimator());
-            holder.recyclerView.addItemDecoration(CommItemDecoration.createVertical(context,context.getResources().getColor(R.color.trans_bg_color_1),5));
+            holder.recyclerView.addItemDecoration(CommItemDecoration.createVertical(context,context.getResources().getColor(R.color.viewfinder_frame),5));
             holder.dataRecyclerAdapter = new DataRecyclerAdapter(context,data_list.get(position));
             holder.recyclerView.setAdapter(holder.dataRecyclerAdapter);
         }

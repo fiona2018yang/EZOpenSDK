@@ -3,7 +3,7 @@
     android:id="@+id/realplay_page_ly"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/common_bg"
+    android:background="@mipmap/bg"
     android:gravity="center"
     android:orientation="vertical" >
 
@@ -60,6 +60,7 @@
         </RelativeLayout>
 
         <include layout="@layout/realplay_full_operate_layout" />
+        <include layout="@layout/realplay_ptz_wnd_landscape"/>
         
 		<ImageView
 		    android:id="@+id/realplay_ptz_direction_iv"

@@ -9,7 +9,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
@@ -25,12 +27,15 @@ public class GarbageActivity extends Activity {
     private List<WarningData> dataList_1 = new ArrayList<>();
     private List<WarningData> dataList_2 = new ArrayList<>();
     private List<WarningData> dataList_3 = new ArrayList<>();
+    private List<String> title = new ArrayList<>();
+    private List<String> time_title = new ArrayList<>();
     private List<List<WarningData>> datalist_list = new ArrayList<>();
     private RecyclerView rv;
     private TitleWarningAdatper adatper;
     private Spinner spinner_time;
     private Spinner spinner_location;
-    private Button query;
+    private ImageButton query;
+    private ImageButton back;
     private String s1 = "全部";
     private String s2 = "全部";
     private WarningData data1;
@@ -49,6 +54,7 @@ public class GarbageActivity extends Activity {
         spinner_time = findViewById(R.id.spinner_1);
         spinner_location = findViewById(R.id.spinner_2);
         query = findViewById(R.id.query);
+        back = findViewById(R.id.back);
 
         String path1 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/大运河(C47666812)/150753234.jpg";
         String path2 = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/河湾公园(203530572)/150350042.jpg";
@@ -73,14 +79,26 @@ public class GarbageActivity extends Activity {
         datalist_list.add(dataList_2);
         datalist_list.add(dataList_3);
 
+        title.add("全部");
+        title.add("西区");
+        title.add("南区");
+
+        time_title.add("全部");
+        time_title.add("2019-08");
+        time_title.add("2019-09");
+        time_title.add("2019-10");
+
         rv = findViewById(R.id.recyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         rv.setLayoutManager(layoutManager);
-        rv.addItemDecoration(CommItemDecoration.createVertical(this,getResources().getColor(R.color.trans_bg_color_1),16));
+        rv.addItemDecoration(CommItemDecoration.createVertical(this,getResources().getColor(R.color.viewfinder_frame),16));
         rv.setItemAnimator(new DefaultItemAnimator());
         adatper = new TitleWarningAdatper(this,timelist,datalist_list);
         rv.setAdapter(adatper);
 
+        ArrayAdapter adapter = new ArrayAdapter<String>(this,R.layout.spinner_item,title);
+        adapter.setDropDownViewResource(R.layout.dropdown_stytle);
+        spinner_time.setAdapter(adapter);
         spinner_time.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -92,6 +110,10 @@ public class GarbageActivity extends Activity {
 
             }
         });
+
+        ArrayAdapter adapter2 = new ArrayAdapter<String>(this,R.layout.spinner_item,time_title);
+        adapter2.setDropDownViewResource(R.layout.dropdown_stytle);
+        spinner_location.setAdapter(adapter2);
         spinner_location.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -103,6 +125,14 @@ public class GarbageActivity extends Activity {
 
             }
         });
+
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
         query.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

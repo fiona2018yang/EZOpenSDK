@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:background="@color/trans_bg_color"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@mipmap/bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <RelativeLayout
+        android:id="@+id/re1"
         android:layout_width="match_parent"
         android:layout_height="50dp">
         <ImageButton
             android:id="@+id/back"
             android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
             android:background="@drawable/common_title_back_selector"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="20dp"
+            android:layout_height="16dp" />
         <TextView
             android:text="垃圾倾倒"
+            android:textColor="@color/topBarText"
             android:layout_centerInParent="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <TextView
             android:layout_marginRight="20dp"
             android:text="200条"
+            android:textColor="@color/topBarText"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:id="@+id/num"
@@ -28,12 +31,15 @@
             android:layout_height="wrap_content" />
     </RelativeLayout>
     <View
-        android:background="@color/trans_bg_color_1"
+        android:layout_below="@+id/re1"
+        android:background="@mipmap/shadow"
         android:layout_width="match_parent"
-        android:layout_height="8dp"/>
+        android:layout_height="20dp"/>
     <LinearLayout
+        android:id="@+id/re2"
+        android:layout_below="@+id/re1"
         android:layout_width="match_parent"
-        android:layout_height="50dp">
+        android:layout_height="40dp">
         <LinearLayout
             android:layout_marginLeft="20dp"
             android:layout_weight="3"
@@ -51,7 +57,6 @@
                         android:id="@+id/spinner_1"
                         android:spinnerMode="dropdown"
                         android:gravity="center"
-                        android:entries="@array/location_title"
                         android:layout_width="match_parent"
                         android:layout_height="40dp">
                     </Spinner>
@@ -69,7 +74,6 @@
                         android:id="@+id/spinner_2"
                         android:spinnerMode="dropdown"
                         android:gravity="center"
-                        android:entries="@array/time_title"
                         android:layout_width="match_parent"
                         android:layout_height="40dp">
                     </Spinner>
@@ -83,23 +87,32 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-                <Button
-                    android:text="查询"
+<!--                <Button-->
+<!--                    android:text="查询"-->
+<!--                    android:id="@+id/query"-->
+<!--                    android:textColor="@color/topBarText"-->
+<!--                    android:background="@drawable/btn_query_bg"-->
+<!--                    android:layout_centerInParent="true"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="30dp" />-->
+                <ImageButton
                     android:id="@+id/query"
-                    android:background="@drawable/btn_query_bg"
                     android:layout_centerInParent="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp" />
+                    android:background="@drawable/common_query_selector"
+                    android:layout_width="27dp"
+                    android:layout_height="27dp"/>
             </RelativeLayout>
         </LinearLayout>
     </LinearLayout>
     <View
-        android:background="@color/trans_bg_color_1"
+        android:layout_below="@+id/re2"
+        android:background="@mipmap/shadow"
         android:layout_width="match_parent"
-        android:layout_height="8dp"/>
+        android:layout_height="20dp"/>
     <android.support.v7.widget.RecyclerView
+        android:layout_below="@+id/re2"
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
     </android.support.v7.widget.RecyclerView>
-</LinearLayout>
+</RelativeLayout>

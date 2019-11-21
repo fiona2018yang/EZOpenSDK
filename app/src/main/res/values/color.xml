@@ -5,6 +5,7 @@
     <color name="mode_bg">#88000000</color>
     <color name="black_bg">#000000</color>
     <color name="shadow">#80000000</color>
+    <color name="blue_bg">#344173</color>
     <color name="dark_bg_70p">#bb000000</color>
     <color name="dark_bg_20p">#33000000</color>
     <color name="common_bg">#f0f0f3</color>
@@ -143,7 +144,7 @@
 	<color name="add_title_text_color">#666666</color>
     <color name="help_link">#527ddb</color>
     <color name="opensdk_cameralist_bg">#f0f0f1</color>
-    <color name="on_off_text_selector">#3ea6ef</color>
+    <color name="on_off_text_selector">#5d27d4</color>
     <color name="grouplayout_item_bg_sel">#f3f4f5</color>
 
     <color name="Lightgray">#07171016</color><!--浅灰 -->

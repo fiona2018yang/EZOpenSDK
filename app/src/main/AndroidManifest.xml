@@ -224,6 +224,10 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.videogo.remoteplayback.list.PlaybackActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.videogo.ui.cameralist.EZCameraListActivity"
             android:screenOrientation="portrait" />
         <activity

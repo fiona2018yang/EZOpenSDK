@@ -1,24 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/read_ltz_wnd_landscape"
+    android:layout_alignBottom="@+id/realplay_sv"
     android:layout_width="match_parent"
-    android:layout_height="300dp"
-    android:background="@mipmap/bg">
+    android:layout_height="230dp"
+    android:visibility="gone"
+    android:background="@color/transparent">
 
     <ImageButton
         android:id="@+id/ptz_close_btn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:background="@drawable/play_close_selector"
+        android:background="@mipmap/login_close_btn"
         android:onClick="onClick" />
 
     <LinearLayout
         android:id="@+id/ptz_control_ly"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_margin="5dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="20dp"
         android:background="@drawable/ptz_bg"
         android:orientation="vertical">
 
@@ -80,36 +84,49 @@
         </LinearLayout>
     </LinearLayout>
 
+
+
+
+
+
     <RelativeLayout
+        android:layout_centerVertical="true"
         android:layout_width="match_parent"
+        android:layout_toLeftOf="@+id/ptz_control_ly"
         android:layout_height="50dp"
-        android:layout_below="@+id/ptz_control_ly"
-        android:layout_marginTop="8dp">
+        >
+
+        <ImageButton
+            android:id="@+id/tx_pic_btn"
+            android:layout_width="50dp"
+            android:layout_toLeftOf="@+id/tx_video_btn"
+            android:layout_marginRight="10dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/play_full_previously_selector" />
+
+        <ImageButton
+            android:id="@+id/tx_video_btn"
+            android:layout_width="50dp"
+            android:layout_toLeftOf="@+id/tx_zoomin"
+            android:layout_marginRight="10dp"
+            android:layout_height="match_parent"
+            android:background="@drawable/play_full_video_selector" />
 
         <ImageButton
             android:id="@+id/tx_zoomin"
             android:layout_width="50dp"
+            android:layout_toLeftOf="@+id/tx_zoomout"
+            android:layout_marginRight="10dp"
             android:layout_height="match_parent"
-            android:layout_marginRight="16dp"
-            android:layout_toLeftOf="@+id/tx_speed"
-            android:background="@drawable/common_icon_in_selector" />
-
-        <ImageView
-            android:id="@+id/tx_speed"
-            android:layout_width="50dp"
-            android:layout_height="match_parent"
-            android:layout_centerHorizontal="true"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
-            android:background="@mipmap/icon_speed_slow" />
+            android:background="@drawable/live_common_icon_in_selector" />
 
         <ImageButton
             android:id="@+id/tx_zoomout"
             android:layout_width="50dp"
+            android:layout_marginRight="10dp"
+            android:layout_alignParentRight="true"
             android:layout_height="match_parent"
-            android:layout_marginLeft="16dp"
-            android:layout_toRightOf="@+id/tx_speed"
-            android:background="@drawable/common_icon_out_selector" />
+            android:background="@drawable/live_common_icon_out_selector" />
     </RelativeLayout>
 
 </RelativeLayout>

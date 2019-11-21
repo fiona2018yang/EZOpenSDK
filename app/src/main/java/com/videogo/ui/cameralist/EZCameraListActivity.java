@@ -58,6 +58,7 @@ import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.videogo.camera.CameraInfo;
 import com.videogo.constant.Constant;
 import com.videogo.constant.IntentConsts;
 import com.videogo.devicemgt.EZDeviceSettingActivity;
@@ -69,6 +70,7 @@ import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.openapi.bean.EZLeaveMessage;
 import com.videogo.remoteplayback.list.PlayBackListActivity;
+import com.videogo.remoteplayback.list.PlaybackActivity;
 import com.videogo.remoteplayback.list.RemoteListContant;
 import com.videogo.scan.main.CaptureActivity;
 import com.videogo.ui.message.EZMessageActivity2;
@@ -111,7 +113,7 @@ import static com.videogo.EzvizApplication.getOpenSDK;
  * @author xiaxingsuo
  * @data 2014-7-14
  */
-public class EZCameraListActivity extends Activity implements OnClickListener, SelectCameraDialog.CameraItemClick {
+public class EZCameraListActivity extends Activity implements OnClickListener {
     protected static final String TAG = "CameraListActivity";
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
@@ -173,37 +175,37 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
         }
     };
 
-    @Override
-    public void onCameraItemClick(EZDeviceInfo deviceInfo, int camera_index) {
-        EZCameraInfo cameraInfo = null;
-        Intent intent = null;
-        switch (mClickType) {
-            case TAG_CLICK_PLAY:
-//              String pwd = DESHelper.decryptWithBase64("EyCs73n8m5s=", Utils.getAndroidID(this));
-                cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, camera_index);
-                if (cameraInfo == null) {
-                    return;
-                }
-
-                intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
-                intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
-                intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
-                startActivityForResult(intent, REQUEST_CODE);
-                break;
-            case TAG_CLICK_REMOTE_PLAY_BACK:
-                cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, camera_index);
-                if (cameraInfo == null) {
-                    return;
-                }
-                intent = new Intent(EZCameraListActivity.this, PlayBackListActivity.class);
-                intent.putExtra(RemoteListContant.QUERY_DATE_INTENT_KEY, DateTimeUtil.getNow());
-                intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
-                startActivity(intent);
-                break;
-            default:
-                break;
-        }
-    }
+//    @Override
+//    public void onCameraItemClick(EZDeviceInfo deviceInfo, int camera_index) {
+//        EZCameraInfo cameraInfo = null;
+//        Intent intent = null;
+//        switch (mClickType) {
+//            case TAG_CLICK_PLAY:
+////              String pwd = DESHelper.decryptWithBase64("EyCs73n8m5s=", Utils.getAndroidID(this));
+//                cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, camera_index);
+//                if (cameraInfo == null) {
+//                    return;
+//                }
+//
+//                intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
+//                intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
+//                intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+//                startActivityForResult(intent, REQUEST_CODE);
+//                break;
+//            case TAG_CLICK_REMOTE_PLAY_BACK:
+//                cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, camera_index);
+//                if (cameraInfo == null) {
+//                    return;
+//                }
+//                intent = new Intent(EZCameraListActivity.this, PlayBackListActivity.class);
+//                intent.putExtra(RemoteListContant.QUERY_DATE_INTENT_KEY, DateTimeUtil.getNow());
+//                intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
+//                startActivity(intent);
+//                break;
+//            default:
+//                break;
+//        }
+//    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -238,60 +240,64 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
             @Override
             public void onPlayClick(BaseAdapter adapter, View view, int position) {
                 mClickType = TAG_CLICK_PLAY;
-                final EZDeviceInfo deviceInfo = mAdapter.getItem(position);
-                if (deviceInfo.getCameraNum() <= 0 || deviceInfo.getCameraInfoList() == null || deviceInfo.getCameraInfoList().size() <= 0) {
+//                final EZDeviceInfo deviceInfo = mAdapter.getItem(position);
+                final EZCameraInfo cameraInfo = mAdapter.getItem(position);
+                final EZDeviceInfo deviceInfo = mAdapter.getDeviceInfoItem(position);
+                if (cameraInfo == null) {
                     LogUtil.d(TAG, "cameralist is null or cameralist size is 0");
                     return;
                 }
-                if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1) {
-                    LogUtil.d(TAG, "cameralist have one camera");
-                    final EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, 0);
-                    if (cameraInfo == null) {
-                        return;
-                    }
-
+                if (cameraInfo != null) {
+//                    LogUtil.d(TAG, "cameralist have one camera");
+//                    final EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, 0);
+//                    if (cameraInfo == null) {
+//                        return;
+//                    }
+                    LogUtil.d(TAG, "camerainfo COUNT="+mAdapter.getCount());
+                    LogUtil.d(TAG, "device COUNT="+mAdapter.getDeviceCount());
                     Intent intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
                     intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                     intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
                     startActivityForResult(intent, REQUEST_CODE);
                     return;
                 }
-                SelectCameraDialog selectCameraDialog = new SelectCameraDialog();
-                selectCameraDialog.setEZDeviceInfo(deviceInfo);
-                selectCameraDialog.setCameraItemClick(EZCameraListActivity.this);
-                selectCameraDialog.show(getFragmentManager(), "onPlayClick");
+//                SelectCameraDialog selectCameraDialog = new SelectCameraDialog();
+//                selectCameraDialog.setEZDeviceInfo(deviceInfo);
+//                selectCameraDialog.setCameraItemClick(EZCameraListActivity.this);
+//                selectCameraDialog.show(getFragmentManager(), "onPlayClick");
             }
 
             @Override
             public void onRemotePlayBackClick(BaseAdapter adapter, View view, int position) {
                 mClickType = TAG_CLICK_REMOTE_PLAY_BACK;
-                EZDeviceInfo deviceInfo = mAdapter.getItem(position);
-                if (deviceInfo.getCameraNum() <= 0 || deviceInfo.getCameraInfoList() == null || deviceInfo.getCameraInfoList().size() <= 0) {
+                EZCameraInfo cameraInfo = mAdapter.getItem(position);
+                if (cameraInfo == null) {
                     LogUtil.d(TAG, "cameralist is null or cameralist size is 0");
                     return;
                 }
-                if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1) {
+                if (cameraInfo != null) {
                     LogUtil.d(TAG, "cameralist have one camera");
-                    EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, 0);
-                    if (cameraInfo == null) {
-                        return;
-                    }
-                    Intent intent = new Intent(EZCameraListActivity.this, PlayBackListActivity.class);
+//                    EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo, 0);
+//                    if (cameraInfo == null) {
+//                        return;
+//                    }
+//                    Intent intent = new Intent(EZCameraListActivity.this, PlayBackListActivity.class);
+                    Intent intent = new Intent(EZCameraListActivity.this, PlaybackActivity.class);
                     intent.putExtra(RemoteListContant.QUERY_DATE_INTENT_KEY, DateTimeUtil.getNow());
                     intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                     startActivity(intent);
                     return;
                 }
-                SelectCameraDialog selectCameraDialog = new SelectCameraDialog();
-                selectCameraDialog.setEZDeviceInfo(deviceInfo);
-                selectCameraDialog.setCameraItemClick(EZCameraListActivity.this);
-                selectCameraDialog.show(getFragmentManager(), "RemotePlayBackClick");
+//                SelectCameraDialog selectCameraDialog = new SelectCameraDialog();
+//                selectCameraDialog.setEZDeviceInfo(deviceInfo);
+//                selectCameraDialog.setCameraItemClick(EZCameraListActivity.this);
+//                selectCameraDialog.show(getFragmentManager(), "RemotePlayBackClick");
             }
 
             @Override
             public void onSetDeviceClick(BaseAdapter adapter, View view, int position) {
                 mClickType = TAG_CLICK_SET_DEVICE;
-                EZDeviceInfo deviceInfo = mAdapter.getItem(position);
+                EZDeviceInfo deviceInfo = mAdapter.getDeviceInfoItem(position);
                 Intent intent = new Intent(EZCameraListActivity.this, EZDeviceSettingActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putParcelable(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
@@ -308,11 +314,13 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
             @Override
             public void onAlarmListClick(BaseAdapter adapter, View view, int position) {
                 mClickType = TAG_CLICK_ALARM_LIST;
-                final EZDeviceInfo deviceInfo = mAdapter.getItem(position);
-                LogUtil.d(TAG, "cameralist is null or cameralist size is 0");
-                Intent intent = new Intent(EZCameraListActivity.this, EZMessageActivity2.class);
-                intent.putExtra(IntentConsts.EXTRA_DEVICE_ID, deviceInfo.getDeviceSerial());
-                startActivity(intent);
+                final EZDeviceInfo deviceInfo = mAdapter.getDeviceInfoItem(position);
+                if (deviceInfo !=null){
+                    LogUtil.d(TAG, "cameralist is null or cameralist size is 0");
+                    Intent intent = new Intent(EZCameraListActivity.this, EZMessageActivity2.class);
+                    intent.putExtra(IntentConsts.EXTRA_DEVICE_ID, deviceInfo.getDeviceSerial());
+                    startActivity(intent);
+                }
             }
 
             @Override
@@ -450,7 +458,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
                 }
                 String cover = result.get(0).getDeviceCover();
                 return result;
-
             } catch (BaseException e) {
                 ErrorInfo errorInfo = (ErrorInfo) e.getObject();
                 mErrorCode = errorInfo.errorCode;
@@ -469,6 +476,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
             }
 
             if (result != null) {
+                Log.i(TAG,"size="+result.size());
                 if (mHeaderOrFooter) {
                     CharSequence dateText = DateFormat.format("yyyy-MM-dd kk:mm:ss", new Date());
                     for (LoadingLayout layout : mListView.getLoadingLayoutProxy(true, false).getLayouts()) {
@@ -532,7 +540,10 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
         EZDeviceInfo item = null;
         for (int i = 0; i < count; i++) {
             item = result.get(i);
-            mAdapter.addItem(item);
+            List<EZCameraInfo> CameraInfo_list = item.getCameraInfoList();
+            for (EZCameraInfo cameraInfo : CameraInfo_list){
+                mAdapter.addItem(cameraInfo,item);
+            }
         }
     }
 
@@ -674,16 +685,16 @@ public class EZCameraListActivity extends Activity implements OnClickListener, S
                 if (videoLevel == -1 || cameraNo == -1) {
                     return;
                 }
-                if (mAdapter.getDeviceInfoList() != null) {
-                    for (EZDeviceInfo deviceInfo : mAdapter.getDeviceInfoList()) {
-                        if (deviceInfo.getDeviceSerial().equals(deviceSerial)) {
-                            if (deviceInfo.getCameraInfoList() != null) {
-                                for (EZCameraInfo cameraInfo : deviceInfo.getCameraInfoList()) {
+                if (mAdapter.getCameraInfoList() != null) {
+                    for (EZCameraInfo cameraInfo : mAdapter.getCameraInfoList()) {
+                        if (cameraInfo.getDeviceSerial().equals(deviceSerial)) {
+                            if (cameraInfo != null) {
+ //                               for (EZCameraInfo cameraInfo : deviceInfo.getCameraInfoList()) {
                                     if (cameraInfo.getCameraNo() == cameraNo) {
                                         cameraInfo.setVideoLevel(videoLevel);
                                         mAdapter.notifyDataSetChanged();
                                     }
-                                }
+  //                              }
                             }
                         }
                     }
