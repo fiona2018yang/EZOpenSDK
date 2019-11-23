@@ -26,7 +26,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.videogo.EzvizApplication;
 import com.videogo.camera.CameraInfo;
+import com.videogo.exception.BaseException;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.ui.util.EZUtils;
@@ -74,7 +76,10 @@ public class EZCameraListAdapter extends BaseAdapter {
     public List<EZCameraInfo> getCameraInfoList(){
         return CameraInfo_List;
     }
-
+//    public void refreshCameraInfo(List<EZCameraInfo> cameraInfo_List){
+//        CameraInfo_List.clear();
+//        CameraInfo_List.addAll(cameraInfo_List);
+//    }
     /**
      * 自定义控件集合
      *
@@ -137,13 +142,11 @@ public class EZCameraListAdapter extends BaseAdapter {
             }
         }
     }
-
     public void clearItem() {
         mExecuteItemMap.clear();
         CameraInfo_List.clear();
         DeviceInfo_list.clear();
     }
-
     /* (non-Javadoc)
      * @see android.widget.Adapter#getCount()
      */

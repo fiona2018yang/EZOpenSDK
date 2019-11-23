@@ -104,6 +104,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.Timer;
@@ -460,7 +461,6 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
         if (mEZPlayer != null) {
             mEZPlayer.release();
 
@@ -524,7 +524,6 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     // 初始化数据对象
     private void initData() {
         db = ((EzvizApplication)getApplication()).getDatebase();
-
 
         // 获取本地信息
         Application application = (Application) getApplication();
@@ -813,6 +812,19 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
         mWaitDialog = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
         mWaitDialog.setCancelable(false);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String url = EzvizApplication.getOpenSDK().captureCamera(mCameraInfo.getDeviceSerial(),mCameraInfo.getCameraNo());
+                    //mCameraInfo.setCameraCover(url);
+                    Log.d(TAG,"num="+mCameraInfo.getCameraNo());
+                    Log.d(TAG,"url="+url);
+                } catch (BaseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public void startDrag(int direction, float distance, float rate) {
@@ -2112,7 +2124,9 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
      * @since V1.0
      */
     private void onCapturePicBtnClick() {
-
+        java.util.Date date = new java.util.Date();
+        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +mDeviceInfo.getDeviceName()+"/"
+                + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
         mControlDisplaySec = 0;
         if (!SDCardUtil.isSDCardUseable()) {
             // 提示SD卡不可用
@@ -2139,12 +2153,11 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                             mAudioPlayUtil.playAudioFile(AudioPlayUtil.CAPTURE_SOUND);
 
                             // 可以采用deviceSerial+时间作为文件命名，demo中简化，只用时间命名
-                            java.util.Date date = new java.util.Date();
+
 //                            final String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" + String.format("%tY", date)
 //                                    + String.format("%tm", date) + String.format("%td", date) + "/"
 //                                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".jpg";
-                            final String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +mDeviceInfo.getDeviceName()+"/"
-                                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
+
 
                             if (TextUtils.isEmpty(path)) {
                                 bmp.recycle();
@@ -2152,7 +2165,6 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                                 return;
                             }
                             EZUtils.saveCapturePictrue(path, bmp);
-
                             //保存路径
                             List<String> files = new ArrayList<>();
                             Cursor cursor = db.query("picfilepath", null, null, null, null, null, null);
@@ -2170,7 +2182,6 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                             values.put("path",path);
                             values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
                             db.insert("picfilepath",null,values);
-
                             MediaScanner mMediaScanner = new MediaScanner(EZRealPlayActivity.this);
                             mMediaScanner.scanFile(path, "jpg");
                             runOnUiThread(new Runnable() {

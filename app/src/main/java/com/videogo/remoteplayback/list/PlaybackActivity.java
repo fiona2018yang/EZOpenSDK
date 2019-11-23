@@ -39,7 +39,7 @@ import java.util.Date;
 
 import ezviz.ezopensdk.R;
 
-public class PlaybackActivity extends Activity implements SurfaceHolder.Callback {
+public class PlaybackActivity extends Activity implements SurfaceHolder.Callback ,Handler.Callback{
     private static final String TAG = "PlayBackActivity";
     private EZPlayer mPlayer = null;
     private EZCameraInfo mCameraInfo = null;
@@ -148,5 +148,10 @@ public class PlaybackActivity extends Activity implements SurfaceHolder.Callback
         if(mPlayer != null) {
             mPlayer.setSurfaceHold(null);
         }
+    }
+
+    @Override
+    public boolean handleMessage(Message message) {
+        return false;
     }
 }

@@ -58,6 +58,8 @@ import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.bumptech.glide.Glide;
+import com.videogo.EzvizApplication;
 import com.videogo.camera.CameraInfo;
 import com.videogo.constant.Constant;
 import com.videogo.constant.IntentConsts;
@@ -101,6 +103,12 @@ import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import ezviz.ezopensdk.R;
 
@@ -136,7 +144,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     private Button mUserBtn;
     private TextView mMyDevice;
     private TextView mShareDevice;
-
+    private List<EZCameraInfo> cameraInfoList;
     private boolean bIsFromSetting = false;
 
     public final static int TAG_CLICK_PLAY = 1;
@@ -151,6 +159,11 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     private int mLoadType = LOAD_MY_DEVICE;
     private BitmapDescriptor bdA = null;
     private MapStatusUpdate mMapStatusUpdate;
+    //线程池
+    public static ExecutorService newCachedThreadPool(){
+        return new ThreadPoolExecutor(0,Integer.MAX_VALUE,60L, TimeUnit.SECONDS,new SynchronousQueue<Runnable>());
+    }
+    private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
     private Handler mHandler = new Handler() {
         @Override
@@ -169,6 +182,11 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     /*** 获取下载成功的留言ID ***/
                     mId = (String) msg.obj;
                     break;
+                case 110:
+                    String url = msg.getData().getString("url");
+                    int no = msg.getData().getInt("no");
+                    cameraInfoList.get(no-1).setCameraCover(url);
+                    mAdapter.notifyDataSetChanged();
                 default:
                     break;
             }
@@ -354,8 +372,10 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
             @Override
             public void onRefresh(PullToRefreshBase<ListView> refreshView, boolean headerOrFooter) {
                 getCameraInfoList(headerOrFooter);
+
             }
         });
+
         mListView.getRefreshableView().addFooterView(mNoMoreView);
         mListView.setAdapter(mAdapter);
         mListView.getRefreshableView().removeFooterView(mNoMoreView);
@@ -363,6 +383,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         mNoCameraTipLy = (LinearLayout) findViewById(R.id.no_camera_tip_ly);
         mGetCameraFailTipLy = (LinearLayout) findViewById(R.id.get_camera_fail_tip_ly);
         mCameraFailTipTv = (TextView) findViewById(R.id.get_camera_list_fail_tv);
+
     }
 
     private void initData() {
@@ -398,6 +419,35 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         }
     }
 
+    /**
+     * 更新封面
+     */
+    private void refreshPic(){
+        cameraInfoList = mAdapter.getCameraInfoList();
+        Log.d(TAG,"size="+cameraInfoList.size());
+        //执行线程
+        for (EZCameraInfo cameraInfo : cameraInfoList){
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    String  url = null;
+                    try {
+                        url = EzvizApplication.getOpenSDK().captureCamera(cameraInfo.getDeviceSerial(),cameraInfo.getCameraNo());
+                        Message message = new Message();
+                        message.what = 110;
+                        Bundle bundle = new Bundle();
+                        bundle.putString("url",url);
+                        bundle.putInt("no",cameraInfo.getCameraNo());
+                        message.setData(bundle);
+                        mHandler.sendMessage(message);
+                    } catch (BaseException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            cachedThreadPool.execute(runnable);
+        }
+    }
     /**
      * 从服务器获取最新事件消息
      */
@@ -456,13 +506,12 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                         result = getOpenSDK().getSharedDeviceList((mAdapter.getCount() / 20) + (mAdapter.getCount() % 20 > 0 ? 1 : 0), 20);
                     }
                 }
-                String cover = result.get(0).getDeviceCover();
                 return result;
+
             } catch (BaseException e) {
                 ErrorInfo errorInfo = (ErrorInfo) e.getObject();
                 mErrorCode = errorInfo.errorCode;
                 LogUtil.debugLog(TAG, errorInfo.toString());
-
                 return null;
             }
         }
@@ -476,7 +525,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
             }
 
             if (result != null) {
-                Log.i(TAG,"size="+result.size());
                 if (mHeaderOrFooter) {
                     CharSequence dateText = DateFormat.format("yyyy-MM-dd kk:mm:ss", new Date());
                     for (LoadingLayout layout : mListView.getLoadingLayoutProxy(true, false).getLayouts()) {
@@ -496,18 +544,9 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     mListView.setFooterRefreshEnabled(true);
                     mListView.getRefreshableView().removeFooterView(mNoMoreView);
                 }
-                if (result.size()==3){
-                    result.get(0).setDeviceCover("file:///android_asset/bg_shuangta.jpg");
-                    result.get(1).setDeviceCover("file:///android_asset/bg_hewan.jpg");
-                    result.get(2).setDeviceCover("file:///android_asset/bg_dayunhe.jpg");
-                }else if(result.size() == 2){
-                    result.get(0).setDeviceCover("file:///android_asset/bg_shuangta.jpg");
-                    result.get(1).setDeviceCover("file:///android_asset/bg_hewan.jpg");
-                }else if (result.size() == 1){
-                    result.get(0).setDeviceCover("file:///android_asset/bg_shuangta.jpg");
-                }
                 addCameraList(result);
                 mAdapter.notifyDataSetChanged();
+                refreshPic();
             }
 
             if (mErrorCode != 0) {
