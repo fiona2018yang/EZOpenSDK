@@ -5,16 +5,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import java.util.List;
 import ezviz.ezopensdk.R;
 
 public class ScanPicAdapter extends RecyclerView.Adapter<ScanPicAdapter.ViewHolder> {
-    private List<EZDeviceInfo> list_ezdevices;
+    private List<EZCameraInfo> list_ezCameras;
     private ItemClickListener listener;
 
-    public ScanPicAdapter(List<EZDeviceInfo> list_ezdevices) {
-        this.list_ezdevices = list_ezdevices;
+    public ScanPicAdapter(List<EZCameraInfo> list_ezCameras) {
+        this.list_ezCameras = list_ezCameras;
     }
 
     @Override
@@ -25,7 +27,7 @@ public class ScanPicAdapter extends RecyclerView.Adapter<ScanPicAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.textView.setText(list_ezdevices.get(position).getDeviceName());
+        holder.textView.setText(list_ezCameras.get(position).getCameraName());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -38,7 +40,7 @@ public class ScanPicAdapter extends RecyclerView.Adapter<ScanPicAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return list_ezdevices.size();
+        return list_ezCameras.size();
     }
 
     public void setOnItemClickListener(ItemClickListener itemClickListener){

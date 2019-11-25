@@ -64,7 +64,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private String path;
     private TextView title;
     private SharedPreferences sharedPreferences;
-    private List<EZDeviceInfo> list_ezdevices;
+    private List<EZDeviceInfo> list_ezDevices;
     private List<Graphic> list_graphic = new ArrayList<>();
     private List<Point> pointList = new ArrayList<>();
     private GraphicsLayer graphicsLayer;
@@ -115,8 +115,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         sharedPreferences = getSharedPreferences("path", 0);
         path = sharedPreferences.getString("earthPath", "");
-        list_ezdevices = new ArrayList<>();
-        list_ezdevices = getIntent().getParcelableArrayListExtra("devices_main");
+        list_ezDevices = new ArrayList<>();
+        list_ezDevices = getIntent().getParcelableArrayListExtra("devices_main");
         if (path.equals("")||path == null){
             path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
             //path =Environment.getExternalStorageDirectory().getPath()+"/z_tangxunfu_GPS/tangxunhu(3).tif";
@@ -265,7 +265,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         }
         finish();
         Intent i = new Intent(MainActivity.this, MainActivity.class);
-        i.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezdevices);
+        i.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezDevices);
         startActivity(i);
         overridePendingTransition(0, 0);
     }
@@ -536,17 +536,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         btn_open.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for (int i = 0 ; i < list_ezdevices.size() ; i++){
-                    if (list_ezdevices.get(i).getDeviceName().equals(tv_name.getText())){
-                        EZDeviceInfo deviceInfo = list_ezdevices.get(i);
-                        if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1){
-                            EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo,0);
-                            if (cameraInfo == null){
-                                return;
-                            }
+                for (EZDeviceInfo ezDeviceInfo : list_ezDevices){
+                    for (EZCameraInfo ezCameraInfo : ezDeviceInfo.getCameraInfoList()){
+                        if (ezCameraInfo == null){
+                            return;
+                        }else if (ezCameraInfo.getCameraName().equals(tv_name.getText())){
                             Intent intent = new Intent(MainActivity.this , EZRealPlayActivity.class);
-                            intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
-                            intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                            intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, ezCameraInfo);
+                            intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, ezDeviceInfo);
                             startActivityForResult(intent, REQUEST_CODE);
                             return;
                         }

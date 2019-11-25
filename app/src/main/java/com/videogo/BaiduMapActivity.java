@@ -301,17 +301,14 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         btn_open.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for (int i = 0 ; i < list_ezdevices.size() ; i++){
-                    if (list_ezdevices.get(i).getDeviceName().equals(tv_name.getText())){
-                        EZDeviceInfo deviceInfo = list_ezdevices.get(i);
-                        if (deviceInfo.getCameraNum() == 1 && deviceInfo.getCameraInfoList() != null && deviceInfo.getCameraInfoList().size() == 1){
-                            EZCameraInfo cameraInfo = EZUtils.getCameraInfoFromDevice(deviceInfo,0);
-                            if (cameraInfo == null){
-                                return;
-                            }
+                for (EZDeviceInfo ezDeviceInfo : list_ezdevices){
+                    for (EZCameraInfo ezCameraInfo : ezDeviceInfo.getCameraInfoList()){
+                        if (ezCameraInfo == null){
+                            return;
+                        }else if(ezCameraInfo.getCameraName().equals(tv_name.getText())){
                             Intent intent = new Intent(BaiduMapActivity.this , EZRealPlayActivity.class);
-                            intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
-                            intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                            intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, ezCameraInfo);
+                            intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, ezDeviceInfo);
                             startActivityForResult(intent, REQUEST_CODE);
                             return;
                         }

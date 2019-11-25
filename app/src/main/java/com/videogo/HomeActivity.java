@@ -26,6 +26,7 @@ import com.bigkoo.convenientbanner.holder.Holder;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
+import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.scanpic.ScanPicActivity;
 import com.videogo.scanvideo.ScanVideoActivity;
@@ -67,6 +68,7 @@ public class HomeActivity extends Activity {
             R.mipmap.home_icon_alarm_information,R.mipmap.home_icon_show_video,R.mipmap.home_icon__show_picture };
     private String[] iconName = { "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"};
     private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
+    private List<EZCameraInfo> list_ezCamera = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,12 +141,12 @@ public class HomeActivity extends Activity {
                         break;
                     case 4://视频查看
                         Intent ivideoView = new Intent(view.getContext(), ScanVideoActivity.class);
-                        ivideoView.putParcelableArrayListExtra("devices_video", (ArrayList<? extends Parcelable>) list_ezdevices);
+                        ivideoView.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
                         startActivity(ivideoView);
                         break;
                     case 5://图片查看
                         Intent iPicView = new Intent(view.getContext(), ScanPicActivity.class);
-                        iPicView.putParcelableArrayListExtra("devices_pic", (ArrayList<? extends Parcelable>) list_ezdevices);
+                        iPicView.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
                         startActivity(iPicView);
                         break;
                     default:
@@ -262,6 +264,7 @@ public class HomeActivity extends Activity {
                     result = getOpenSDK().getDeviceList(0, 30);
                     list_ezdevices.addAll(result);
                 }
+                return result;
             }catch (BaseException e){
                 ErrorInfo errorInfo = (ErrorInfo) e.getObject();
                 mErrorCode = errorInfo.errorCode;
@@ -271,8 +274,13 @@ public class HomeActivity extends Activity {
         }
 
         @Override
-        protected void onPostExecute(List<EZDeviceInfo> ezDeviceInfos) {
-            super.onPostExecute(ezDeviceInfos);
+        protected void onPostExecute(List<EZDeviceInfo> result) {
+            super.onPostExecute(result);
+            for (EZDeviceInfo ezDeviceInfo : result){
+                for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
+                    list_ezCamera.add(cameraInfo);
+                }
+            }
         }
     }
 }

@@ -240,6 +240,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private ImageButton mRealPlayRecordBtn = null;
     private ImageButton mRealPlayRecordStartBtn = null;
     private RotateViewUtil mRecordRotateViewUtil = null;
+    private RotateViewUtil mRecordRotateViewUtil_land = null;
 
     private Button mRealPlayQualityBtn = null;
 
@@ -251,8 +252,11 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private ImageButton mRealPlayFullCaptureBtn = null;
     private ImageButton mRealPlayFullPtzBtn = null;
     private ImageButton mRealPlayFullRecordBtn = null;
+    private ImageButton mRealPlayFullRecordBtn_land = null;
     private ImageButton mRealPlayFullRecordStartBtn = null;
+    private ImageButton mRealPlayFullRecordStartBtn_land = null;
     private View mRealPlayFullRecordContainer = null;
+    private View mRealPlayFullRecordContainer_land = null;
     private LinearLayout mRealPlayFullFlowLy = null;
     private TextView mRealPlayFullRateTv = null;
     private TextView mRealPlayFullFlowTv = null;
@@ -270,6 +274,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private PopupWindow mQualityPopupWindow = null;
     private PopupWindow mPtzPopupWindow = null;
     private LinearLayout mPtzControlLy = null;
+    private LinearLayout mPtzControlLy_land = null;
     private PopupWindow mTalkPopupWindow = null;
     private RingView mTalkRingView = null;
     private Button mTalkBackControlBtn = null;
@@ -538,6 +543,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
         mHandler = new Handler(this);
         mRecordRotateViewUtil = new RotateViewUtil();
+        mRecordRotateViewUtil_land = new RotateViewUtil();
 
         mBroadcastReceiver = new RealPlayBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
@@ -558,9 +564,9 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
             getRealPlaySquareInfo();
         }
-        if (mDeviceInfo != null && mDeviceInfo.getIsEncrypt() == 1) {
-            mVerifyCode = DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial());
-        }
+//        if (mDeviceInfo != null && mDeviceInfo.getIsEncrypt() == 1) {
+//            mVerifyCode = DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial());
+//        }
     }
 
     private void getRealPlaySquareInfo() {
@@ -1081,10 +1087,12 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         mRealPlayFullCaptureBtn = (ImageButton) findViewById(R.id.realplay_full_previously_btn);
         mRealPlayFullPtzBtn = (ImageButton) findViewById(R.id.realplay_full_ptz_btn);
         mRealPlayFullRecordContainer = findViewById(R.id.realplay_full_video_container);
+        mRealPlayFullRecordContainer_land = findViewById(R.id.realplay_full_video_container_land);
         mRealPlayFullRecordBtn = (ImageButton) findViewById(R.id.realplay_full_video_btn);
+        mRealPlayFullRecordBtn_land = (ImageButton) findViewById(R.id.realplay_full_video_btn_land);
         mRealPlayFullRecordStartBtn = (ImageButton) findViewById(R.id.realplay_full_video_start_btn);
+        mRealPlayFullRecordStartBtn_land = (ImageButton) findViewById(R.id.realplay_full_video_start_btn_land);
         mRealPlayFullOperateBar.setOnTouchListener(this);
-        mRead_ptz_wnd_landscape.setOnClickListener(this);
         mRead_ptz_wnd_landscape.setOnTouchListener(this);
 
         mRealPlayFullPtzAnimBtn = (ImageButton) findViewById(R.id.realplay_full_ptz_anim_btn);
@@ -1093,6 +1101,26 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         mRealPlayFullTalkAnimBtn = (ImageButton) findViewById(R.id.realplay_full_talk_anim_btn);
 
         mRealPlayFullAnimBtn = (ImageButton) findViewById(R.id.realplay_full_anim_btn);
+
+
+        //横屏
+        mPtzControlLy_land = mRead_ptz_wnd_landscape.findViewById(R.id.ptz_control_ly_land);
+        ImageButton ptzTopBtn_land = (ImageButton) mRead_ptz_wnd_landscape.findViewById(R.id.ptz_top_btn_land);
+        ptzTopBtn_land.setOnTouchListener(mOnTouchListener);
+        ImageButton ptzBottomBtn_land = (ImageButton) mRead_ptz_wnd_landscape.findViewById(R.id.ptz_bottom_btn_land);
+        ptzBottomBtn_land.setOnTouchListener(mOnTouchListener);
+        ImageButton ptzLeftBtn_land = (ImageButton) mRead_ptz_wnd_landscape.findViewById(R.id.ptz_left_btn_land);
+        ptzLeftBtn_land.setOnTouchListener(mOnTouchListener);
+        ImageButton ptzRightBtn_land = (ImageButton) mRead_ptz_wnd_landscape.findViewById(R.id.ptz_right_btn_land);
+        ptzRightBtn_land.setOnTouchListener(mOnTouchListener);
+        ImageButton tx_zoomin_land = (ImageButton) mRead_ptz_wnd_landscape.findViewById(R.id.tx_zoomin);
+        tx_zoomin_land.setOnTouchListener(mOnTouchListener);
+        ImageButton tx_zoomout_land = (ImageButton) mRead_ptz_wnd_landscape.findViewById(R.id.tx_zoomout);
+        tx_zoomout_land.setOnTouchListener(mOnTouchListener);
+
+        ImageButton tx_pic_btn = (ImageButton) mRead_ptz_wnd_landscape.findViewById(R.id.tx_pic_btn);
+        tx_pic_btn.setOnClickListener(this);
+
     }
 
     private void startFullBtnAnim(final View animView, final int[] startXy, final int[] endXy,
@@ -1198,12 +1226,17 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                 if (!mIsOnTalk && !mIsOnPtz) {
                     mFullscreenFullButton.setVisibility(View.GONE);
                 }
+                Log.d(TAG,"mIsRecording="+mIsRecording);
                 if (mIsRecording) {
                     mRealPlayFullRecordBtn.setVisibility(View.GONE);
+                    mRealPlayFullRecordBtn_land.setVisibility(View.GONE);
                     mRealPlayFullRecordStartBtn.setVisibility(View.VISIBLE);
+                    mRealPlayFullRecordStartBtn_land.setVisibility(View.VISIBLE);
                 } else {
                     mRealPlayFullRecordBtn.setVisibility(View.VISIBLE);
+                    mRealPlayFullRecordBtn_land.setVisibility(View.VISIBLE);
                     mRealPlayFullRecordStartBtn.setVisibility(View.GONE);
+                    mRealPlayFullRecordStartBtn_land.setVisibility(View.GONE);
                 }
             }
         }
@@ -1351,6 +1384,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             case R.id.realplay_previously_btn:
             case R.id.realplay_previously_btn2:
             case R.id.realplay_full_previously_btn:
+            case R.id.tx_pic_btn:
                 onCapturePicBtnClick();
                 break;
             case R.id.realplay_capture_rl:
@@ -1361,7 +1395,9 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             case R.id.realplay_video_btn2:
             case R.id.realplay_video_start_btn2:
             case R.id.realplay_full_video_btn:
+            case R.id.realplay_full_video_btn_land:
             case R.id.realplay_full_video_start_btn:
+            case R.id.realplay_full_video_start_btn_land:
                 onRecordBtnClick();
                 break;
             case R.id.realplay_talk_btn:
@@ -1699,6 +1735,28 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                             ptzOption(EZPTZCommand.EZPTZCommandZoomOut, EZPTZAction.EZPTZActionSTART);
                             Log.i(TAG, "onTouch: zoomout-start");
                             break;
+//                         //横屏
+                        case R.id.ptz_top_btn_land:
+                            Log.i(TAG, "onTouch: top_down");
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_up_land_sel);
+                            setPtzDirectionIv(RealPlayStatus.PTZ_UP);
+                            ptzOption(EZPTZCommand.EZPTZCommandUp, EZPTZAction.EZPTZActionSTART);
+                            break;
+                        case R.id.ptz_bottom_btn_land:
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_bottom_land_sel);
+                            setPtzDirectionIv(RealPlayStatus.PTZ_DOWN);
+                            ptzOption(EZPTZCommand.EZPTZCommandDown, EZPTZAction.EZPTZActionSTART);
+                            break;
+                        case R.id.ptz_left_btn_land:
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_left_land_sel);
+                            setPtzDirectionIv(RealPlayStatus.PTZ_LEFT);
+                            ptzOption(EZPTZCommand.EZPTZCommandLeft, EZPTZAction.EZPTZActionSTART);
+                            break;
+                        case R.id.ptz_right_btn_land:
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_right_land_sel);
+                            setPtzDirectionIv(RealPlayStatus.PTZ_RIGHT);
+                            ptzOption(EZPTZCommand.EZPTZCommandRight, EZPTZAction.EZPTZActionSTART);
+                            break;
                         default:
                             break;
                     }
@@ -1732,6 +1790,24 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                         case R.id.tx_zoomout:
                             ptzOption(EZPTZCommand.EZPTZCommandZoomOut, EZPTZAction.EZPTZActionSTOP);
                             Log.i(TAG, "onTouch: zoomout-stop");
+                            break;
+                            //横屏
+                        case R.id.ptz_top_btn_land:
+                            Log.i(TAG, "onTouch: top_up");
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_bg_1);
+                            ptzOption(EZPTZCommand.EZPTZCommandUp, EZPTZAction.EZPTZActionSTOP);
+                            break;
+                        case R.id.ptz_bottom_btn_land:
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_bg_1);
+                            ptzOption(EZPTZCommand.EZPTZCommandDown, EZPTZAction.EZPTZActionSTOP);
+                            break;
+                        case R.id.ptz_left_btn_land:
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_bg_1);
+                            ptzOption(EZPTZCommand.EZPTZCommandLeft, EZPTZAction.EZPTZActionSTOP);
+                            break;
+                        case R.id.ptz_right_btn_land:
+                            mPtzControlLy_land.setBackgroundResource(R.drawable.ptz_bg_1);
+                            ptzOption(EZPTZCommand.EZPTZCommandRight, EZPTZAction.EZPTZActionSTOP);
                             break;
                         default:
                             break;
@@ -1907,6 +1983,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         tx_speed = (ImageView) layoutView.findViewById(R.id.tx_speed);
         tx_speed.setOnClickListener(mOnPopWndClickListener);
 
+
         int height = mLocalInfo.getScreenHeight() - mPortraitTitleBar.getHeight() - mRealPlayPlayRl.getHeight()
                 - (mRealPlayRect != null ? mRealPlayRect.top : mLocalInfo.getNavigationBarHeight());
         mPtzPopupWindow = new PopupWindow(layoutView, LayoutParams.MATCH_PARENT, height, true);
@@ -2032,7 +2109,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 //            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/Records/" + String.format("%tY", date)
 //                    + String.format("%tm", date) + String.format("%td", date) + "/"
 //                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
-            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CaptureVideo/" + mDeviceInfo.getDeviceName()+"/"
+            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CaptureVideo/" + mCameraInfo.getCameraName()+"/"
                     + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
 
 
@@ -2090,9 +2167,13 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             if (!mIsOnStop) {
                 mRecordRotateViewUtil.applyRotation(mRealPlayFullRecordContainer, mRealPlayFullRecordStartBtn,
                         mRealPlayFullRecordBtn, 0, 90);
+                mRecordRotateViewUtil_land.applyRotation(mRealPlayFullRecordContainer_land, mRealPlayFullRecordStartBtn_land,
+                        mRealPlayFullRecordBtn_land, 0, 90);
             } else {
                 mRealPlayFullRecordStartBtn.setVisibility(View.GONE);
+                mRealPlayFullRecordStartBtn_land.setVisibility(View.GONE);
                 mRealPlayFullRecordBtn.setVisibility(View.VISIBLE);
+                mRealPlayFullRecordBtn_land.setVisibility(View.VISIBLE);
 
             }
             mRealPlayRecordStartBtn.setVisibility(View.GONE);
@@ -2125,7 +2206,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
      */
     private void onCapturePicBtnClick() {
         java.util.Date date = new java.util.Date();
-        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +mDeviceInfo.getDeviceName()+"/"
+        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +mCameraInfo.getCameraName()+"/"
                 + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
         mControlDisplaySec = 0;
         if (!SDCardUtil.isSDCardUseable()) {
@@ -2368,6 +2449,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             mRealPlayFullPlayBtn.setBackgroundResource(R.drawable.play_full_stop_selector);
             mRealPlayFullCaptureBtn.setEnabled(false);
             mRealPlayFullRecordBtn.setEnabled(false);
+            mRealPlayFullRecordBtn_land.setEnabled(false);
             mRealPlayFullFlowLy.setVisibility(View.GONE);
             mRealPlayFullPtzBtn.setEnabled(false);
         }
@@ -2425,6 +2507,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             mRealPlayFullPlayBtn.setBackgroundResource(R.drawable.play_full_play_selector);
             mRealPlayFullCaptureBtn.setEnabled(false);
             mRealPlayFullRecordBtn.setEnabled(false);
+            mRealPlayFullRecordBtn_land.setEnabled(false);
             mRealPlayPtzBtn.setEnabled(false);
         }
     }
@@ -2467,6 +2550,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             mRealPlayFullPlayBtn.setBackgroundResource(R.drawable.play_full_play_selector);
             mRealPlayFullCaptureBtn.setEnabled(false);
             mRealPlayFullRecordBtn.setEnabled(false);
+            mRealPlayFullRecordBtn_land.setEnabled(false);
             mRealPlayFullPtzBtn.setEnabled(false);
         }
     }
@@ -2496,6 +2580,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             mRealPlayFullPlayBtn.setBackgroundResource(R.drawable.play_full_stop_selector);
             mRealPlayFullCaptureBtn.setEnabled(true);
             mRealPlayFullRecordBtn.setEnabled(true);
+            mRealPlayFullRecordBtn_land.setEnabled(true);
             mRealPlayFullPtzBtn.setEnabled(true);
         }
 
@@ -2953,12 +3038,17 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             mRealPlayFullRecordBtn.setVisibility(View.GONE);
             mRealPlayFullRecordStartBtn.setVisibility(View.VISIBLE);
         } else {
+            Log.d(TAG,"mIsOnStop ="+mIsOnStop);
             if (!mIsOnStop) {
                 mRecordRotateViewUtil.applyRotation(mRealPlayFullRecordContainer, mRealPlayFullRecordBtn,
                         mRealPlayFullRecordStartBtn, 0, 90);
+                mRecordRotateViewUtil_land.applyRotation(mRealPlayFullRecordContainer_land, mRealPlayFullRecordBtn_land,
+                        mRealPlayFullRecordStartBtn_land, 0, 90);
             } else {
                 mRealPlayFullRecordBtn.setVisibility(View.GONE);
+                mRealPlayFullRecordBtn_land.setVisibility(View.GONE);
                 mRealPlayFullRecordStartBtn.setVisibility(View.VISIBLE);
+                mRealPlayFullRecordStartBtn_land.setVisibility(View.VISIBLE);
             }
             mRealPlayRecordBtn.setVisibility(View.GONE);
             mRealPlayRecordStartBtn.setVisibility(View.VISIBLE);

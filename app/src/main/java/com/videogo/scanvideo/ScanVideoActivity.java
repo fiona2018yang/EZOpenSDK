@@ -12,6 +12,7 @@ import android.widget.ImageButton;
 
 import com.videogo.adapter.ScanPicAdapter;
 import com.videogo.adapter.ScanVideoAdapter;
+import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.scanpic.CameraPicActivity;
 
@@ -24,7 +25,7 @@ public class ScanVideoActivity extends Activity {
     private RecyclerView rv;
     private ScanVideoAdapter adapter;
     private ImageButton back;
-    private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
+    private List<EZCameraInfo> list_ezCameras = new ArrayList<>();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,14 +38,14 @@ public class ScanVideoActivity extends Activity {
         back = findViewById(R.id.back);
         LinearLayoutManager layoutManager =new LinearLayoutManager(this);
         rv.setLayoutManager(layoutManager);
-        list_ezdevices = getIntent().getParcelableArrayListExtra("devices_video");
+        list_ezCameras = getIntent().getParcelableArrayListExtra("cameras_pic");
 
-        EZDeviceInfo info = new EZDeviceInfo();
-        info.setDeviceName("最近");
-        list_ezdevices.add(0,info);
+        EZCameraInfo info = new EZCameraInfo();
+        info.setCameraName("最近");
+        list_ezCameras.add(0,info);
 
         rv.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
-        adapter = new ScanVideoAdapter(list_ezdevices);
+        adapter = new ScanVideoAdapter(list_ezCameras);
         rv.setAdapter(adapter);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,7 +57,7 @@ public class ScanVideoActivity extends Activity {
             @Override
             public void onItemClick(View v, int position) {
                 Intent icamera = new Intent(v.getContext(), CameraVideoActivity.class);
-                icamera.putExtra("video",list_ezdevices.get(position).getDeviceName());
+                icamera.putExtra("video",list_ezCameras.get(position).getCameraName());
                 startActivity(icamera);
             }
         });

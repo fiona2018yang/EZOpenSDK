@@ -299,8 +299,8 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
 //                    if (cameraInfo == null) {
 //                        return;
 //                    }
-//                    Intent intent = new Intent(EZCameraListActivity.this, PlayBackListActivity.class);
-                    Intent intent = new Intent(EZCameraListActivity.this, PlaybackActivity.class);
+                    Intent intent = new Intent(EZCameraListActivity.this, PlayBackListActivity.class);
+//                    Intent intent = new Intent(EZCameraListActivity.this, PlaybackActivity.class);
                     intent.putExtra(RemoteListContant.QUERY_DATE_INTENT_KEY, DateTimeUtil.getNow());
                     intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                     startActivity(intent);

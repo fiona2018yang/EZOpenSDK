@@ -10,6 +10,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageButton;
 import com.videogo.adapter.ScanPicAdapter;
+import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +20,7 @@ public class ScanPicActivity extends Activity {
     private RecyclerView rv;
     private ScanPicAdapter adapter;
     private ImageButton back;
-    private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
+    private List<EZCameraInfo> list_ezCameras = new ArrayList<>();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,14 +33,14 @@ public class ScanPicActivity extends Activity {
         back = findViewById(R.id.back);
         LinearLayoutManager layoutManager =new LinearLayoutManager(this);
         rv.setLayoutManager(layoutManager);
-        list_ezdevices = getIntent().getParcelableArrayListExtra("devices_pic");
+        list_ezCameras = getIntent().getParcelableArrayListExtra("cameras_pic");
 
-        EZDeviceInfo info = new EZDeviceInfo();
-        info.setDeviceName("最近");
-        list_ezdevices.add(0,info);
+        EZCameraInfo info = new EZCameraInfo();
+        info.setCameraName("最近");
+        list_ezCameras.add(0,info);
 
         rv.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
-        adapter = new ScanPicAdapter(list_ezdevices);
+        adapter = new ScanPicAdapter(list_ezCameras);
         rv.setAdapter(adapter);
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -51,7 +52,7 @@ public class ScanPicActivity extends Activity {
             @Override
             public void onItemClick(View v, int position) {
                 Intent icamera = new Intent(v.getContext(), CameraPicActivity.class);
-                icamera.putExtra("pic",list_ezdevices.get(position).getDeviceName());
+                icamera.putExtra("pic",list_ezCameras.get(position).getCameraName());
                 startActivity(icamera);
             }
         });

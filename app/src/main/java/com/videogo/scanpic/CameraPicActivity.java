@@ -51,7 +51,7 @@ public class CameraPicActivity extends Activity  {
     private List<String> path_checked_list;
     private HashMap<String,List<String>> data_map;
     private TitleAdapter adapter;
-    private String device_name;
+    private String camera_name;
     private Boolean show_flag = true;
     private int width;
     private SQLiteDatabase db;
@@ -73,7 +73,7 @@ public class CameraPicActivity extends Activity  {
         linearLayout = findViewById(R.id.linearLayout);
         linear_1 = findViewById(R.id.linear_1);
         linear_2 = findViewById(R.id.linear_2);
-        device_name = getIntent().getStringExtra("pic");
+        camera_name = getIntent().getStringExtra("pic");
         width = getScreenProperty();
         title_list = new ArrayList<>();
         file_list = new ArrayList<>();
@@ -174,9 +174,9 @@ public class CameraPicActivity extends Activity  {
         List<String> time_list = new ArrayList<>();
         List<Integer> index_list = new ArrayList<>();
 
-        if (!device_name.equals("最近")){
+        if (!camera_name.equals("最近")){
             //获取所有文件的路径
-            String path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/"+device_name;
+            String path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/CapturePicture/"+camera_name;
             datalist.addAll(DataUtils.getImagePathFromSD(path));
             Log.i("TAG","datalist.size="+datalist.size());
             if (datalist.size() != 0){

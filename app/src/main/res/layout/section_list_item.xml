@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="@color/transparent"
     android:clickable="true"
     android:gravity="center"
     android:orientation="horizontal" >
@@ -18,7 +18,7 @@
             android:layout_height="fill_parent"
             android:layout_alignParentRight="true"
             android:layout_marginRight="6dp"
-            android:background="#adadad" />
+            android:background="@color/transparent" />
 
         <TextView
             android:id="@+id/header"
@@ -28,7 +28,7 @@
             android:drawableRight="@drawable/timeline"
             android:gravity="center_horizontal"
             android:text="09点"
-            android:textColor="#888888"
+            android:textColor="@color/topBarText"
             android:textSize="10dp"
             android:textStyle="bold" />
     </RelativeLayout>
@@ -54,7 +54,7 @@
                     android:id="@+id/img_area1"
                     android:layout_width="match_parent"
                     android:layout_height="65dp"
-                    android:background="@color/white" >
+                    android:background="@color/blue_bg" >
 
                     <ImageView
                         android:id="@+id/image1"
@@ -118,7 +118,7 @@
                     android:id="@+id/img_area2"
                     android:layout_width="match_parent"
                     android:layout_height="65dp"
-                    android:background="@color/white" >
+                    android:background="@color/transparent" >
 
                     <ImageView
                         android:id="@+id/image2"
@@ -182,7 +182,7 @@
                     android:id="@+id/img_area3"
                     android:layout_width="match_parent"
                     android:layout_height="65dp"
-                    android:background="@color/white" >
+                    android:background="@color/transparent" >
 
                     <ImageView
                         android:id="@+id/image3"
@@ -243,7 +243,7 @@
             android:layout_height="37dp"
             android:layout_marginBottom="10dp"
             android:layout_weight="1"
-            android:background="@drawable/playback_button"
+            android:background="@drawable/translucent"
             android:gravity="center"
             android:orientation="vertical" >
 

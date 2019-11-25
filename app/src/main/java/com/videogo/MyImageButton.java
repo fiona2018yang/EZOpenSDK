@@ -17,13 +17,14 @@ public class MyImageButton extends LinearLayout {
         textView = new TextView(context);
         setImageResource(imageResId);
         imageView.setPadding(0,0,0,0);
+        textView.setTextColor(getResources().getColor(R.color.trans_bg_color));
         setImageSize(width,height);
         setText(textTesId);
         setTextSize(12);
         setTextPosition();
         setClickable(true);
         setFocusable(false);
-        setBackgroundResource(R.color.trans_bg_color);
+        setBackgroundResource(R.color.transparent);
         setOrientation(LinearLayout.VERTICAL);
         addView(imageView);
         addView(textView);

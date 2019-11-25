@@ -6,6 +6,7 @@ import android.app.Application;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,6 +14,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -98,6 +101,7 @@ import com.videogo.util.ConnectionDetector;
 import com.videogo.util.LocalInfo;
 import com.videogo.util.LogUtil;
 import com.videogo.util.MediaScanner;
+import com.videogo.util.RotateViewUtil;
 import com.videogo.util.SDCardUtil;
 import com.videogo.util.Utils;
 import com.videogo.widget.CheckTextButton;
@@ -112,6 +116,7 @@ import com.videogo.widget.loading.LoadingView;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -143,6 +148,8 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
     // 显示数据网络提示
     private boolean mShowNetworkTip = true;
     private BroadcastReceiver mReceiver = null;
+    //验证码
+    private String mVerifyCode ;
 
 //    // 设备信息
 //    private DeviceInfoEx deviceInfoEx = null;
@@ -153,10 +160,12 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
     // 自定义ListView
     private PinnedHeaderListView pinnedHeaderListView;
     private PinnedHeaderListView mPinnedHeaderListViewForLocal;
+    private RotateViewUtil mRecordRotateViewUtil = null;
     // 列表适配器
     private StandardArrayAdapter arrayAdapter;
     // ListView适配器
     private SectionListAdapter sectionAdapter;
+    private SQLiteDatabase db;
 
     private StandardArrayAdapter mArrayAdapterForLocal;
     // ListView适配器
@@ -232,6 +241,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
     private ImageButton captureBtn = null;
     // 录像
     private ImageButton videoRecordingBtn = null;
+    // 停止录像
+    private ImageButton videoRecordingBtn_end = null;
+    private View mRealPlayRecordContainer = null;
     // 下载按钮
     private LinearLayout downloadBtn = null;
     // Loading图片
@@ -611,7 +623,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         // 计时按钮不可见
         mRemotePlayBackRecordLy.setVisibility(View.GONE);
         // 设置录像按钮为check状态
-        videoRecordingBtn.setBackgroundResource(R.drawable.palyback_video_selector);
+//        videoRecordingBtn.setBackgroundResource(R.drawable.palyback_video_selector);
+        mRecordRotateViewUtil.applyRotation(mRealPlayRecordContainer, videoRecordingBtn_end,
+                videoRecordingBtn, 0, 90);
 
 //        mRemotePlayBackCaptureRl.setVisibility(View.VISIBLE);
         mCaptureDisplaySec = 0;
@@ -795,7 +809,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
             case ErrorCode.ERROR_INNER_VERIFYCODE_NEED:
             case ErrorCode.ERROR_INNER_VERIFYCODE_ERROR:{
                 showTipDialog("");
-                DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(),null);
+//                DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(),null);
                 VerifyCodeInput.VerifyCodeInputDialog(this,this).show();
             }
                 break;
@@ -1004,7 +1018,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         notShowControlArea = false;
         if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
 //            exitBtn.setVisibility(View.VISIBLE);
-            captureBtn.setVisibility(View.GONE);
+            captureBtn.setVisibility(View.VISIBLE);
             videoRecordingBtn.setVisibility(View.VISIBLE);
         } else {
             exitBtn.setVisibility(View.GONE);
@@ -1059,7 +1073,17 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
             mPlayer.stopPlayback();
         } else {
         	mPlayer = EzvizApplication.getOpenSDK().createPlayer(mCameraInfo.getDeviceSerial(),mCameraInfo.getCameraNo());
-            mPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
+
+            String name = mCameraInfo.getDeviceSerial()+String.valueOf(mCameraInfo.getCameraNo());
+            db = ((EzvizApplication) getApplication()).getDatebase();
+            Cursor cursor = db.query("verifycode", null, "name = ?", new String[]{name}, null, null, null);
+            if (cursor.moveToFirst()){
+                do {
+                    mVerifyCode = cursor.getString(cursor.getColumnIndex("code"));
+                }while (cursor.moveToNext());
+            }
+            cursor.close();
+            mPlayer.setPlayVerifyCode(mVerifyCode);
         }
     }
     private void initRemoteListPlayer() {
@@ -1075,6 +1099,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
     }
 
     private void initListener() {
+        mTitleBar.setBackgroundColor(getResources().getColor(R.color.blue_bg));
+        mTitleBar.setStyle(Color.rgb(0xff, 0xff, 0xff),getResources().getDrawable(R.color.blue_bg),
+                getResources().getDrawable(R.drawable.message_back_selector_1));
         backBtn = mTitleBar.addBackButton(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -1649,12 +1676,31 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         arrayAdapter = null;
         sectionAdapter = null;
         hasShowListViewLine(false);
-        queryPlayBackCloudListAsyncTask = new QueryPlayBackCloudListAsyncTask(mCameraInfo.getDeviceSerial(), mCameraInfo.getCameraNo(),
-                PlayBackListActivity.this);
-        loadingBar.setVisibility(View.VISIBLE);
-        showTab(R.id.loadingTextView);
-        queryPlayBackCloudListAsyncTask.setSearchDate(queryDate);
-        queryPlayBackCloudListAsyncTask.execute();
+        //查询云录像
+//        queryPlayBackCloudListAsyncTask = new QueryPlayBackCloudListAsyncTask(mCameraInfo.getDeviceSerial(), mCameraInfo.getCameraNo(),
+//                PlayBackListActivity.this);
+//        loadingBar.setVisibility(View.VISIBLE);
+//        showTab(R.id.loadingTextView);
+//        queryPlayBackCloudListAsyncTask.setSearchDate(queryDate);
+//        queryPlayBackCloudListAsyncTask.execute();
+        //查询SD卡录像
+        if(!mIsLocalDataQueryPerformed)
+        {
+            // 当云视频文件不超过100000个不会出现异常，超过即异常
+            mIsLocalDataQueryPerformed = true;
+
+            int cloudTotal = 100000;
+            hasShowListViewLine(false);
+            mWaitDlg.show();
+            stopQueryTask();
+            queryPlayBackLocalListAsyncTask = new QueryPlayBackLocalListAsyncTask(mCameraInfo.getDeviceSerial(), mCameraInfo.getCameraNo(),
+                    PlayBackListActivity.this);
+            queryPlayBackLocalListAsyncTask.setQueryDate(queryDate);
+            queryPlayBackLocalListAsyncTask.setOnlyHasLocal(true);
+            queryPlayBackLocalListAsyncTask.execute(String.valueOf(cloudTotal));
+        }
+        mContentTabDeviceRl.setVisibility(true? View.VISIBLE : View.GONE);
+        mCheckBtnCloud.setChecked(false);
     }
 
     private void hasShowListViewLine(boolean isShow) {
@@ -1692,6 +1738,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
     	mCheckBtnCloud = (CheckTextButton) findViewById(R.id.pb_search_tab_btn_cloud);
     	mCheckBtnDevice = (CheckTextButton) findViewById(R.id.pb_search_tab_btn_device);
     	mTabContentMainFrame = (FrameLayout) findViewById(R.id.ez_tab_content_frame);
+
+        db = ((EzvizApplication)getApplication()).getDatebase();
+        mRecordRotateViewUtil = new RotateViewUtil();
 
     	mCheckBtnDevice.setToggleEnable(false);
     	mCheckBtnCloud.setToggleEnable(false);
@@ -1848,6 +1897,8 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         progressArea = (LinearLayout) findViewById(R.id.progress_area);
         captureBtn = (ImageButton) findViewById(R.id.remote_playback_capture_btn);
         videoRecordingBtn = (ImageButton) findViewById(R.id.remote_playback_video_recording_btn);
+        videoRecordingBtn_end = findViewById(R.id.remote_playback_video_recording_btn_end);
+        mRealPlayRecordContainer = findViewById(R.id.playback_video_frame);
         downloadBtn = (LinearLayout) findViewById(R.id.remote_playback_download_btn);
         downLayout = (RelativeLayout) findViewById(R.id.down_layout);
         fileSizeText = (TextView) findViewById(R.id.file_size_text);
@@ -1897,7 +1948,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 
         mLandscapeTitleBar = (TitleBar) findViewById(R.id.pb_title_bar_landscape);
         mLandscapeTitleBar.setStyle(Color.rgb(0xff, 0xff, 0xff), getResources().getDrawable(R.color.dark_bg_70p),
-                null/*getResources().getDrawable(R.drawable.message_back_selector)*/);
+                getResources().getDrawable(R.drawable.message_back_selector_1));
         mLandscapeTitleBar.setOnTouchListener(this);
         //mFullScreenTitleBarBackBtn = new CheckTextButton(this);
         //mFullScreenTitleBarBackBtn.setBackground(getResources().getDrawable(R.drawable.common_title_back_selector));
@@ -2212,9 +2263,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
             mSectionAdapterForLocal = new SectionListAdapter(PlayBackListActivity.this,getLayoutInflater(), mArrayAdapterForLocal, mCameraInfo.getDeviceSerial());
             mPinnedHeaderListViewForLocal.setAdapter(mSectionAdapterForLocal);
             mPinnedHeaderListViewForLocal.setOnScrollListener(mSectionAdapterForLocal);
-            mPinnedHeaderListViewForLocal.setPinnedHeaderView(getLayoutInflater().inflate(R.layout.list_section,
-            		mPinnedHeaderListViewForLocal, false));
-            mPinnedHeaderListViewForLocal.startAnimation();
+//            mPinnedHeaderListViewForLocal.setPinnedHeaderView(getLayoutInflater().inflate(R.layout.list_section,
+//            		mPinnedHeaderListViewForLocal, false));
+//            mPinnedHeaderListViewForLocal.startAnimation();
             mSectionAdapterForLocal.setOnHikItemClickListener(PlayBackListActivity.this);
         }
     }
@@ -2727,6 +2778,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                 onCapturePicBtnClick();
                 break;
             case R.id.remote_playback_video_recording_btn:
+            case R.id.remote_playback_video_recording_btn_end:
                 onRecordBtnClick();
                 break;
             case R.id.remoteplayback_capture_rl:
@@ -2916,10 +2968,32 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 
             // 可以采用deviceSerial+时间作为文件命名，demo中简化，只用时间命名
             Date date = new Date();
-            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/Records/" + String.format("%tY", date)
-                    + String.format("%tm", date) + String.format("%td", date) + "/"
+//            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/Records/" + String.format("%tY", date)
+//                    + String.format("%tm", date) + String.format("%td", date) + "/"
+//                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
+            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CaptureVideo/" + mCameraInfo.getCameraName()+"/"
                     + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
             mPlayer.startLocalRecordWithFile(strRecordFile);
+
+            //保存路径
+            List<String> files = new ArrayList<>();
+            Cursor cursor = db.query("videofilepath", null, null, null, null, null, null);
+            if (cursor.moveToFirst()){
+                do {
+                    String file_path = cursor.getString(cursor.getColumnIndex("path"));
+                    files.add(file_path);
+                }while (cursor.moveToNext());
+            }
+            cursor.close();
+            if (files.size()>=10){
+                db.delete("videofilepath", "path=?", new String[]{String.valueOf(files.get(0))});
+            }
+            ContentValues values = new ContentValues();
+            values.put("path",strRecordFile);
+            values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
+            db.insert("videofilepath",null,values);
+            mRecordRotateViewUtil.applyRotation(mRealPlayRecordContainer, videoRecordingBtn,
+                    videoRecordingBtn_end, 0, 90);
         }
 //        playCaptureAsyncTask = new PlayCaptureAndRecordAsyncTask(this, deviceSerial, channelNo, remoteListPlayer, this);
 //        playCaptureAsyncTask.setResources(this.getResources());
@@ -2929,6 +3003,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 
     // 抓拍按钮响应函数
     private void onCapturePicBtnClick() {
+        java.util.Date date = new java.util.Date();
+        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +mCameraInfo.getCameraName()+"/"
+                + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
         mControlDisplaySec = 0;
         if (!SDCardUtil.isSDCardUseable()) {
             // 提示SD卡不可用
@@ -2954,10 +3031,10 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                         mAudioPlayUtil.playAudioFile(AudioPlayUtil.CAPTURE_SOUND);
 
                         // 可以采用deviceSerial+时间作为文件命名，demo中简化，只用时间命名
-                        Date date = new Date();
-                        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" + String.format("%tY", date)
-                                + String.format("%tm", date) + String.format("%td", date) + "/"
-                                + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
+//                        Date date = new Date();
+//                        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" + String.format("%tY", date)
+//                                + String.format("%tm", date) + String.format("%td", date) + "/"
+//                                + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
 
                         if (TextUtils.isEmpty(path)) {
                             bmp.recycle();
@@ -2965,6 +3042,23 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                             return;
                         }
                         EZUtils.saveCapturePictrue(path, bmp);
+                        //保存路径
+                        List<String> files = new ArrayList<>();
+                        Cursor cursor = db.query("picfilepath", null, null, null, null, null, null);
+                        if (cursor.moveToFirst()){
+                            do {
+                                String file_path = cursor.getString(cursor.getColumnIndex("path"));
+                                files.add(file_path);
+                            }while (cursor.moveToNext());
+                        }
+                        cursor.close();
+                        if (files.size()>=10){
+                            db.delete("picfilepath", "path=?", new String[]{String.valueOf(files.get(0))});
+                        }
+                        ContentValues values = new ContentValues();
+                        values.put("path",path);
+                        values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
+                        db.insert("picfilepath",null,values);
 
                         MediaScanner mMediaScanner = new MediaScanner(PlayBackListActivity.this);
                         mMediaScanner.scanFile(path, "jpg");
@@ -3116,21 +3210,37 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 
     @Override
     public void onInputVerifyCode(final String verifyCode) {
-        LogUtil.debugLog(TAG, "verify code is " + verifyCode);
-        DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(),verifyCode);
+        //DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(),verifyCode);
         if (mPlayer != null) {
+            String name = mCameraInfo.getDeviceSerial()+String.valueOf(mCameraInfo.getCameraNo());
+            mVerifyCode = verifyCode;
+            if (mVerifyCode == null){
+                ContentValues values=new ContentValues();
+                values.put("name",name);
+                values.put("code",verifyCode);
+                db.insert("verifycode",null,values);
+                LogUtil.debugLog(TAG, "insert seccess ");
+            }else{
+                ContentValues values = new ContentValues();
+                values.put("code",verifyCode);
+                db.update("verifycode", values, "name=?", new String[]{name});
+                LogUtil.debugLog(TAG, "update seccess ");
+            }
 
             newPlayUIInit();
             showControlArea(true);
 
             if (mDeviceRecordInfo != null) {
                 if (mPlayer != null){
-                    mPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
+//                    mPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
+                    LogUtil.debugLog(TAG, "verify code is " + verifyCode);
+                    mPlayer.setPlayVerifyCode(mVerifyCode);
                 }
                 mPlayer.startPlayback(mDeviceRecordInfo.getStartTime(), mDeviceRecordInfo.getStopTime());
             } else if (mCloudRecordInfo != null) {
                 if (mPlayer != null){
-                    mPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
+//                    mPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
+                    mPlayer.setPlayVerifyCode(mVerifyCode);
                 }
                 mPlayer.startPlayback(mCloudRecordInfo);
             }
