@@ -1673,6 +1673,11 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         pinnedHeaderListView.setVisibility(View.GONE);
         queryExceptionLayout.setVisibility(View.GONE);
         stopQueryTask();
+        if (arrayAdapter!=null){
+            arrayAdapter.clearData();
+            arrayAdapter.clear();
+            arrayAdapter.notifyDataSetChanged();
+        }
         arrayAdapter = null;
         sectionAdapter = null;
         hasShowListViewLine(false);
