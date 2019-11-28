@@ -2,6 +2,7 @@ package com.videogo.devicemgt;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -133,6 +134,8 @@ public class ModifyDeviceNameActivity extends RootActivity implements View.OnCli
      */
     private void initTitleBar() {
         mTitleBar.setTitle(R.string.ez_modify_name);
+        mTitleBar.setStyle(Color.rgb(0xff, 0xff, 0xff),getResources().getDrawable(R.color.blue_bg),
+                getResources().getDrawable(R.drawable.message_back_selector_1));
         mTitleBar.addBackButton(new OnClickListener() {
 
             @Override

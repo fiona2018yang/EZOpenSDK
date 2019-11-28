@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -13,8 +16,19 @@ import android.widget.Toast;
 
 import com.videogo.main.EzvizWebViewActivity;
 import com.videogo.ui.cameralist.CountDownView;
+import com.videogo.warning.OkHttpUtil;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import ezviz.ezopensdk.R;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 /**
  * 登录页
@@ -23,10 +37,12 @@ import ezviz.ezopensdk.R;
 public class SplashActivity extends Activity {
 
     private MyDatabaseHelper dbHelper;
+    private String TAG = "SplashActivity";
     //启动页面
     EditText etUsername, etPassword;
     Button btnLogin, btnSignup;
     String strUsername, strPassword;
+    private Handler handler ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,21 +54,32 @@ public class SplashActivity extends Activity {
         etPassword = (EditText) findViewById(R.id.et_login_password);
         btnLogin = (Button) findViewById(R.id.btn_login);
         btnSignup = (Button) findViewById(R.id.btn_signup);
+        handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what){
+                    case 102:
+                        Bundle bundle = msg.getData();
+                        String flag = bundle.getString("flag");
+                        //用户名密码正确跳转
+                        if (flag.equals("true")) {
+                            setUserType(strUsername);
+                            Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
+                            startActivity(it);
+                            SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
+                        } else {
+                            Toast.makeText(SplashActivity.this, "登陆失败", Toast.LENGTH_SHORT).show();
+                        }
+                        break;
+                }
+            }
+        };
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                strUsername = etUsername.getText().toString();
-                strPassword = etPassword.getText().toString();
-                //用户名密码正确跳转
-                if (login(strUsername, strPassword)) {
-                    Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
-                    startActivity(it);
-                    SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
-                } else {
-                    Toast.makeText(SplashActivity.this, "登陆失败", Toast.LENGTH_SHORT).show();
-                }
-
-
+                strUsername = etUsername.getText().toString().trim();
+                strPassword = etPassword.getText().toString().trim();
+                login(strUsername, strPassword);
                 //                if (strUsername.equals("用户名")) {
                 //                    if (strPassword.equals("密码")){
                 //                        Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
@@ -103,17 +130,59 @@ public class SplashActivity extends Activity {
         //        });
         //        countDownView.start();
     }
-
-    //验证登录
-    public boolean login(String username, String password) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        String sql = "select * from userData where name=? and password=?";
-        Cursor cursor = db.rawQuery(sql, new String[]{username, password});
-        if (cursor.moveToFirst()) {
-            cursor.close();
-            return true;
+    private void setUserType(String etUsername){
+        if (etUsername.equals("chengguan")){
+            EzvizApplication.setUser_type(6);
+        }else if (etUsername.equals("shiwuju")){
+            EzvizApplication.setUser_type(7);
+        }else if(etUsername.equals("huanbaoju")){
+            EzvizApplication.setUser_type(8);
+        }else if (etUsername.equals("zhifaju")){
+            EzvizApplication.setUser_type(9);
+        }else if (etUsername.equals("fazhanju")){
+            EzvizApplication.setUser_type(10);
+        }else if (etUsername.equals("admin")){
+            EzvizApplication.setUser_type(11);
         }
-        return false;
+    }
+    //验证登录
+    public void login(String username, String password) {
+//        SQLiteDatabase db = dbHelper.getWritableDatabase();
+//        String sql = "select * from userData where name=? and password=?";
+//        Cursor cursor = db.rawQuery(sql, new String[]{username, password});
+//        if (cursor.moveToFirst()) {
+//            cursor.close();
+//            return true;
+//        }
+//        return false;
+        String url = "http://192.168.60.103:8080/api/login";
+        Map<String,String> map = new HashMap<>();
+        map.put("userName",strUsername);
+        map.put("password",strPassword);
+        OkHttpUtil.post(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.d(TAG, "onFailure: ",e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseBody = response.body().string();
+                Log.d(TAG, "result="+responseBody);
+                try {
+                    JSONObject object = new JSONObject(responseBody);
+                    String result = object.get("success").toString();
+                    Message message = new Message();
+                    message.what = 102;
+                    Bundle bundle = new Bundle();
+                    bundle.putString("flag",result);
+                    message.setData(bundle);
+                    handler.sendMessage(message);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        },map);
     }
 }
 

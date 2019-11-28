@@ -73,4 +73,5 @@ dependencies {
     implementation files('libs/jcore-android-2.1.6.jar')
     implementation files('libs/jpush-android-3.3.6.jar')
     implementation files('libs/jaxen-1.1.3.jar')
+    implementation 'com.squareup.okhttp3:okhttp:3.10.0'
 }

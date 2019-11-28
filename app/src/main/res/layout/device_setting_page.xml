@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/common_bg"
+    android:background="@mipmap/bg"
     android:orientation="vertical" >
 
     <com.videogo.widget.TitleBar
@@ -19,7 +19,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/common_bg"
+            android:background="@mipmap/bg"
             android:orientation="vertical"
             android:paddingBottom="20dp"
             android:paddingTop="@dimen/device_set_layout_padding" >
@@ -34,7 +34,7 @@
                     android:id="@+id/device_info_layout"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/device_set_layout_height"
-                    android:background="@android:color/white"
+                    android:background="@color/blue_bg"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingLeft="@dimen/device_set_padding"
@@ -50,7 +50,7 @@
                             android:id="@+id/device_name"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="@color/common_text"
+                            android:textColor="@color/topBarText"
                             android:textSize="@dimen/device_set_text_size" />
 
                         <TextView
@@ -58,7 +58,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:textColor="@color/common_sub_text"
+                            android:textColor="@color/topBarText"
                             android:textSize="@dimen/device_set_sub_text_size" />
                     </LinearLayout>
 
@@ -75,7 +75,7 @@
                     android:id="@+id/ez_device_serial_layout"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/device_set_layout_height"
-                    android:background="@android:color/white"
+                    android:background="@color/blue_bg"
                     android:layout_marginTop="@dimen/device_set_layout_padding"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
@@ -92,7 +92,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
-                            android:textColor="@color/common_text"
+                            android:textColor="@color/topBarText"
                             android:layout_weight="1"
                             android:text="@string/ez_settings_device_serial"
                             android:textSize="@dimen/device_set_sub_text_size" />
@@ -101,7 +101,7 @@
                             android:id="@+id/ez_device_serial"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textColor="@color/common_sub_text"
+                            android:textColor="@color/topBarText"
                             android:layout_weight="0"
                             android:text="123456789"
                             android:layout_gravity="center_vertical"
@@ -273,7 +273,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/ez_current_version"
-                        android:textColor="@color/common_text"
+                        android:textColor="@color/topBarText"
                         android:textSize="@dimen/device_set_text_size" />
                     <TextView
                         android:id="@+id/current_version"
@@ -281,7 +281,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="0"
                         android:text=""
-                        android:textColor="@color/common_sub_text"
+                        android:textColor="@color/topBarText"
                         android:textSize="@dimen/device_set_sub_text_size" />
                 </LinearLayout>
                 
@@ -299,7 +299,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/ez_latest_version"
-                        android:textColor="@color/common_text"
+                        android:textColor="@color/topBarText"
                         android:textSize="@dimen/device_set_text_size" />
 
                     <ImageView
@@ -321,7 +321,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="right"
-                            android:textColor="@color/common_text"
+                            android:textColor="@color/topBarText"
                             android:textSize="@dimen/device_set_sub_text_size" />
 
                         <TextView
@@ -330,7 +330,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="right"
                             android:text="@string/version_newest"
-                            android:textColor="@color/common_sub_text"
+                            android:textColor="@color/topBarText"
                             android:textSize="@dimen/device_set_sub_text_size" />
                     </LinearLayout>
 
@@ -364,7 +364,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/detail_defend_c1_c2_f1"
-                        android:textColor="@color/common_text"
+                        android:textColor="@color/topBarText"
                         android:textSize="@dimen/device_set_text_size" />
 
                     <TextView
@@ -375,17 +375,20 @@
                         android:gravity="right"
                         android:textColor="@color/common_sub_text"
                         android:textSize="@dimen/device_set_sub_text_size" />
-
-                    <Button
-                        android:id="@+id/defence_toggle_button"
+                    <RelativeLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginTop="8dp"
-                        android:layout_marginBottom="8dp"
-                        android:layout_weight="0"
-                        android:background="@drawable/autologin_off" />
+                        android:layout_weight="0">
+                        <Button
+                            android:id="@+id/defence_toggle_button"
+                            android:layout_width="50dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginLeft="10dp"
+                            android:layout_marginTop="12dp"
+                            android:layout_marginBottom="12dp"
+                            android:background="@drawable/autologin_off" />
+                    </RelativeLayout>
                 </LinearLayout>
             </com.videogo.widget.GroupLayout>
 
@@ -415,19 +418,22 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/detail_safe_mode"
-                            android:textColor="@color/common_text"
+                            android:textColor="@color/topBarText"
                             android:textSize="@dimen/device_set_text_size" />
-
-                        <Button
-                            android:id="@+id/encrypt_button"
+                        <RelativeLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_gravity="center_vertical"
-                            android:layout_marginLeft="@dimen/device_set_arrow_padding"
-                            android:layout_marginTop="8dp"
-                            android:layout_marginBottom="8dp"
-                            android:layout_weight="0"
-                            android:background="@drawable/autologin_off" />
+                            android:layout_weight="0">
+                            <Button
+                                android:id="@+id/encrypt_button"
+                                android:layout_width="50dp"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:layout_marginLeft="@dimen/device_set_arrow_padding"
+                                android:layout_marginTop="12dp"
+                                android:layout_marginBottom="12dp"
+                                android:background="@drawable/autologin_off" />
+                        </RelativeLayout>
                     </LinearLayout>
 
                     <LinearLayout

@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/common_bg"
+    android:background="@mipmap/bg"
     android:orientation="vertical" >
 
     <com.videogo.widget.TitleBar
@@ -149,7 +149,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/ez_no_message"
-            android:textColor="@color/c2"
+            android:textColor="@color/topBarText"
             android:textSize="@dimen/f6" />
         <Button
             android:id="@+id/no_message_button"

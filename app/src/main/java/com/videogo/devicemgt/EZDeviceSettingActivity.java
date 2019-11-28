@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -228,6 +229,8 @@ public class EZDeviceSettingActivity extends RootActivity {
      */
     private void initTitleBar() {
         mTitleBar.setTitle(R.string.ez_setting);
+        mTitleBar.setStyle(Color.rgb(0xff, 0xff, 0xff),getResources().getDrawable(R.color.blue_bg),
+                getResources().getDrawable(R.drawable.message_back_selector_1));
         mTitleBar.addBackButton(new OnClickListener() {
 
             @Override
@@ -256,16 +259,16 @@ public class EZDeviceSettingActivity extends RootActivity {
                             break;
 
                         case R.id.ez_device_serial_layout:
-                            try {
-                                if (EzvizApplication.getOpenSDK() instanceof EZOpenSDK) {
-                                    EZOpenSDK.getInstance().openCloudPage(mEZDeviceInfo.getDeviceSerial());
-                                }
-                            }catch (BaseException e) {
-                                e.printStackTrace();
-
-                                ErrorInfo errorInfo = (ErrorInfo) e.getObject();
-                                LogUtil.debugLog(TAG, errorInfo.toString());
-                            }
+//                            try {
+//                                if (EzvizApplication.getOpenSDK() instanceof EZOpenSDK) {
+//                                    EZOpenSDK.getInstance().openCloudPage(mEZDeviceInfo.getDeviceSerial());
+//                                }
+//                            }catch (BaseException e) {
+//                                e.printStackTrace();
+//
+//                                ErrorInfo errorInfo = (ErrorInfo) e.getObject();
+//                                LogUtil.debugLog(TAG, errorInfo.toString());
+//                            }
 
                             break;
 
@@ -296,9 +299,9 @@ public class EZDeviceSettingActivity extends RootActivity {
                             break;
 
                         case R.id.version_layout:
-                            intent = new Intent(EZDeviceSettingActivity.this, EZUpgradeDeviceActivity.class);
-                            intent.putExtra("deviceSerial", mEZDeviceInfo.getDeviceSerial());
-                            startActivity(intent);
+//                            intent = new Intent(EZDeviceSettingActivity.this, EZUpgradeDeviceActivity.class);
+//                            intent.putExtra("deviceSerial", mEZDeviceInfo.getDeviceSerial());
+//                            startActivity(intent);
                             break;
 
                         case R.id.encrypt_button:

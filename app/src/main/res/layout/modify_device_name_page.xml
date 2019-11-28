@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/common_bg"
+    android:background="@mipmap/bg"
     android:orientation="vertical" >
 
     <com.videogo.widget.TitleBar
@@ -45,7 +45,7 @@
                         android:inputType="text"
                         android:maxLength="50"
                         android:singleLine="true"
-                        android:textColor="@color/common_text"
+                        android:textColor="@color/topBarText"
                         android:textSize="@dimen/device_set_text_size" />
 
                     <TextView
@@ -72,7 +72,7 @@
                 android:id="@+id/input_hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@color/common_bg"
+                android:background="@color/transparent"
                 android:gravity="left"
                 android:paddingLeft="@dimen/device_set_padding"
                 android:paddingRight="@dimen/device_set_padding"

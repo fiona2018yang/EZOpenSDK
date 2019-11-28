@@ -31,6 +31,7 @@ import com.videogo.openapi.bean.EZAccessToken;
 import com.videogo.scanvideo.CameraVideoActivity;
 import com.videogo.ui.cameralist.EZCameraListActivity;
 import com.videogo.util.LogUtil;
+import com.videogo.util.PermissionUtil;
 
 import cn.jpush.android.api.JPushInterface;
 
@@ -43,6 +44,7 @@ public class EzvizApplication extends Application {
     //开发者需要填入自己申请的appkey//ABC
     //public static String AppKey = "76d8a02ae81a4260a02e470ebb48077d";
     public static String AppKey = "bec27f333fd04a95a352bec49d466754";
+    public  static int user_type;
     private MyDatabaseHelper dbHelper;
     private  SQLiteDatabase db;
     private IntentFilter intentFilter;
@@ -85,6 +87,10 @@ public class EzvizApplication extends Application {
     }
     public  SQLiteDatabase getDatebase(){
         return db;
+    }
+
+    public static void setUser_type(int type){
+        user_type = type;
     }
     private void initSDK() {
         {

@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -206,6 +207,8 @@ public class EZMessageActivity2 extends RootActivity implements VerifyCodeInput.
     private void initTitleBar() {
         if (mDataType == Constant.MESSAGE_LIST) {
             mTitleBar.setTitle(R.string.ez_event_message);
+            mTitleBar.setStyle(Color.rgb(0xff, 0xff, 0xff),getResources().getDrawable(R.color.blue_bg),
+                    getResources().getDrawable(R.drawable.message_back_selector_1));
             mCheckModeButton = mTitleBar.addRightCheckedText(getText(R.string.edit_txt), getText(R.string.cancel),
                     new OnCheckedChangeListener() {
                         @Override
