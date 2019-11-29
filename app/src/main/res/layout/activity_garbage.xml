@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@mipmap/bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -28,6 +29,7 @@
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
             android:id="@+id/num"
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </RelativeLayout>
@@ -88,14 +90,6 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
-<!--                <Button-->
-<!--                    android:text="查询"-->
-<!--                    android:id="@+id/query"-->
-<!--                    android:textColor="@color/topBarText"-->
-<!--                    android:background="@drawable/btn_query_bg"-->
-<!--                    android:layout_centerInParent="true"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="30dp" />-->
                 <ImageButton
                     android:id="@+id/query"
                     android:layout_centerInParent="true"
@@ -110,10 +104,24 @@
         android:background="@mipmap/shadow"
         android:layout_width="match_parent"
         android:layout_height="20dp"/>
-    <android.support.v7.widget.RecyclerView
+    <com.scwang.smartrefresh.layout.SmartRefreshLayout
+        android:id="@+id/refreshLayout"
         android:layout_below="@+id/re2"
-        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-    </android.support.v7.widget.RecyclerView>
+        <com.scwang.smartrefresh.layout.header.ClassicsHeader
+            app:srlAccentColor="@color/topBarText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:overScrollMode="never"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        </android.support.v7.widget.RecyclerView>
+        <com.scwang.smartrefresh.layout.footer.ClassicsFooter
+            app:srlAccentColor="@color/topBarText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </com.scwang.smartrefresh.layout.SmartRefreshLayout>
 </RelativeLayout>

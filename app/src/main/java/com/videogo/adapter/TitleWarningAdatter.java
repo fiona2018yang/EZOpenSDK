@@ -11,9 +11,10 @@ import com.videogo.been.AlarmMessage;
 import java.util.List;
 import ezviz.ezopensdk.R;
 
-public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatter.MyViewHolder> {
+public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatter.MyViewHolder>implements View.OnClickListener {
     private List<AlarmMessage> alarmMessageList;
     private Context context;
+    private OnClickListener OnClickListener;
 
     public TitleWarningAdatter(List<AlarmMessage> alarmMessageList, Context context) {
         this.alarmMessageList = alarmMessageList;
@@ -22,7 +23,11 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new MyViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_data,parent,false));
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_data,parent,false);
+        MyViewHolder viewHolder = new MyViewHolder(view);
+        //绑定监听事件
+        view.setOnClickListener(this);
+        return viewHolder;
     }
 
     @Override
@@ -31,11 +36,18 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
         holder.message_text.setText(alarmMessageList.get(position).getMessage());
         holder.locaton_text.setText(alarmMessageList.get(position).getAddress());
         holder.creattime_text.setText(alarmMessageList.get(position).getCreateTime());
+        holder.itemView.setTag(position);
     }
 
     @Override
     public int getItemCount() {
         return alarmMessageList.size();
+    }
+
+    @Override
+    public void onClick(View view) {
+        //这里使用getTag方法获取position
+        OnClickListener.OnItemClick(view, (Integer) view.getTag());
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder{
@@ -52,5 +64,12 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
             locaton_text = itemView.findViewById(R.id.location);
             creattime_text = itemView.findViewById(R.id.creattime);
         }
+    }
+
+    public void setSetOnItemClickListener(OnClickListener onClickListener){
+        this.OnClickListener = onClickListener;
+    }
+    public  interface OnClickListener{
+        void OnItemClick(View view,int position);
     }
 }

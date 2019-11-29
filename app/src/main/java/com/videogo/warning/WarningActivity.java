@@ -3,6 +3,7 @@ package com.videogo.warning;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +17,7 @@ import com.videogo.EzvizApplication;
 import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.WarningAdapter;
 import com.videogo.been.AlarmContant;
+import com.videogo.openapi.bean.EZCameraInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import okhttp3.Response;
 
 public class WarningActivity  extends Activity {
     private String TAG ="WarningActivity";
+    private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
     private RecyclerView rv;
     private ImageButton back;
     private WarningAdapter adapter;
@@ -49,6 +52,7 @@ public class WarningActivity  extends Activity {
         back = findViewById(R.id.back);
         add = findViewById(R.id.add);
         user_type = EzvizApplication.user_type;
+        cameraInfoList = getIntent().getParcelableArrayListExtra("cameras_pic");
         switch (user_type){
             case AlarmContant.USER_TYPE_CHENGGUAN:
                 list = AlarmContant.getList_chengguan();
@@ -76,22 +80,13 @@ public class WarningActivity  extends Activity {
         adapter = new WarningAdapter(this, list, new WarningAdapter.setOnclick() {
             @Override
             public void onClick(View view,int position) {
-                switch (position){
-                    case 0:
-                        String name = list.get(position);
-                        alarm_type = gettype(name);
-                        Intent i1 = new Intent(view.getContext(), GarbageActivity.class);
-                        i1.putExtra("type",alarm_type);
-                        startActivity(i1);
-                        break;
-                    case 1:
-                        break;
-                    case 2:
-                        break;
-                    case 3:
-                        break;
-                }
-                ToastNotRepeat.show(WarningActivity.this,"点击了"+list.get(position));
+                alarm_type = gettype(list.get(position));
+                String title = list.get(position);
+                Intent i1 = new Intent(view.getContext(), GarbageActivity.class);
+                i1.putExtra("type",alarm_type);
+                i1.putExtra("title",title);
+                i1.putParcelableArrayListExtra("camerainfo_list", (ArrayList<? extends Parcelable>) cameraInfoList);
+                startActivity(i1);
             }
         });
         rv.setAdapter(adapter);

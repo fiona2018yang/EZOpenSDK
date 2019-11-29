@@ -15,7 +15,7 @@ public class AlarmMessage implements Parcelable {
     /**
      * 设备通道号
      */
-    private String chinaNo;
+    private String channelNumber;
     /**
      * 纬度
      */
@@ -54,11 +54,29 @@ public class AlarmMessage implements Parcelable {
     private String isPush;
     private String id;
 
-    public AlarmMessage(String message, String type, String chinaNo, String latitude, String longitude, String altitude,
-                        String address, String imgPath, String createTime, String startTime, String endTime,String videoPath,String isPush,String id) {
+    public AlarmMessage() {
+    }
+
+    public AlarmMessage(String message, String type, String latitude, String longitude, String altitude, String address, String imgPath, String createTime,
+                        String startTime, String endTime, String videoPath, String channelNumber) {
         this.message = message;
         this.type = type;
-        this.chinaNo = chinaNo;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.altitude = altitude;
+        this.address = address;
+        this.imgPath = imgPath;
+        this.createTime = createTime;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.videoPath = videoPath;
+        this.channelNumber = channelNumber;
+    }
+
+    public AlarmMessage(String message, String type , String latitude, String longitude, String altitude,
+                        String address, String imgPath, String createTime, String startTime, String endTime, String videoPath, String isPush, String id, String channelNumber) {
+        this.message = message;
+        this.type = type;
         this.latitude = latitude;
         this.longitude = longitude;
         this.altitude = altitude;
@@ -69,6 +87,40 @@ public class AlarmMessage implements Parcelable {
         this.endTime = endTime;
         this.videoPath = videoPath;
         this.isPush = isPush;
+        this.channelNumber = channelNumber;
+    }
+
+    protected AlarmMessage(Parcel in) {
+        message = in.readString();
+        type = in.readString();
+        channelNumber = in.readString();
+        latitude = in.readString();
+        longitude = in.readString();
+        altitude = in.readString();
+        address = in.readString();
+        imgPath = in.readString();
+        createTime = in.readString();
+        startTime = in.readString();
+        endTime = in.readString();
+        videoPath = in.readString();
+        isPush = in.readString();
+        id = in.readString();
+    }
+
+    public static final Creator<AlarmMessage> CREATOR = new Creator<AlarmMessage>() {
+        @Override
+        public AlarmMessage createFromParcel(Parcel in) {
+            return new AlarmMessage(in);
+        }
+
+        @Override
+        public AlarmMessage[] newArray(int size) {
+            return new AlarmMessage[size];
+        }
+    };
+
+    public String getChannelNumber() {
+        return channelNumber;
     }
 
     public String getMessage() {
@@ -95,9 +147,6 @@ public class AlarmMessage implements Parcelable {
         return type;
     }
 
-    public String getChinaNo() {
-        return chinaNo;
-    }
 
     public String getLatitude() {
         return latitude;
@@ -139,9 +188,6 @@ public class AlarmMessage implements Parcelable {
         this.type = type;
     }
 
-    public void setChinaNo(String chinaNo) {
-        this.chinaNo = chinaNo;
-    }
 
     public void setLatitude(String latitude) {
         this.latitude = latitude;
@@ -183,6 +229,10 @@ public class AlarmMessage implements Parcelable {
         this.videoPath = videoPath;
     }
 
+    public void setChannelNumber(String channelNumber) {
+        this.channelNumber = channelNumber;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -190,6 +240,19 @@ public class AlarmMessage implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-
+        parcel.writeString(message);
+        parcel.writeString(type);
+        parcel.writeString(channelNumber);
+        parcel.writeString(latitude);
+        parcel.writeString(longitude);
+        parcel.writeString(altitude);
+        parcel.writeString(address);
+        parcel.writeString(imgPath);
+        parcel.writeString(createTime);
+        parcel.writeString(startTime);
+        parcel.writeString(endTime);
+        parcel.writeString(videoPath);
+        parcel.writeString(isPush);
+        parcel.writeString(id);
     }
 }

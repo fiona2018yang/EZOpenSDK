@@ -21,6 +21,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.RelativeLayout;
 
 import com.videogo.EzvizApplication;
+import com.videogo.been.AlarmMessage;
 import com.videogo.constant.Constant;
 import com.videogo.constant.IntentConsts;
 import com.videogo.errorlayer.ErrorInfo;
@@ -34,8 +35,10 @@ import com.videogo.util.LocalInfo;
 import com.videogo.util.Utils;
 import com.videogo.widget.loading.LoadingView;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import ezviz.ezopensdk.R;
 
@@ -43,6 +46,7 @@ public class PlaybackActivity extends Activity implements SurfaceHolder.Callback
     private static final String TAG = "PlayBackActivity";
     private EZPlayer mPlayer = null;
     private EZCameraInfo mCameraInfo = null;
+    private AlarmMessage alarmMessage = null;
     // 播放界面SurfaceView
     private SurfaceView surfaceView = null;
     // 本地信息
@@ -56,6 +60,8 @@ public class PlaybackActivity extends Activity implements SurfaceHolder.Callback
     private Calendar endTime;
     private SQLiteDatabase db;
     private String mVerifyCode;
+    private String ChanneNumber;
+    private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,29 +82,44 @@ public class PlaybackActivity extends Activity implements SurfaceHolder.Callback
         startTime = Calendar.getInstance();
         endTime = Calendar.getInstance();
         long time=System.currentTimeMillis();
-        startTime.setTime(new Date(time-41110000));
-        endTime.setTime(new Date(time-41100000));
+        startTime.setTime(new Date(time-1110000));
+        endTime.setTime(new Date(time-1100000));
     }
 
     private void getData() {
         //localInfo = LocalInfo.getInstance();
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
-            mCameraInfo = getIntent().getParcelableExtra(IntentConsts.EXTRA_CAMERA_INFO);
+            alarmMessage = getIntent().getParcelableExtra("alarmMessage");
+            cameraInfoList = getIntent().getParcelableArrayListExtra("camerainfo_list");
+            Log.i("TAG","camearlist.size="+cameraInfoList.size());
+            ChanneNumber = alarmMessage.getChannelNumber();
+            Log.i("TAG","channenumber="+ChanneNumber);
+            mCameraInfo = getmCameraInfo(ChanneNumber);
+            mVerifyCode = searchCode();
+            Log.i(TAG,"code="+mVerifyCode);
         }
         //Application application = (Application) getApplication();
         DisplayMetrics metric = new DisplayMetrics();
         getWindowManager().getDefaultDisplay().getMetrics(metric);
         //localInfo.setScreenWidthHeight(metric.widthPixels, metric.heightPixels);
         //localInfo.setNavigationBarHeight((int) Math.ceil(25 * getResources().getDisplayMetrics().density));
-        mVerifyCode = searchCode();
-        Log.i(TAG,"code="+mVerifyCode);
     }
 
     private void initEZPlayer() {
             mPlayer = EzvizApplication.getOpenSDK().createPlayer(mCameraInfo.getDeviceSerial(),mCameraInfo.getCameraNo());
             mPlayer.setPlayVerifyCode(mVerifyCode);
             mPlayer.startPlayback(startTime,endTime);
+    }
+    private EZCameraInfo getmCameraInfo(String channeNumber){
+        if (channeNumber!=null){
+            for (EZCameraInfo cameraInfo : cameraInfoList){
+                if (cameraInfo.getCameraNo() == Integer.parseInt(channeNumber)){
+                    return cameraInfo;
+                }
+            }
+        }
+        return cameraInfoList.get(1);
     }
     private String searchCode(){
         //查询设备验证码

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:background="@mipmap/bg">
+    android:background="@color/transparent">
 
     <com.bigkoo.convenientbanner.ConvenientBanner
         android:id="@+id/convenientBanner"
@@ -13,16 +12,22 @@
         android:layout_height="276dp"
         android:layout_marginTop="0dp"
         />
-    <GridView
-        android:layout_marginTop="50dp"
-        android:id="@+id/gv_home"
+    <RelativeLayout
+        android:layout_below="@+id/convenientBanner"
+        android:background="@mipmap/bg_1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:listSelector="@color/transparent_bg"
-        android:numColumns="3"
-        android:columnWidth="80dp"
-        android:stretchMode="columnWidth">
-    </GridView>
+        android:layout_height="match_parent">
+        <GridView
+            android:layout_marginTop="50dp"
+            android:id="@+id/gv_home"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:listSelector="@color/transparent_bg"
+            android:numColumns="3"
+            android:columnWidth="80dp"
+            android:stretchMode="columnWidth">
+        </GridView>
+    </RelativeLayout>
     <!--android:layout_marginLeft="15dp"-->
 
-</LinearLayout>
+</RelativeLayout>

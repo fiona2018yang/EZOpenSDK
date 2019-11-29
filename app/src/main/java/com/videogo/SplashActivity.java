@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.videogo.main.EzvizWebViewActivity;
 import com.videogo.ui.cameralist.CountDownView;
+import com.videogo.ui.util.ExampleUtil;
 import com.videogo.warning.OkHttpUtil;
 
 import org.json.JSONException;
@@ -79,7 +80,11 @@ public class SplashActivity extends Activity {
             public void onClick(View v) {
                 strUsername = etUsername.getText().toString().trim();
                 strPassword = etPassword.getText().toString().trim();
-                login(strUsername, strPassword);
+                if(!ExampleUtil.isConnected(SplashActivity.this)){
+                    ToastNotRepeat.show(SplashActivity.this,"确认网络是否断开！");
+                }else{
+                    login(strUsername, strPassword);
+                }
                 //                if (strUsername.equals("用户名")) {
                 //                    if (strPassword.equals("密码")){
                 //                        Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity

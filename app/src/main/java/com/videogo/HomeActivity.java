@@ -4,17 +4,24 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -23,35 +30,53 @@ import android.widget.SimpleAdapter;
 import com.bigkoo.convenientbanner.ConvenientBanner;
 import com.bigkoo.convenientbanner.holder.CBViewHolderCreator;
 import com.bigkoo.convenientbanner.holder.Holder;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
+import com.videogo.been.AlarmMessage;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
+import com.videogo.jpush.TagAliasOperatorHelper;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.scanpic.ScanPicActivity;
 import com.videogo.scanvideo.ScanVideoActivity;
 import com.videogo.util.ConnectionDetector;
+import com.videogo.warning.OkHttpUtil;
 import com.videogo.warning.WarningActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import cn.jpush.android.api.JPushInterface;
 import ezviz.ezopensdk.R;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 
 import static com.videogo.EzvizApplication.getOpenSDK;
+import static com.videogo.jpush.TagAliasOperatorHelper.sequence;
 
 public class HomeActivity extends Activity {
-
+    private SQLiteDatabase db;
     private GridView   HomeGView;
+    private String TAG = "HomeActivity";
     private ConvenientBanner convenientBanner;
     private List<Map<String, Object>> data_list;
     private List<Integer> imgs=new ArrayList<>();
-    public final static int REQUEST_CODE = 100;
-    public final static int RESULT_CODE = 101;
+    private SharedPreferences sharedPreferences;
     private final static int LOAD_MY_DEVICE = 0;
     private int mLoadType = LOAD_MY_DEVICE;
+    private Handler handler;
     private static String[] allpermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_NETWORK_STATE,
@@ -77,12 +102,107 @@ public class HomeActivity extends Activity {
         checkpermission();
         initGridView();
         setConvenientBanner();
+        initData();
+        setAlias();
+    }
+    //设置别名
+    private void setAlias() {
+        Boolean isSuccess = sharedPreferences.getBoolean("isSuccess",false);
+        Log.d("TAG","isSuccess="+isSuccess);
+        if (!isSuccess){
+            TagAliasOperatorHelper.getInstance().handleAction(getApplicationContext(),sequence,"123456");
+        }
     }
 
+    private void initData() {
+        int number=0;
+        Cursor c = db.rawQuery("select * from alarmMessage",null);
+        number = c.getCount();
+        if (number == 0 ){
+            //查询数据
+            startquerydata();
+        }
+        handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what){
+                    case 101:
+                        Bundle bundle = msg.getData();
+                        List<AlarmMessage> list = bundle.getParcelableArrayList("datalist");
+                        String sql = "insert into alarmMessage(message,type,latitude,longitude,altitude,address,imgPath,videoPath,createTime,startTime,endTime,channelNumber) " +
+                                "values(?,?,?,?,?,?,?,?,?,?,?,?)";
+                        SQLiteStatement stat = db.compileStatement(sql);
+                        db.beginTransaction();
+                        for (AlarmMessage message : list){
+                            stat.bindString(1,message.getMessage());
+                            stat.bindString(2,message.getType());
+                            stat.bindString(3,message.getLatitude());
+                            stat.bindString(4,message.getAltitude());
+                            stat.bindString(5,message.getAddress());
+                            stat.bindString(6,message.getImgPath());
+                            stat.bindString(7,message.getVideoPath());
+                            stat.bindString(8,message.getCreateTime());
+                            stat.bindString(9,message.getStartTime());
+                            stat.bindString(10,message.getEndTime());
+                            stat.bindString(11,message.getChannelNumber());
+                            stat.executeInsert();
+                        }
+                        db.setTransactionSuccessful();
+                        db.endTransaction();
+                        db.close();
+                        Log.d(TAG,"insert success");
+                        break;
+                }
+            }
+        };
+    }
+    private void startquerydata() {
+        String url = "http://192.168.60.103:8080/api/getEarlyWarning";
+        Map<String,String> map = new HashMap<>();
+        map.put("userId","1194134346510815234");
+        map.put("type","");
+        map.put("limit","2000");
+        map.put("page",String.valueOf(0));
+        OkHttpUtil.post(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.d(TAG, "onFailure: ",e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseBody = response.body().string();
+                Log.d(TAG, "result="+responseBody);
+                List<AlarmMessage> alarmMessageList = new ArrayList<>();
+                try {
+                    JSONObject object = new JSONObject(responseBody);
+                    String result = object.get("success").toString();
+                    String data = object.get("data").toString();
+                    JSONObject objectdata = new JSONObject(data);
+                    Gson gson = new Gson();
+                    List<JsonObject> list_objects = gson.fromJson(objectdata.get("data").toString(),new TypeToken<List<JsonObject>>(){}.getType());
+                    for (JsonObject object1 : list_objects){
+                        AlarmMessage alarmMessage = gson.fromJson(object1,AlarmMessage.class);
+                        alarmMessageList.add(0,alarmMessage);
+                    }
+                    Message message = new Message();
+                    message.what = 101;
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelableArrayList("datalist", (ArrayList<? extends Parcelable>) alarmMessageList);
+                    message.setData(bundle);
+                    handler.sendMessage(message);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        },map);
+    }
     /**
      * 初始化View
      */
     private void initGridView() {
+        db = ((EzvizApplication)getApplication()).getDatebase();
+        sharedPreferences = getSharedPreferences("alias",MODE_PRIVATE);
         convenientBanner= (ConvenientBanner) findViewById(R.id.convenientBanner);
         imgs.add(R.mipmap.bg_home_1);
         imgs.add(R.mipmap.bg_home_2);
@@ -137,6 +257,7 @@ public class HomeActivity extends Activity {
                         break;
                     case 3: //报警信息
                         Intent iWarning = new Intent(view.getContext(), WarningActivity.class);
+                        iWarning.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
                         startActivity(iWarning);
                         break;
                     case 4://视频查看
@@ -281,6 +402,37 @@ public class HomeActivity extends Activity {
                     list_ezCamera.add(cameraInfo);
                 }
             }
+        }
+    }
+    /**
+     * 菜单、返回键响应
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode==KeyEvent.KEYCODE_BACK){
+            exitByTwoClick(); //调用双击退出函数
+        }
+        return false;
+    }
+    /**
+     * 双击退出函数
+     */
+    private static Boolean isExit=false;
+    private void exitByTwoClick() {
+        Timer tExit=null;
+        if(isExit==false){
+            isExit=true;//准备退出
+            ToastNotRepeat.show(this,"再按一次退出程序");
+            tExit=new Timer();
+            tExit.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    isExit=false;//取消退出
+                }
+            },2000);//// 如果2秒钟内没有按下返回键，则启动定时器取消掉刚才执行的任务
+        }else {
+            finish();
+            System.exit(0);
         }
     }
 }
