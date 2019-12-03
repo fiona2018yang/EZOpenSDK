@@ -99,6 +99,7 @@
 
                 <TextView
                     android:id="@+id/text1"
+                    android:textColor="@color/topBarText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/remotelist_time_text_size" />
@@ -163,6 +164,7 @@
 
                 <TextView
                     android:id="@+id/text2"
+                    android:textColor="@color/topBarText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/remotelist_time_text_size" />
@@ -227,6 +229,7 @@
 
                 <TextView
                     android:id="@+id/text3"
+                    android:textColor="@color/topBarText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/remotelist_time_text_size" />

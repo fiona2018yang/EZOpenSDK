@@ -10,9 +10,39 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DataUtils {
+    /**
+     * Url字符串截取
+     * @param url
+     * @return
+     */
+    public static HashMap<String,String> getUrlResouse(String url){
+        try {
+            HashMap<String,String> map = new HashMap<>();
+            String[] rils = url.split("/");
+            String[]ips = rils[2].split("@");
+            String ip = ips[1];
+            map.put("ip",ip);
+            String[]pas = ips[0].split(":");
+            String name = pas[0];
+            map.put("name",name);
+            String password = pas[1];
+            map.put("password",password);
+            String pic_name = rils[4];
+            map.put("pic_name",pic_name);
+            String dir_name = rils[3];
+            map.put("dir_name",dir_name);
+            return map;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static List<String> getImagePathFromSD(String path){
         List<String> urlList = new ArrayList<>();
         // 得到sd卡内image文件夹的路径   File.separator(/)

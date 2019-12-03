@@ -1,5 +1,8 @@
 package com.videogo.been;
 
+import android.os.Environment;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +27,7 @@ public class AlarmContant {
     public static List<String> list_zhifaju = new ArrayList<>();
     public static List<String> list_fazhanju = new ArrayList<>();
     public static List<String> list_super = new ArrayList<>();
+    public static List<File> list_file_pic = new ArrayList<>();
     public static final List<String> getList_chengguan(){
         list_chengguan.clear();
         list_chengguan.add("渣土车识别定位跟踪");
@@ -69,5 +73,9 @@ public class AlarmContant {
         list_super.add("园区企业监管");
         return list_super;
     }
-
+    public static final List<File> getListFile(){
+        list_file_pic.clear();
+        list_file_pic.add(new File(Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/78b8998fe074fcfc708f8d91d93678aa.jpg"));
+        return list_file_pic;
+    }
 }

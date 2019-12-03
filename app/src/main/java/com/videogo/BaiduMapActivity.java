@@ -456,6 +456,9 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         locationClient.registerLocationListener(myLocationListener);
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
         option.setCoorType("bd09ll");
+        option.setIsNeedAddress(true);
+        option.setIsNeedLocationDescribe(true);
+        option.setIsNeedLocationPoiList(true);
         option.setScanSpan(1000);
         option.setOpenGps(true);
         locationClient.setLocOption(option);

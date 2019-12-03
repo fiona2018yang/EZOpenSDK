@@ -1,11 +1,18 @@
 package com.videogo.jpush.Reciver;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.google.gson.Gson;
+import com.videogo.MyDatabaseHelper;
+import com.videogo.been.AlarmMessage;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,11 +30,15 @@ import cn.jpush.android.api.JPushInterface;
  */
 public class MyReceiver extends BroadcastReceiver {
 	private static final String TAG = "TAG";
+	private MyDatabaseHelper dbHelper;
+	private  SQLiteDatabase db;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		try {
 			Bundle bundle = intent.getExtras();
+			dbHelper = new MyDatabaseHelper(context, "filepath.db", null, 1);
+			db = dbHelper.getWritableDatabase();
 			Log.i(TAG, "[MyReceiver] onReceive - " + intent.getAction() + ", extras: " + printBundle(bundle));
 
 			if (JPushInterface.ACTION_REGISTRATION_ID.equals(intent.getAction())) {
@@ -38,6 +49,30 @@ public class MyReceiver extends BroadcastReceiver {
 			} else if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
 				Log.i(TAG, "[MyReceiver] 接收到推送下来的自定义消息: " + bundle.getString(JPushInterface.EXTRA_MESSAGE));
 				//processCustomMessage(context, bundle);
+				//保存到数据库
+				String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
+				Gson gson = new Gson();
+				AlarmMessage alarmMessage = gson.fromJson(message,AlarmMessage.class);
+				String sql = "insert into alarmMessage(message,type,latitude,longitude,altitude,address,imgPath,videoPath,createTime,startTime,endTime,channelNumber) " +
+						"values(?,?,?,?,?,?,?,?,?,?,?,?)";
+				SQLiteStatement stat = db.compileStatement(sql);
+				db.beginTransaction();
+				stat.bindString(1,alarmMessage.getMessage());
+				stat.bindString(2,alarmMessage.getType());
+				stat.bindString(3,alarmMessage.getLatitude());
+				stat.bindString(4,alarmMessage.getLongitude());
+				stat.bindString(5,alarmMessage.getAltitude());
+				stat.bindString(6,alarmMessage.getAddress());
+				stat.bindString(7,alarmMessage.getImgPath());
+				stat.bindString(8,alarmMessage.getVideoPath());
+				stat.bindString(9,alarmMessage.getCreateTime());
+				stat.bindString(10,alarmMessage.getStartTime());
+				stat.bindString(11,alarmMessage.getEndTime());
+				stat.bindString(12,alarmMessage.getChannelNumber());
+				stat.executeInsert();
+				db.setTransactionSuccessful();
+				db.endTransaction();
+				Log.d(TAG,"insert success");
 
 			} else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction())) {
 				Log.i(TAG, "[MyReceiver] 接收到推送下来的通知");

@@ -60,7 +60,8 @@ public class ImageRecyclerAdapter extends RecyclerView.Adapter<ImageRecyclerAdap
             mVideoThumbLoader.showThumbByAsynctack(dataList.get(position),holder.image,350,200);
             holder.imgPlay.setVisibility(View.VISIBLE);
         }else {
-            Picasso.with(context).load(new File(dataList.get(position))).resize(350,200).transform(new RoundTransform(10)).into(holder.image);
+            Picasso.with(context).load(new File(dataList.get(position))).resize(350,200).
+                    transform(new RoundTransform(10)).into(holder.image);
             Log.i("TAG","pic");
         }
         if (showChecked){

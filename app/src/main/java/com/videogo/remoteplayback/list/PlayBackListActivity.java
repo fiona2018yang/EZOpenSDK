@@ -750,7 +750,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 //            }
         }
         if (!bIsRecording) {
-            mCaptureDisplaySec = 0;
+//            mCaptureDisplaySec = 0;
 //            mRemotePlayBackCaptureRl.setVisibility(View.GONE);
 //            mRemotePlayBackCaptureIv.setImageURI(null);
 //            mRemotePlayBackCaptureWatermarkIv.setTag(null);
@@ -1084,6 +1084,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
             }
             cursor.close();
             mPlayer.setPlayVerifyCode(mVerifyCode);
+            Log.i("TAG","mVerifyCode="+mVerifyCode);
         }
     }
     private void initRemoteListPlayer() {
@@ -1142,11 +1143,11 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         });
 
         downloadBtn.setOnClickListener(new OnClickListener() {
-
             @Override
             public void onClick(View v) {
-                if (getWifiType() && isFirstWifiDialog) {
+                if (!getWifiType() && isFirstWifiDialog) {
                     isFirstWifiDialog = false;
+                    Log.d("TAG","dowmload2");
                     showNetWorkDialog();
                 } else {
 //                    keyCheckSum(currentCloudFile);
@@ -2912,18 +2913,27 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         mControlDisplaySec = 0;
         if (bIsRecording) {
             stopRemotePlayBackRecord();
+            mRemotePlayBackRecordLy.setVisibility(View.GONE);
         	bIsRecording = !bIsRecording;
+            mRemotePlayBackRecordTv.setText("00:00");
+            mRecordSecond = 0;
             return;
         }
 
         bIsRecording = !bIsRecording;
         if (!SDCardUtil.isSDCardUseable()) {
+            mRemotePlayBackRecordLy.setVisibility(View.GONE);
+            mRemotePlayBackRecordTv.setText("00:00");
+            mRecordSecond = 0;
             // 提示SD卡不可用
             showToast(R.string.remoteplayback_SDCard_disable_use);
             return;
         }
 
         if (SDCardUtil.getSDCardRemainSize() < SDCardUtil.PIC_MIN_MEM_SPACE) {
+            mRemotePlayBackRecordLy.setVisibility(View.GONE);
+            mRemotePlayBackRecordTv.setText("00:00");
+            mRecordSecond = 0;
             // 提示内存不足
             showToast(R.string.remoteplayback_record_fail_for_memory);
             return;
@@ -2931,6 +2941,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 
 //        mCaptureDisplaySec = 4;
         updateCaptureUI();
+        mRemotePlayBackRecordLy.setVisibility(View.VISIBLE);
         mAudioPlayUtil.playAudioFile(AudioPlayUtil.RECORD_SOUND);
 
         if(mPlayer != null) {
@@ -2990,7 +3001,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                 }while (cursor.moveToNext());
             }
             cursor.close();
-            if (files.size()>=10){
+            if (files.size()>=200){
                 db.delete("videofilepath", "path=?", new String[]{String.valueOf(files.get(0))});
             }
             ContentValues values = new ContentValues();
@@ -3057,7 +3068,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                             }while (cursor.moveToNext());
                         }
                         cursor.close();
-                        if (files.size()>=10){
+                        if (files.size()>=200){
                             db.delete("picfilepath", "path=?", new String[]{String.valueOf(files.get(0))});
                         }
                         ContentValues values = new ContentValues();

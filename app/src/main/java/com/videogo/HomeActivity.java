@@ -74,6 +74,7 @@ public class HomeActivity extends Activity {
     private List<Map<String, Object>> data_list;
     private List<Integer> imgs=new ArrayList<>();
     private SharedPreferences sharedPreferences;
+    private SharedPreferences sharedPreferences_1;
     private final static int LOAD_MY_DEVICE = 0;
     private int mLoadType = LOAD_MY_DEVICE;
     private Handler handler;
@@ -107,10 +108,10 @@ public class HomeActivity extends Activity {
     }
     //设置别名
     private void setAlias() {
-        Boolean isSuccess = sharedPreferences.getBoolean("isSuccess",false);
-        Log.d("TAG","isSuccess="+isSuccess);
+        String userid = sharedPreferences_1.getString("id","1");
+        Boolean isSuccess = sharedPreferences.getBoolean(userid,false);
         if (!isSuccess){
-            TagAliasOperatorHelper.getInstance().handleAction(getApplicationContext(),sequence,"123456");
+            TagAliasOperatorHelper.getInstance().handleAction(getApplicationContext(),sequence,userid);
         }
     }
 
@@ -137,19 +138,19 @@ public class HomeActivity extends Activity {
                             stat.bindString(1,message.getMessage());
                             stat.bindString(2,message.getType());
                             stat.bindString(3,message.getLatitude());
-                            stat.bindString(4,message.getAltitude());
-                            stat.bindString(5,message.getAddress());
-                            stat.bindString(6,message.getImgPath());
-                            stat.bindString(7,message.getVideoPath());
-                            stat.bindString(8,message.getCreateTime());
-                            stat.bindString(9,message.getStartTime());
-                            stat.bindString(10,message.getEndTime());
-                            stat.bindString(11,message.getChannelNumber());
+                            stat.bindString(4,message.getLongitude());
+                            stat.bindString(5,message.getAltitude());
+                            stat.bindString(6,message.getAddress());
+                            stat.bindString(7,message.getImgPath());
+                            stat.bindString(8,message.getVideoPath());
+                            stat.bindString(9,message.getCreateTime());
+                            stat.bindString(10,message.getStartTime());
+                            stat.bindString(11,message.getEndTime());
+                            stat.bindString(12,message.getChannelNumber());
                             stat.executeInsert();
                         }
                         db.setTransactionSuccessful();
                         db.endTransaction();
-                        db.close();
                         Log.d(TAG,"insert success");
                         break;
                 }
@@ -203,6 +204,7 @@ public class HomeActivity extends Activity {
     private void initGridView() {
         db = ((EzvizApplication)getApplication()).getDatebase();
         sharedPreferences = getSharedPreferences("alias",MODE_PRIVATE);
+        sharedPreferences_1 = getSharedPreferences("userid",MODE_PRIVATE);
         convenientBanner= (ConvenientBanner) findViewById(R.id.convenientBanner);
         imgs.add(R.mipmap.bg_home_1);
         imgs.add(R.mipmap.bg_home_2);

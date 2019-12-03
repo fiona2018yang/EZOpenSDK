@@ -2123,7 +2123,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                 }while (cursor.moveToNext());
             }
             cursor.close();
-            if (files.size()>=10){
+            if (files.size()>=200){
                 db.delete("videofilepath", "path=?", new String[]{String.valueOf(files.get(0))});
             }
             ContentValues values = new ContentValues();
@@ -2256,7 +2256,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                                 }while (cursor.moveToNext());
                             }
                             cursor.close();
-                            if (files.size()>=10){
+                            if (files.size()>=200){
                                 db.delete("picfilepath", "path=?", new String[]{String.valueOf(files.get(0))});
                             }
                             ContentValues values = new ContentValues();

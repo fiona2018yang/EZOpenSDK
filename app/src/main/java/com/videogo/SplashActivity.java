@@ -3,6 +3,7 @@ package com.videogo;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -14,6 +15,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.videogo.been.User;
 import com.videogo.main.EzvizWebViewActivity;
 import com.videogo.ui.cameralist.CountDownView;
 import com.videogo.ui.util.ExampleUtil;
@@ -38,6 +42,7 @@ import okhttp3.Response;
 public class SplashActivity extends Activity {
 
     private MyDatabaseHelper dbHelper;
+    private SharedPreferences.Editor editor;
     private String TAG = "SplashActivity";
     //启动页面
     EditText etUsername, etPassword;
@@ -50,7 +55,7 @@ public class SplashActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_activity);
         dbHelper = new MyDatabaseHelper(this, "UserStore.db", null, 1);
-
+        editor = getSharedPreferences("userid",MODE_PRIVATE).edit();
         etUsername = (EditText) findViewById(R.id.et_login_username);
         etPassword = (EditText) findViewById(R.id.et_login_password);
         btnLogin = (Button) findViewById(R.id.btn_login);
@@ -65,6 +70,9 @@ public class SplashActivity extends Activity {
                         //用户名密码正确跳转
                         if (flag.equals("true")) {
                             setUserType(strUsername);
+                            User user = (User) bundle.getSerializable("user");
+                            editor.putString("id",user.getUserId());
+                            editor.commit();
                             Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
                             startActivity(it);
                             SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
@@ -177,12 +185,18 @@ public class SplashActivity extends Activity {
                 try {
                     JSONObject object = new JSONObject(responseBody);
                     String result = object.get("success").toString();
-                    Message message = new Message();
-                    message.what = 102;
-                    Bundle bundle = new Bundle();
-                    bundle.putString("flag",result);
-                    message.setData(bundle);
-                    handler.sendMessage(message);
+                        String data = object.get("data").toString();
+                        Gson gson = new Gson();
+                        Message message = new Message();
+                        message.what = 102;
+                        Bundle bundle = new Bundle();
+                        bundle.putString("flag",result);
+                        if (result.equals("true")){
+                            User user = gson.fromJson(data,User.class);
+                            bundle.putSerializable("user",user);
+                        }
+                        message.setData(bundle);
+                        handler.sendMessage(message);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

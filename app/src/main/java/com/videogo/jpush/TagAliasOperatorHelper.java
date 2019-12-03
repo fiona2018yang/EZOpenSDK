@@ -22,10 +22,12 @@ import cn.jpush.android.helper.Logger;
 public class TagAliasOperatorHelper {
     public String TAG = "TagAliasOperatorHelper";
     public static int sequence = 1;
+    private String  userid;
     private Context context;
     public static final int DELAY_SEND_ACTION = 1;
     private static TagAliasOperatorHelper mInstance;
     private SharedPreferences.Editor editor;
+    private SharedPreferences sharedPreferences;
     private TagAliasOperatorHelper(){
     }
     public static TagAliasOperatorHelper getInstance(){
@@ -42,6 +44,7 @@ public class TagAliasOperatorHelper {
         if(context != null) {
             this.context = context.getApplicationContext();
             editor =  context.getSharedPreferences("alias",context.MODE_PRIVATE).edit();
+            sharedPreferences = context.getSharedPreferences("userid",context.MODE_PRIVATE);
         }
     }
     private SparseArray<String> setActionCache = new SparseArray<String>();
@@ -113,7 +116,8 @@ public class TagAliasOperatorHelper {
         if(jPushMessage.getErrorCode() == 0){
             Logger.i(TAG,"action - modify alias Success,sequence:"+sequence);
             setActionCache.remove(sequence);
-            editor.putBoolean("isSuccess",true);
+            userid = sharedPreferences.getString("id","1");
+            editor.putBoolean(userid,true);
             editor.commit();
             String logs = "set alias success";
             Logger.i(TAG,logs);
