@@ -22,6 +22,13 @@
             android:text="报警信息"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+        <Button
+            android:layout_alignParentRight="true"
+            android:id="@+id/chaxun"
+            android:text="查询"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </RelativeLayout>
     <View
         android:layout_below="@+id/re1"

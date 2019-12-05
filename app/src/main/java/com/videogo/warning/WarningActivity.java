@@ -15,17 +15,26 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 
+import com.google.gson.Gson;
 import com.videogo.EzvizApplication;
 import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.WarningAdapter;
 import com.videogo.been.AlarmContant;
+import com.videogo.been.LocationData;
+import com.videogo.been.SnCal;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.ui.util.FTPutils;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +52,7 @@ public class WarningActivity  extends Activity {
     private List<String> list;
     private int user_type;
     private int alarm_type;
+    private Button chaxun;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +64,7 @@ public class WarningActivity  extends Activity {
         rv = findViewById(R.id.rv);
         back = findViewById(R.id.back);
         user_type = EzvizApplication.user_type;
+        chaxun = findViewById(R.id.chaxun);
         cameraInfoList = getIntent().getParcelableArrayListExtra("cameras_pic");
         switch (user_type){
             case AlarmContant.USER_TYPE_CHENGGUAN:
@@ -97,6 +108,12 @@ public class WarningActivity  extends Activity {
             @Override
             public void onClick(View v) {
                 finish();
+            }
+        });
+        chaxun.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
             }
         });
     }

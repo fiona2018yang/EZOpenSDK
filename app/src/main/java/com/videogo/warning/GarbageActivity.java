@@ -4,9 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.location.Geocoder;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
@@ -22,14 +20,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
-
 import com.baidu.mapapi.model.LatLng;
-import com.baidu.mapapi.search.core.SearchResult;
-import com.baidu.mapapi.search.geocode.GeoCodeResult;
-import com.baidu.mapapi.search.geocode.GeoCoder;
-import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
-import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
-import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.baidu.mapapi.utils.CoordinateConverter;
 import com.esri.core.geometry.Point;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
@@ -39,16 +30,13 @@ import com.videogo.EzvizApplication;
 import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.TitleWarningAdatter;
 import com.videogo.been.AlarmMessage;
-import com.videogo.constant.IntentConsts;
 import com.videogo.openapi.bean.EZCameraInfo;
-import com.videogo.remoteplayback.list.PlaybackActivity;
 import com.videogo.remoteplayback.list.PlaybackActivity2;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-
 import ezviz.ezopensdk.R;
+
+import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 
 public class GarbageActivity extends Activity {
     private int alarm_type;
@@ -60,7 +48,7 @@ public class GarbageActivity extends Activity {
     private List<String> address_list = new ArrayList<>();
     private RecyclerView rv;
     private int page = 1;
-    private int page_size = 3;
+    private int page_size = 12;
     private SQLiteDatabase db;
     private RefreshLayout refreshLayout;
     private TitleWarningAdatter adatper;
@@ -71,7 +59,6 @@ public class GarbageActivity extends Activity {
     private ImageButton query;
     private ImageButton back;
     private Handler handler;
-    private GeoCoder geoCoder;
     private Boolean refreshType = true;
     private String s1 = "全部";
     private String s2 = "全部";
@@ -83,83 +70,7 @@ public class GarbageActivity extends Activity {
         initView();
         initdata();
     }
-    //上拉加载更新address
-    private void searchaddress_push(){
-        for (int i = page_size*page ; i < page_size*(page+1) ; i++){
-            int finalI = i;
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    double la = Double.parseDouble(alarmMessageList.get(finalI).getLatitude());
-                    double ln = Double.parseDouble(alarmMessageList.get(finalI).getLongitude());
-                    //坐标转换
-                    CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(new Point(ln,la)));
-                    LatLng latLng = converter.convert();
-                    Log.d("TAG","latlng....="+latLng.toString());
-                    if (latLng!=null){
-                        geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latLng).radius(500));
-                    }
-                }
-            },100*i);
-        }
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    for (int i = 0 ; i < alarmMessageList.size() ; i++){
-                        if (address_list.get(i)!=null){
-                            alarmMessageList.get(i).setAddress(address_list.get(i));
-                        }
-                    }
-                    adatper.notifyDataSetChanged();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        },200*page_size);
-
-    }
-
-    //下拉刷新，更新address
-    private void searchAddress() {
-        Log.d("TAG","alarm.size="+alarmMessageList.size());
-        Handler handler = new Handler();
-        for (int i = 0 ; i < alarmMessageList.size() ; i++){
-            int finalI = i;
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    double la = Double.parseDouble(alarmMessageList.get(finalI).getLatitude());
-                    double ln = Double.parseDouble(alarmMessageList.get(finalI).getLongitude());
-                    //坐标转换
-                    CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(new Point(ln,la)));
-                    LatLng latLng = converter.convert();
-                    Log.d("TAG","latlng....="+latLng.toString());
-                    if (latLng!=null){
-                        geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latLng).radius(500));
-                    }
-                }
-            },100*i);
-        }
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    for (int i = 0 ; i < alarmMessageList.size() ; i++){
-                        if (address_list.get(i)!=null){
-                            alarmMessageList.get(i).setAddress(address_list.get(i));
-                        }
-                    }
-                    adatper.notifyDataSetChanged();
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            }
-        },200*page_size);
-    }
     private void initView() {
-        geoCoder = GeoCoder.newInstance();
         db = ((EzvizApplication) getApplication()).getDatebase();
         refreshLayout = findViewById(R.id.refreshLayout);
         spinner_time = findViewById(R.id.spinner_1);
@@ -182,14 +93,27 @@ public class GarbageActivity extends Activity {
         rv.setAdapter(adatper);
         adatper.setSetOnItemClickListener(new TitleWarningAdatter.OnClickListener() {
             @Override
-            public void OnItemClick(View view, int position) {
+            public void OnItemClick(View view, int position , String address) {
                 Intent intent = new Intent(GarbageActivity.this, PlaybackActivity2.class);
                 intent.putExtra("alarmMessage", alarmMessageList.get(position));
+                intent.putExtra("address",address);
                 intent.putParcelableArrayListExtra("camerainfo_list", (ArrayList<? extends Parcelable>) cameraInfoList);
                 startActivity(intent);
             }
         });
-
+        rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                if (newState == SCROLL_STATE_IDLE){
+                    adatper.setScrolling(false);
+                    Log.d("TAG","***********************************************************");
+                    adatper.notifyDataSetChanged();
+                }else{
+                    adatper.setScrolling(true);
+                }
+                super.onScrollStateChanged(recyclerView, newState);
+            }
+        });
         handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
@@ -209,44 +133,12 @@ public class GarbageActivity extends Activity {
                                 alarmMessageList.addAll(list);
                             }
                             adatper.notifyDataSetChanged();
-                            searchAddress();
                         }
                         Log.d(TAG, "list.size....="+list.size());
                         break;
                 }
             }
         };
-        geoCoder.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener() {
-            @Override
-            public void onGetGeoCodeResult(GeoCodeResult geoCodeResult) {
-            }
-
-            @Override
-            public void onGetReverseGeoCodeResult(ReverseGeoCodeResult reverseGeoCodeResult) {
-                String address = "";
-                if (reverseGeoCodeResult == null||reverseGeoCodeResult.error!= SearchResult.ERRORNO.NO_ERROR){
-                    Log.d("TAG","没有检测到结果");
-                    address = "未知";
-                    return ;
-                }else{
-                    ReverseGeoCodeResult.AddressComponent addressComponent = reverseGeoCodeResult.getAddressDetail();
-                    //address = reverseGeoCodeResult.getAddress();
-                    String detaddress = addressComponent.countryName+addressComponent.province+addressComponent.city+
-                            addressComponent.district+addressComponent.town+addressComponent.street+addressComponent.streetNumber;
-                    String des = reverseGeoCodeResult.getSematicDescription();
-                    if (detaddress == null||detaddress.equals("")){
-                        address = "未知";
-                    }else{
-                        if (!des.equals("")){
-                            address = detaddress+"("+des+")";
-                        }else{
-                            address = detaddress;
-                        }
-                    }
-                    address_list.add(address);
-                }
-            }
-        });
     }
 
     private void initdata() {
@@ -273,7 +165,10 @@ public class GarbageActivity extends Activity {
                     @Override
                     public void run() {
                         refreshType = false;
-                        if (page*(page_size+1)>list.size()){
+                        Log.d(TAG,"page="+page);
+                        Log.d(TAG,"page_size="+page_size);
+                        Log.d(TAG,"list_size="+list.size());
+                        if (page*page_size>list.size()||(page+1)*page_size>list.size()){
                             ToastNotRepeat.show(GarbageActivity.this,"暂无更多的数据啦");
                             refreshLayout.finishLoadMoreWithNoMoreData();
                             return;
@@ -337,18 +232,14 @@ public class GarbageActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        geoCoder.destroy();
     }
-    private LatLng tramsform(Point p ){
-        LatLng latLng = new LatLng(p.getY(),p.getX());
-        return latLng;
-    }
+
     private void querydata(int alarmtype){
         if (!refreshType && alarmMessageList.size() != 0){
             alarmMessageList.addAll(list.subList(page_size*page,page_size*(page+1)));
             adatper.notifyItemRangeInserted(list.size()-page_size,list.size());
             adatper.notifyItemRangeChanged(list.size()-page_size,list.size());
-            searchaddress_push();
+            //searchaddress_push();
             page++;
         }else{
             new Thread(new Runnable() {

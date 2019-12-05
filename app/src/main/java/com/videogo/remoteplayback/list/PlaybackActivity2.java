@@ -2,11 +2,8 @@ package com.videogo.remoteplayback.list;
 
 import android.app.AlertDialog;
 import android.app.Application;
-import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -14,8 +11,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.drawable.AnimationDrawable;
-import android.location.Geocoder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -25,44 +20,28 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.baidu.location.BDLocation;
-import com.baidu.mapapi.model.LatLng;
-import com.baidu.mapapi.search.core.SearchResult;
-import com.baidu.mapapi.search.geocode.GeoCodeResult;
-import com.baidu.mapapi.search.geocode.GeoCoder;
-import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
-import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
-import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
-import com.baidu.mapapi.utils.CoordinateConverter;
-import com.esri.core.geometry.Point;
 import com.squareup.picasso.Picasso;
 import com.videogo.EzvizApplication;
 import com.videogo.RootActivity;
 import com.videogo.been.AlarmMessage;
 import com.videogo.constant.Constant;
-import com.videogo.constant.IntentConsts;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
@@ -71,7 +50,6 @@ import com.videogo.openapi.EZConstants;
 import com.videogo.openapi.EZPlayer;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.remoteplayback.RemoteFileInfo;
-import com.videogo.remoteplayback.list.querylist.QueryPlayBackLocalListAsyncTask;
 import com.videogo.ui.common.ScreenOrientationHelper;
 import com.videogo.ui.util.AudioPlayUtil;
 import com.videogo.ui.util.DataUtils;
@@ -86,16 +64,13 @@ import com.videogo.util.RotateViewUtil;
 import com.videogo.util.SDCardUtil;
 import com.videogo.util.Utils;
 import com.videogo.warning.RoundTransform;
-import com.videogo.warning.WarningActivity;
 import com.videogo.widget.CheckTextButton;
 import com.videogo.widget.CustomRect;
 import com.videogo.widget.CustomTouchListener;
-import com.videogo.widget.PinnedHeaderListView;
 import com.videogo.widget.TitleBar;
 import com.videogo.widget.WaitDialog;
 import com.videogo.widget.loading.LoadingTextView;
 import com.videogo.widget.loading.LoadingView;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -104,15 +79,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import ezviz.ezopensdk.R;
 
-import static com.videogo.util.RestfulUtils.TAG;
 
 public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Callback , View.OnTouchListener ,
         View.OnClickListener , VerifyCodeInput.VerifyCodeInputListener{
     // 输入法管理类
-    private GeoCoder geoCoder;
     private InputMethodManager imm;
     private WaitDialog mWaitDlg = null;
     private EZCameraInfo mCameraInfo = null;
@@ -190,6 +162,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private ImageButton captureBtn = null;
     // 录像
     private ImageButton videoRecordingBtn = null;
+    private ScrollView msg_info = null;
     // 停止录像
     private ImageButton videoRecordingBtn_end = null;
     private View mRealPlayRecordContainer = null;
@@ -240,7 +213,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private long mStreamFlow = 0;
     private RelativeLayout mControlBarRL;
     private TitleBar mLandscapeTitleBar = null;
-    private static String TAG= "PlaybackActivity2";
+    private static String TAG= "handlePlayProgress";
     // 播放分辨率
     private float mRealRatio = Constant.LIVE_VIEW_RATIO;
     private Handler playBackHandler = new Handler() {
@@ -330,40 +303,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             }
         });
 
-        geoCoder = GeoCoder.newInstance();
-        geoCoder.setOnGetGeoCodeResultListener(new OnGetGeoCoderResultListener() {
-            @Override
-            public void onGetGeoCodeResult(GeoCodeResult geoCodeResult) {
-            }
-
-            @Override
-            public void onGetReverseGeoCodeResult(ReverseGeoCodeResult reverseGeoCodeResult) {
-                if (reverseGeoCodeResult == null||reverseGeoCodeResult.error!= SearchResult.ERRORNO.NO_ERROR){
-                    Log.d("TAG","没有检测到结果");
-                    address = "未知";
-                    return ;
-                }else{
-                    ReverseGeoCodeResult.AddressComponent addressComponent = reverseGeoCodeResult.getAddressDetail();
-                    //address = reverseGeoCodeResult.getAddress();
-                    String detaddress = addressComponent.countryName+addressComponent.province+addressComponent.city+
-                            addressComponent.district+addressComponent.town+addressComponent.street+addressComponent.streetNumber;
-                    String des = reverseGeoCodeResult.getSematicDescription();
-                    if (detaddress == null||detaddress.equals("")){
-                        address = "未知";
-                        Log.d(TAG,"1");
-                    }else{
-                        if (!des.equals("")){
-                            address = detaddress+"("+des+")";
-                        }else{
-                            address = detaddress;
-                        }
-                    }
-                    Log.d(TAG,"address = "+address);
-                }
-                tx_address.setText(address);
-            }
-        });
-
         loadingBar = (LoadingTextView) findViewById(R.id.loadingTextView);
         loadingBar.setText(R.string.loading_text_default);
         remoteLoadingBufferTv = (TextView) findViewById(R.id.remote_loading_buffer_tv);
@@ -374,6 +313,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         surfaceView = (SurfaceView) findViewById(R.id.remote_playback_wnd_sv);
         surfaceView.getHolder().addCallback(this);
         mRemotePlayBackRatioTv = (TextView) findViewById(R.id.remoteplayback_ratio_tv);
+        msg_info = findViewById(R.id.message_info);
         tx_message = findViewById(R.id.message);
         tx_address = findViewById(R.id.address);
         tx_creattime = findViewById(R.id.creattime);
@@ -392,24 +332,11 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         params.leftMargin = (int) UiUtil.dp2px(this, padding);
         params.rightMargin = (int) UiUtil.dp2px(this, padding);
         img_message.setLayoutParams(params);
-
-
-
+        tx_address.setText(address);
         if (alarmMessage.getMessage()!=null){
             tx_message.setText(alarmMessage.getMessage());
         }
-        if (alarmMessage.getAddress()!=null){
-            double la = Double.parseDouble(alarmMessage.getLatitude());
-            double ln = Double.parseDouble(alarmMessage.getLongitude());
-            //坐标转换
-            CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(new Point(ln,la)));
-            LatLng latLng = converter.convert();
-            Log.d(TAG,"latlng="+latLng.toString());
-            if (latLng!=null){
-                geoCoder.reverseGeoCode(new ReverseGeoCodeOption().location(latLng).radius(500));
-                geoCoder.destroy();
-            }
-        }
+
         if (alarmMessage.getCreateTime()!=null){
             tx_creattime.setText(alarmMessage.getCreateTime());
         }
@@ -566,10 +493,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         Log.i("TAG","startmPlayer");
     }
 
-    private LatLng tramsform(Point p ){
-        LatLng latLng = new LatLng(p.getY(),p.getX());
-        return latLng;
-    }
     private int getAndroidOSVersion() {
         int osVersion;
         try {
@@ -1282,11 +1205,13 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 //            exitBtn.setVisibility(View.VISIBLE);
             captureBtn.setVisibility(View.VISIBLE);
             videoRecordingBtn.setVisibility(View.VISIBLE);
+            msg_info.setVisibility(View.GONE);
         } else {
             exitBtn.setVisibility(View.GONE);
             captureBtn.setVisibility(View.VISIBLE);
             videoRecordingBtn.setVisibility(View.VISIBLE);
             mLandscapeTitleBar.setVisibility(View.VISIBLE);
+            msg_info.setVisibility(View.VISIBLE);
         }
     }
     private void setPlayScaleUI(float scale, CustomRect oRect, CustomRect curRect) {
@@ -1356,6 +1281,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             cameraInfoList = getIntent().getParcelableArrayListExtra("camerainfo_list");
             ChanneNumber = alarmMessage.getChannelNumber();
             mCameraInfo = getmCameraInfo(cameraInfoList,ChanneNumber);
+            address = getIntent().getStringExtra("address");
         }
         Application application = (Application) getApplication();
         mAudioPlayUtil = AudioPlayUtil.getInstance(application);

@@ -375,6 +375,7 @@
         android:background="@drawable/playback_matte"
         android:visibility="gone" />
     <ScrollView
+        android:id="@+id/message_info"
         android:layout_below="@+id/remote_playback_area"
         android:scrollbars="none"
         android:layout_width="match_parent"
