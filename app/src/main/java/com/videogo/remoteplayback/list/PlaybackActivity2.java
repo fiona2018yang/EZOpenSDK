@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -39,8 +40,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import com.squareup.picasso.Picasso;
 import com.videogo.EzvizApplication;
+import com.videogo.HomeActivity;
 import com.videogo.RootActivity;
+import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
+import com.videogo.been.SnCal;
 import com.videogo.constant.Constant;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
@@ -49,6 +53,7 @@ import com.videogo.exception.InnerException;
 import com.videogo.openapi.EZConstants;
 import com.videogo.openapi.EZPlayer;
 import com.videogo.openapi.bean.EZCameraInfo;
+import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.remoteplayback.RemoteFileInfo;
 import com.videogo.ui.common.ScreenOrientationHelper;
 import com.videogo.ui.util.AudioPlayUtil;
@@ -57,12 +62,14 @@ import com.videogo.ui.util.EZUtils;
 import com.videogo.ui.util.FTPutils;
 import com.videogo.ui.util.UiUtil;
 import com.videogo.ui.util.VerifyCodeInput;
+import com.videogo.util.ConnectionDetector;
 import com.videogo.util.LocalInfo;
 import com.videogo.util.LogUtil;
 import com.videogo.util.MediaScanner;
 import com.videogo.util.RotateViewUtil;
 import com.videogo.util.SDCardUtil;
 import com.videogo.util.Utils;
+import com.videogo.warning.OkHttpUtil;
 import com.videogo.warning.RoundTransform;
 import com.videogo.widget.CheckTextButton;
 import com.videogo.widget.CustomRect;
@@ -71,15 +78,28 @@ import com.videogo.widget.TitleBar;
 import com.videogo.widget.WaitDialog;
 import com.videogo.widget.loading.LoadingTextView;
 import com.videogo.widget.loading.LoadingView;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import ezviz.ezopensdk.R;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
+
+import static com.videogo.EzvizApplication.getOpenSDK;
 
 
 public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Callback , View.OnTouchListener ,
@@ -87,10 +107,10 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     // 输入法管理类
     private InputMethodManager imm;
     private WaitDialog mWaitDlg = null;
-    private EZCameraInfo mCameraInfo = null;
     private AlarmMessage alarmMessage = null;
     private String mVerifyCode;
     private String ChanneNumber;
+    private String CameraName = "";
     private TextView tx_message;
     private TextView tx_address;
     private TextView tx_creattime;
@@ -101,6 +121,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     // 显示数据网络提示
     private boolean mShowNetworkTip = true;
     private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
+    private Handler handler ;
     // 本地信息
     private LocalInfo localInfo = null;
     private int mCaptureDisplaySec = 0;
@@ -162,7 +183,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private ImageButton captureBtn = null;
     // 录像
     private ImageButton videoRecordingBtn = null;
-    private ScrollView msg_info = null;
     // 停止录像
     private ImageButton videoRecordingBtn_end = null;
     private View mRealPlayRecordContainer = null;
@@ -229,6 +249,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                     break;
                 case EZConstants.EZPlaybackConstants.MSG_REMOTEPLAYBACK_PLAY_FINISH:
                     //Log.d(TAG, "MSG_REMOTEPLAYBACK_PLAY_FINISH");
+                    loadingPlayBtn.setVisibility(View.VISIBLE);
                     handlePlaySegmentOver();
                     break;
                 // 画面显示第一帧
@@ -272,19 +293,35 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         mWaitDlg = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
         mWaitDlg.setCancelable(false);
         getData();
-        if (mCameraInfo ==null){
-            LogUtil.d(TAG,"cameraInfo is null");
-            finish();
+        try {
+            initUi();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
-        initUi();
         onQueryExceptionLayoutTouched();
-        initListener();
         initRemoteListPlayer();
         fakePerformClickUI();
         initEzPlayer();
+        MyTask myTask = new MyTask();
+        myTask.execute();
+        initListener();
+        handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what){
+                    case 256:
+                        CameraName = getCameraInfo(cameraInfoList,ChanneNumber);
+                        mLandscapeTitleBar.setTitle(CameraName);
+                        break;
+                }
+            }
+        };
     }
 
-    private void initUi() {
+    private void initUi() throws UnsupportedEncodingException, NoSuchAlgorithmException {
         db = ((EzvizApplication)getApplication()).getDatebase();
         mRecordRotateViewUtil = new RotateViewUtil();
 
@@ -313,7 +350,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         surfaceView = (SurfaceView) findViewById(R.id.remote_playback_wnd_sv);
         surfaceView.getHolder().addCallback(this);
         mRemotePlayBackRatioTv = (TextView) findViewById(R.id.remoteplayback_ratio_tv);
-        msg_info = findViewById(R.id.message_info);
         tx_message = findViewById(R.id.message);
         tx_address = findViewById(R.id.address);
         tx_creattime = findViewById(R.id.creattime);
@@ -332,7 +368,17 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         params.leftMargin = (int) UiUtil.dp2px(this, padding);
         params.rightMargin = (int) UiUtil.dp2px(this, padding);
         img_message.setLayoutParams(params);
-        tx_address.setText(address);
+        if (address.contains("receive")){
+            String str = address.substring(8,address.length());
+            Log.d("TAG","str="+str);
+            String la = str.substring(0,str.indexOf(","));
+            String ln = str.substring(str.indexOf(",")+1,str.length());
+            Log.d("TAG","la="+la);
+            Log.d("TAG","ln="+ln);
+            queryLocation(tx_address,la,ln);
+        }else{
+            tx_address.setText(address);
+        }
         if (alarmMessage.getMessage()!=null){
             tx_message.setText(alarmMessage.getMessage());
         }
@@ -467,9 +513,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         //mFullScreenTitleBarBackBtn = new CheckTextButton(this);
         //mFullScreenTitleBarBackBtn.setBackground(getResources().getDrawable(R.drawable.common_title_back_selector));
         //mLandscapeTitleBar.addLeftView(mFullScreenTitleBarBackBtn);
-        if(mCameraInfo != null) {
-            mLandscapeTitleBar.setTitle(mCameraInfo.getCameraName());
-        }
         mLandscapeTitleBar.addBackButton(new View.OnClickListener() {
 
             @Override
@@ -561,7 +604,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                     handlePlaySegmentOver();
                     return;
                 }
-                if (mCameraInfo != null) {
+                if (CameraName != null) {
                     beginTime = System.currentTimeMillis()-1160000;
                     endTime = System.currentTimeMillis()-1100000;
                     long avg = (endTime - beginTime) / RemoteListContant.PROGRESS_MAX_VALUE;
@@ -579,8 +622,11 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                     if (mPlayer != null) {
                         Calendar seekTime = Calendar.getInstance();
                         seekTime.setTime(new Date(trackTime));
-
-                        mPlayer.seekPlayback(seekTime);
+                        Calendar stopTime = Calendar.getInstance();
+                        stopTime.setTime(new Date(endTime));
+                        mPlayer.stopPlayback();
+                        mPlayer.startPlayback(seekTime,stopTime);
+                        //mPlayer.seekPlayback(seekTime);
                     }
                 }
             }
@@ -597,7 +643,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
              */
             @Override
             public void onProgressChanged(SeekBar arg0, int arg1, boolean arg2) {
-                if (mCameraInfo != null) {
+                if (CameraName != null) {
                     long time = endTime-beginTime;
                     int diffSeconds = (int) (time * arg1 / 1000) / 1000;
                     String convToUIDuration = RemoteListUtil.convToUIDuration(diffSeconds);
@@ -636,6 +682,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             if(mPlayer != null) {
 //            	mPlayer.setHandler(null);
                 mPlayer.stopPlayback();
+                LogUtil.i(TAG, "stop");
                 mPlayer.stopLocalRecord();
             }
             mRealFlow = localInfo.getLimitFlow();
@@ -873,9 +920,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         progressSeekbar.setProgress(progress);
         progressBar.setProgress(progress);
 
-        LogUtil.i(TAG, "handlePlayProgress, begin time:" + beginTime + " endtime:" + endTime
-                + " osdTime:" + osdTime.getTimeInMillis() + " progress:" + progress
-        );
+        //LogUtil.i(TAG, "handlePlayProgress, begin time:" + beginTime + " endtime:" + endTime + " osdTime:" + osdTime.getTimeInMillis() + " progress:" + progress);
 
         int beginTimeClock = (int) ((osd - beginTime) / 1000);
         updateTimeBucketBeginTime(beginTimeClock);
@@ -1032,7 +1077,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         mControlDisplaySec = 0;
 
         errorInfoTV.setVisibility(View.VISIBLE);
-        errorReplay.setVisibility(View.VISIBLE);
+        //errorReplay.setVisibility(View.VISIBLE);
         errorInfoTV.setText(txt);
     }
     private void seekInit(boolean resetPause, boolean resetProgress) {
@@ -1205,13 +1250,11 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 //            exitBtn.setVisibility(View.VISIBLE);
             captureBtn.setVisibility(View.VISIBLE);
             videoRecordingBtn.setVisibility(View.VISIBLE);
-            msg_info.setVisibility(View.GONE);
         } else {
             exitBtn.setVisibility(View.GONE);
             captureBtn.setVisibility(View.VISIBLE);
             videoRecordingBtn.setVisibility(View.VISIBLE);
             mLandscapeTitleBar.setVisibility(View.VISIBLE);
-            msg_info.setVisibility(View.VISIBLE);
         }
     }
     private void setPlayScaleUI(float scale, CustomRect oRect, CustomRect curRect) {
@@ -1278,10 +1321,8 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             alarmMessage = getIntent().getParcelableExtra("alarmMessage");
-            cameraInfoList = getIntent().getParcelableArrayListExtra("camerainfo_list");
-            ChanneNumber = alarmMessage.getChannelNumber();
-            mCameraInfo = getmCameraInfo(cameraInfoList,ChanneNumber);
             address = getIntent().getStringExtra("address");
+            ChanneNumber = alarmMessage.getChannelNumber();
         }
         Application application = (Application) getApplication();
         mAudioPlayUtil = AudioPlayUtil.getInstance(application);
@@ -1332,13 +1373,15 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                 onQueryExceptionLayoutTouched();
                 break;
             case R.id.loading_play_btn:
-                notPause = true;
-                pauseBtn.setBackgroundResource(R.drawable.remote_list_pause_btn_selector);
-                pausePlay();
+//                notPause = true;
+//                pauseBtn.setBackgroundResource(R.drawable.remote_list_pause_btn_selector);
+//                pausePlay();
+                //重播
+                loadingPlayBtn.setVisibility(View.GONE);
+                onReplayBtnClick();
                 break;
             case R.id.error_replay_btn:
             case R.id.replay_btn:
-                onReplayBtnClick();
                 break;
             case R.id.next_play_btn:
                 //onNextPlayBtnClick();
@@ -1360,7 +1403,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 //                onCaptureRlClick();
                 break;
             case R.id.exit_btn:
-                onPlayExitBtnOnClick();
+                //onPlayExitBtnOnClick();
                 break;
             case R.id.control_area:
                 break;
@@ -1371,8 +1414,13 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     // 重播当前录像片段
     private void onReplayBtnClick() {
         newPlayInit(true, true);
+        showControlArea(true);
         timeBucketUIInit(beginTime, endTime);
-        RemoteFileInfo remoteFileInfo = fileInfo.copy();
+        Calendar begin = Calendar.getInstance();
+        Calendar end = Calendar.getInstance();
+        begin.setTime(new Date(beginTime));
+        end.setTime(new Date(endTime));
+        mPlayer.startPlayback(begin,end);
     }
     private void timeBucketUIInit(long beginTime, long endTime) {
         int diffSeconds = (int) (endTime - beginTime) / 1000;
@@ -1509,7 +1557,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 //            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/Records/" + String.format("%tY", date)
 //                    + String.format("%tm", date) + String.format("%td", date) + "/"
 //                    + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
-            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CaptureVideo/" + mCameraInfo.getCameraName()+"/"
+            String strRecordFile = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CaptureVideo/" + CameraName+"/"
                     + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) + ".mp4";
             mPlayer.startLocalRecordWithFile(strRecordFile);
 
@@ -1541,7 +1589,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     // 抓拍按钮响应函数
     private void onCapturePicBtnClick() {
         java.util.Date date = new java.util.Date();
-        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +mCameraInfo.getCameraName()+"/"
+        String path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/CapturePicture/" +CameraName+"/"
                 + String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg";
         mControlDisplaySec = 0;
         if (!SDCardUtil.isSDCardUseable()) {
@@ -1561,7 +1609,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                 if (mPlayer == null) {
                     return;
                 }
-                String serial = !TextUtils.isEmpty(mCameraInfo.getDeviceSerial()) ? mCameraInfo.getDeviceSerial() : "123456789";
+                String serial = !TextUtils.isEmpty(AlarmContant.DEVICE_SERIAL_NUM) ? AlarmContant.DEVICE_SERIAL_NUM : "123456789";
                 Bitmap bmp = mPlayer.capturePicture();
                 if(bmp != null) {
                     try {
@@ -1651,13 +1699,13 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         }
         startTime.setTimeInMillis(playTime);
         LogUtil.infoLog(TAG, "pausePlay:" + startTime);
-        if (mCameraInfo != null) {
+        if (CameraName != null) {
             reConnectPlay(startTime);
         }
 
     }
     private Calendar getTimeBarSeekTime() {
-        if (mCameraInfo != null) {
+        if (CameraName != null) {
             int progress = progressSeekbar.getProgress();
             long seekTime = (((endTime - beginTime) * progress) / RemoteListContant.PROGRESS_MAX_VALUE) + beginTime;
             Calendar c = Calendar.getInstance();
@@ -1695,6 +1743,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             soundBtn.setBackgroundResource(R.drawable.remote_list_soundoff_btn_selector);
         }
     }
+
     private void initEZPlayer() {
         if(mPlayer != null) {
 //        	mPlayer.setHandler(null);
@@ -1703,9 +1752,9 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             // 停止播放
             mPlayer.stopPlayback();
         } else {
-            mPlayer = EzvizApplication.getOpenSDK().createPlayer(mCameraInfo.getDeviceSerial(),mCameraInfo.getCameraNo());
+            mPlayer = EzvizApplication.getOpenSDK().createPlayer(AlarmContant.DEVICE_SERIAL_NUM,Integer.parseInt(alarmMessage.getChannelNumber()));
 
-            String name = mCameraInfo.getDeviceSerial()+String.valueOf(mCameraInfo.getCameraNo());
+            String name = AlarmContant.DEVICE_SERIAL_NUM+String.valueOf(ChanneNumber);
             db = ((EzvizApplication) getApplication()).getDatebase();
             Cursor cursor = db.query("verifycode", null, "name = ?", new String[]{name}, null, null, null);
             if (cursor.moveToFirst()){
@@ -1716,7 +1765,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             cursor.close();
             mPlayer.setPlayVerifyCode(mVerifyCode);
             Log.i("TAG","mVerifyCode="+mVerifyCode);
-            Log.i("TAG","mCameraInfo.name="+mCameraInfo.getCameraName());
+            Log.i("TAG","mCameraInfo.name="+CameraName);
         }
     }
     // 新的播放UI初始化
@@ -1761,10 +1810,66 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     }
 
     @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        mOrientation = newConfig.orientation;
+        onOrientationChanged();
+        super.onConfigurationChanged(newConfig);
+    }
+
+    private void onOrientationChanged() {
+//        surfaceView.setVisibility(View.INVISIBLE);
+        setRemoteListSvLayout();
+//        surfaceView.setVisibility(View.VISIBLE);
+        if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            // 显示状态栏
+            fullScreen(false);
+            if (status != RemoteListContant.STATUS_PLAYING) {
+                // 不允许选择屏幕
+                mScreenOrientationHelper.disableSensorOrientation();
+            }
+            // 竖屏处理
+            remoteListPage.setBackgroundColor(getResources().getColor(R.color.white));
+            mTitleBar.setVisibility(View.VISIBLE);
+            if (controlArea.getVisibility() == View.VISIBLE) {
+                //exitBtn.setVisibility(View.VISIBLE);
+                captureBtn.setVisibility(View.GONE);
+                videoRecordingBtn.setVisibility(View.VISIBLE);
+            }
+            mControlBarRL.setVisibility(View.VISIBLE);
+            mLandscapeTitleBar.setVisibility(View.GONE);
+        } else {
+            // 横屏处理
+            // 隐藏状态栏
+            fullScreen(true);
+            remoteListPage.setBackgroundColor(getResources().getColor(R.color.black_bg));
+            mTitleBar.setVisibility(View.GONE);
+            exitBtn.setVisibility(View.GONE);
+            captureBtn.setVisibility(View.VISIBLE);
+            videoRecordingBtn.setVisibility(View.VISIBLE);
+            mControlBarRL.setVisibility(View.GONE);
+            mLandscapeTitleBar.setVisibility(View.VISIBLE);
+        }
+    }
+    private void fullScreen(boolean enable) {
+        if (enable) {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+            getWindow().setAttributes(lp);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        } else {
+            WindowManager.LayoutParams attr = getWindow().getAttributes();
+            attr.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            getWindow().setAttributes(attr);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        }
+    }
+
+
+    @Override
     public void onInputVerifyCode(String verifyCode) {
         //DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(),verifyCode);
         if (mPlayer != null) {
-            String name = mCameraInfo.getDeviceSerial()+String.valueOf(mCameraInfo.getCameraNo());
+            String name = AlarmContant.DEVICE_SERIAL_NUM+String.valueOf(ChanneNumber);
             if (mVerifyCode == null){
                 ContentValues values=new ContentValues();
                 values.put("name",name);
@@ -1781,19 +1886,17 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             newPlayUIInit();
             showControlArea(true);
             mVerifyCode = verifyCode;
-            if (mCameraInfo != null) {
-                if (mPlayer != null){
+            if (mPlayer != null){
 //                    mPlayer.setPlayVerifyCode(DataManager.getInstance().getDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial()));
-                    LogUtil.debugLog(TAG, "verify code is " + verifyCode);
-                    mPlayer.setPlayVerifyCode(mVerifyCode);
-                }
-                Calendar begin = Calendar.getInstance();
-                Calendar end = Calendar.getInstance();
-                begin.setTime(new Date(beginTime));
-                end.setTime(new Date(endTime));
-                mPlayer.startPlayback(begin,end);
-                Log.d("TAG","******mPlayer.startPlayback********");
+                LogUtil.debugLog(TAG, "verify code is " + verifyCode);
+                mPlayer.setPlayVerifyCode(mVerifyCode);
             }
+            Calendar begin = Calendar.getInstance();
+            Calendar end = Calendar.getInstance();
+            begin.setTime(new Date(beginTime));
+            end.setTime(new Date(endTime));
+            mPlayer.startPlayback(begin,end);
+            Log.d("TAG","******mPlayer.startPlayback********");
         }
     }
     private class DownImg extends AsyncTask<Void,Void,Boolean> {
@@ -1839,9 +1942,109 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             super.onPostExecute(downloaded);
             if (downloaded){
                 File file = new File(localpath+"/"+pic_name);
-                Picasso.with(PlaybackActivity2.this).load(file).transform(new RoundTransform(10))
+                Picasso.with(PlaybackActivity2.this).load(file).transform(new RoundTransform(20))
                         .error(getResources().getDrawable(R.mipmap.ic_launcher)).into(img_message);
             }
         }
+    }
+    /**
+     * 获取事件消息任务
+     */
+    private class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>> {
+        private int mErrorCode = 0;
+        @Override
+        protected List<EZDeviceInfo> doInBackground(Void... voids) {
+            if (PlaybackActivity2.this.isFinishing()){
+                return null;
+            }
+            if (!ConnectionDetector.isNetworkAvailable(PlaybackActivity2.this)){
+                mErrorCode = ErrorCode.ERROR_WEB_NET_EXCEPTION;
+                return null;
+            }
+            try {
+                List<EZDeviceInfo> result = null;
+                    result = getOpenSDK().getDeviceList(0, 30);
+                return result;
+            }catch (BaseException e){
+                ErrorInfo errorInfo = (ErrorInfo) e.getObject();
+                mErrorCode = errorInfo.errorCode;
+                Log.i("TAG","eooro = "+errorInfo.toString());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(List<EZDeviceInfo> result) {
+            super.onPostExecute(result);
+            for (EZDeviceInfo ezDeviceInfo : result){
+                for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
+                    cameraInfoList.add(cameraInfo);
+                    Message msg = new Message();
+                    msg.what = 256;
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelableArrayList("cameralist", (ArrayList<? extends Parcelable>) cameraInfoList);
+                    msg.setData(bundle);
+                    handler.sendMessage(msg);
+                }
+            }
+        }
+    }
+    private String getCameraInfo(List<EZCameraInfo> cameraInfos , String no){
+        if (no!=null&&!no.equals("")){
+            for (EZCameraInfo cameraInfo : cameraInfos){
+                if (cameraInfo.getCameraNo() == Integer.parseInt(no)){
+                    return cameraInfo.getCameraName();
+                }
+            }
+        }
+        return "Null";
+    }
+    public void queryLocation(TextView textView , String la, String ln) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        String url = "http://api.map.baidu.com/reverse_geocoding/v3/";
+        LinkedHashMap<String,String> map = new LinkedHashMap<>();
+        map.put("location",la+","+ln);
+        map.put("coordtype","wgs84ll");
+        map.put("radius","500");
+        map.put("extensions_poi","1");
+        map.put("output","json");
+        map.put("ak","KNAeq1kjoe2u24PTYfeL4kO0KvGaqNak");
+        String sn = SnCal.getSnKry(map);
+        OkHttpUtil.get(url, sn,new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.d("TAG", "onFailure: ",e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseBody = response.body().string();
+                String address = "";
+                try {
+                    JSONObject object = new JSONObject(responseBody);
+                    String status = object.get("status").toString();
+                    if (status.equals("0")){
+                        String result = object.get("result").toString();
+                        JSONObject objectdata = new JSONObject(result);
+                        String formatted_address = objectdata.get("formatted_address").toString();
+                        String sematic_description = objectdata.get("sematic_description").toString();
+                        if (sematic_description==null || sematic_description.equals("")){
+                            address = formatted_address;
+                        }else{
+                            address = formatted_address+"("+sematic_description+")";
+                        }
+                        if (address.equals("")){
+                            textView.setText("未知");
+                        }else{
+                            textView.setText(address);
+                        }
+                    }else{
+                        textView.setText("未知");
+                    }
+                    Log.d("TAG","address="+address);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        },map);
     }
 }

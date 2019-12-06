@@ -20,6 +20,7 @@ public class AlarmContant {
     public static final int USER_TYPE_ZHIFAJU = 9;
     public static final int USER_TYPE_FAZHANJU = 10;
     public static final int USER_TYPE_SUPER = 11;
+    public static final String DEVICE_SERIAL_NUM = "D85325086";
 
     public static List<String> list_chengguan = new ArrayList<>();
     public static List<String> list_shiwuju = new ArrayList<>();
@@ -72,6 +73,12 @@ public class AlarmContant {
         list_super.add("河道监测");
         list_super.add("园区企业监管");
         return list_super;
+    }
+    public static String getAlarmType(int type){
+        List<String> list = new ArrayList<>();
+        list = getList_super();
+        String str_type = list.get(type);
+        return str_type;
     }
     public static final List<File> getListFile(){
         list_file_pic.clear();

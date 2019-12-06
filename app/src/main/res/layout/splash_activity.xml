@@ -45,7 +45,8 @@
 
         <EditText
             android:id="@+id/et_login_username"
-            android:text="admin"
+            android:hint="用户名"
+            android:textColorHint="@color/divider"
             android:textColor="#FFFFFF"
             android:layout_width="217dp"
             android:layout_height="45dp"
@@ -77,22 +78,22 @@
 
         <EditText
             android:id="@+id/et_login_password"
-            android:text="111111"
+            android:hint="密码"
             android:textColor="#FFFFFF"
             android:layout_width="217dp"
             android:layout_height="45dp"
-
+            android:textColorHint="@color/divider"
             android:background="#22ffffff"
             />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="300dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="46dp"
-        android:layout_marginLeft="76dp"
         android:layout_marginTop="35dp">
-
         <Button
+            android:layout_marginLeft="149dp"
             android:id="@+id/btn_login"
             android:layout_width="116dp"
             android:layout_height="45dp"
@@ -100,13 +101,13 @@
             android:text="登录"
             android:textColor="#ffffff"
             android:textSize="20dp" />
-
         <Button
             android:id="@+id/btn_signup"
-            android:layout_width="116dp"
+            android:layout_width="0dp"
             android:layout_height="46dp"
             android:layout_marginLeft="30dp"
             android:background="#46000000"
+            android:visibility="gone"
             android:text="注册"
             android:textColor="#ffffff"
             android:textSize="20dp" />

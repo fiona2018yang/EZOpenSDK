@@ -76,20 +76,21 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                         asyncImageLoader.loadDrawable(path, new AsyncImageLoader.ImageCallback() {
                             @Override
                             public void imageLoaded() {
-                                Picasso.with(context).load(imgFile).transform(new RoundTransform(10))
+                                Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
                                         .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                             }
                         });
                     }else{
                         Log.d("TAG","图片存在!");
-                        Picasso.with(context).load(imgFile).transform(new RoundTransform(10))
+                        Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
                                 .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                     }
                 }catch (Exception e){
                     e.printStackTrace();
                 }
             }else{
-                holder.imageView.setImageResource(R.mipmap.load_fail);
+                Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
+                        .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
             }
             if (alarmMessageList.get(position).getLatitude()!=null||alarmMessageList.get(position).getLongitude()!=null){
                 String la = alarmMessageList.get(position).getLatitude();
@@ -105,7 +106,8 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                 holder.address.setText("未知");
             }
         }else{
-            holder.imageView.setImageResource(R.mipmap.loading);
+            Picasso.with(context).load(R.mipmap.loading).transform(new RoundTransform(20))
+                    .error(context.getResources().getDrawable(R.mipmap.loading)).into(holder.imageView);
             holder.address.setText("加载中...");
         }
         String camera_name = getCameraInfo(cameraInfoList,alarmMessageList.get(position).getChannelNumber());

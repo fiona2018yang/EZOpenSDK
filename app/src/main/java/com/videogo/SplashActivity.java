@@ -43,11 +43,14 @@ public class SplashActivity extends Activity {
 
     private MyDatabaseHelper dbHelper;
     private SharedPreferences.Editor editor;
+    private SharedPreferences.Editor editor2;
+    private SharedPreferences sharedPreferences;
     private String TAG = "SplashActivity";
     //启动页面
     EditText etUsername, etPassword;
     Button btnLogin, btnSignup;
     String strUsername, strPassword;
+    String name ,password;
     private Handler handler ;
 
     @Override
@@ -56,10 +59,23 @@ public class SplashActivity extends Activity {
         setContentView(R.layout.splash_activity);
         dbHelper = new MyDatabaseHelper(this, "UserStore.db", null, 1);
         editor = getSharedPreferences("userid",MODE_PRIVATE).edit();
+        editor2 = getSharedPreferences("user_info",MODE_PRIVATE).edit();
+        sharedPreferences = getSharedPreferences("user_info",0);
+        name = sharedPreferences.getString("name","");
+        password = sharedPreferences.getString("password","");
         etUsername = (EditText) findViewById(R.id.et_login_username);
         etPassword = (EditText) findViewById(R.id.et_login_password);
         btnLogin = (Button) findViewById(R.id.btn_login);
         btnSignup = (Button) findViewById(R.id.btn_signup);
+        if (!name.equals("")&&!password.equals("")){
+            etUsername.setText(name);
+            etPassword.setText(password);
+        }else{
+            if (!name.equals("")){
+                etUsername.setText(name);
+            }
+        }
+
         handler = new Handler(){
             @Override
             public void handleMessage(Message msg) {
@@ -73,6 +89,8 @@ public class SplashActivity extends Activity {
                             User user = (User) bundle.getSerializable("user");
                             editor.putString("id",user.getUserId());
                             editor.commit();
+                            editor2.putString("name",strUsername).commit();
+                            editor2.putString("password",strPassword).commit();
                             Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
                             startActivity(it);
                             SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
@@ -91,7 +109,15 @@ public class SplashActivity extends Activity {
                 if(!ExampleUtil.isConnected(SplashActivity.this)){
                     ToastNotRepeat.show(SplashActivity.this,"确认网络是否断开！");
                 }else{
-                    login(strUsername, strPassword);
+                    if (strUsername.trim().equals("")){
+                        Toast.makeText(SplashActivity.this, "请您输入用户名！", Toast.LENGTH_SHORT).show();
+                    }else{
+                        if (strPassword.trim().equals("")){
+                            Toast.makeText(SplashActivity.this, "请您输入密码！", Toast.LENGTH_SHORT).show();
+                        }else{
+                            login(strUsername, strPassword);
+                        }
+                    }
                 }
                 //                if (strUsername.equals("用户名")) {
                 //                    if (strPassword.equals("密码")){

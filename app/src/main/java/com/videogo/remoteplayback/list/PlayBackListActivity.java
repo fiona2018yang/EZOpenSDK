@@ -1037,9 +1037,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         progressSeekbar.setProgress(progress);
         progressBar.setProgress(progress);
 
-        LogUtil.i(TAG, "handlePlayProgress, begin time:" + begin + " endtime:" + end
-        		+ " osdTime:" + osdTime.getTimeInMillis() + " progress:" + progress
-        		);
+        //LogUtil.i(TAG, "handlePlayProgress, begin time:" + begin + " endtime:" + end + " osdTime:" + osdTime.getTimeInMillis() + " progress:" + progress);
 
         int beginTimeClock = (int) ((osd - begin) / 1000);
         updateTimeBucketBeginTime(beginTimeClock);

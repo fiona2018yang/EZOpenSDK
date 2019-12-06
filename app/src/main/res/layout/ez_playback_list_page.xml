@@ -422,7 +422,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/pb_search_content_tab"
-        android:layout_marginTop="5dp" >
+         >
     	<com.videogo.widget.loading.LoadingTextView
 	        android:id="@+id/loadingTextView"
 	        android:layout_width="match_parent"

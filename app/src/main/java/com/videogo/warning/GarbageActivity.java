@@ -93,11 +93,10 @@ public class GarbageActivity extends Activity {
         rv.setAdapter(adatper);
         adatper.setSetOnItemClickListener(new TitleWarningAdatter.OnClickListener() {
             @Override
-            public void OnItemClick(View view, int position , String address) {
+            public void OnItemClick(View view, int position , String address ) {
                 Intent intent = new Intent(GarbageActivity.this, PlaybackActivity2.class);
                 intent.putExtra("alarmMessage", alarmMessageList.get(position));
                 intent.putExtra("address",address);
-                intent.putParcelableArrayListExtra("camerainfo_list", (ArrayList<? extends Parcelable>) cameraInfoList);
                 startActivity(intent);
             }
         });

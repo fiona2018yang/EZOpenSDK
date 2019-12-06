@@ -2,7 +2,8 @@
 
 <resources>
     <string name="cameras_txt">我的</string>
-    <string name="app_name">萤石云开放平台</string>
+    <string name="app_name">土地调绘</string>
+    <string name="alarm_name">报警信息</string>
     <string name="exit">确定退出</string>
     <string name="exit_tip">退出后将需要重新登录，确定要退出?</string>
     <string name="confirm">确定</string>

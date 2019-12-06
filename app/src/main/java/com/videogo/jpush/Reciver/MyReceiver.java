@@ -1,18 +1,30 @@
 package com.videogo.jpush.Reciver;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.videogo.MyDatabaseHelper;
+import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
+import com.videogo.remoteplayback.list.PlaybackActivity2;
+import com.videogo.warning.GarbageActivity;
+import com.videogo.warning.WarningActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +32,9 @@ import org.json.JSONObject;
 import java.util.Iterator;
 
 import cn.jpush.android.api.JPushInterface;
+import ezviz.ezopensdk.R;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
 
 /**
  * 自定义接收器
@@ -39,8 +54,7 @@ public class MyReceiver extends BroadcastReceiver {
 			Bundle bundle = intent.getExtras();
 			dbHelper = new MyDatabaseHelper(context, "filepath.db", null, 1);
 			db = dbHelper.getWritableDatabase();
-			Log.i(TAG, "[MyReceiver] onReceive - " + intent.getAction() + ", extras: " + printBundle(bundle));
-
+			Log.d(TAG, "[MyReceiver] onReceive - " + intent.getAction() + ", extras: " + printBundle(bundle));
 			if (JPushInterface.ACTION_REGISTRATION_ID.equals(intent.getAction())) {
 				String regId = bundle.getString(JPushInterface.EXTRA_REGISTRATION_ID);
 				Log.i(TAG, "[MyReceiver] 接收Registration Id : " + regId);
@@ -73,6 +87,8 @@ public class MyReceiver extends BroadcastReceiver {
 				db.setTransactionSuccessful();
 				db.endTransaction();
 				Log.d(TAG,"insert success");
+				sendNotification(context,context.getString(R.string.app_name) ,alarmMessage.getMessage()
+						,alarmMessage,"receive "+alarmMessage.getLatitude()+","+alarmMessage.getLongitude());
 
 			} else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction())) {
 				Log.i(TAG, "[MyReceiver] 接收到推送下来的通知");
@@ -103,6 +119,32 @@ public class MyReceiver extends BroadcastReceiver {
 
 		}
 
+	}
+
+	private static void sendNotification(Context context,String contentTitle,String contentText,AlarmMessage alarmMessage,String address){
+		//获取系统通知服务
+		String mChannelId = "channelID";
+		NotificationManager manager = (NotificationManager)context.getSystemService(NOTIFICATION_SERVICE);
+		Intent resultIntent = new Intent(context, PlaybackActivity2.class);
+		resultIntent.putExtra("alarmMessage",alarmMessage);
+		resultIntent.putExtra("address",address);
+		PendingIntent resultPendingIntent = PendingIntent.getActivity(context,0,resultIntent,PendingIntent.FLAG_UPDATE_CURRENT);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			CharSequence name = context.getString(R.string.alarm_name);
+			NotificationChannel channel = new NotificationChannel(mChannelId, name, NotificationManager.IMPORTANCE_DEFAULT);
+			channel.enableVibration(true);
+			channel.setVibrationPattern(new long[]{0,500});
+			manager.createNotificationChannel(channel);
+
+		}
+		android.support.v4.app.NotificationCompat.Builder bBuilder = new NotificationCompat.Builder(context, mChannelId)
+				.setSmallIcon(R.mipmap.paper)
+				.setContentText(contentText).setContentTitle(contentTitle).setAutoCancel(true)
+				.setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.mipmap.paper))
+				.setAutoCancel(true)
+				.setContentIntent(resultPendingIntent);
+		Notification notification = bBuilder.build();
+		manager.notify(1, notification);
 	}
 
 	// 打印所有的 intent extra 数据
