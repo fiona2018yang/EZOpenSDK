@@ -23,6 +23,8 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
@@ -229,19 +231,22 @@ public class HomeActivity extends Activity {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //                img = (ImageView) view.findViewById(R.id.main_title_icon);
+                ImageView  img = (ImageView) view.findViewById(R.id.grid_icon);
+                Animation animation = AnimationUtils.loadAnimation(HomeActivity.this, R.anim.item_img);
+                img.startAnimation(animation);
 //                for (int i = 0; i < parent.getCount(); i++) {
-//                    View v = parent.getChildAt(i);
-//                    if (position == i) {//当前选中的Item改变背景颜色
-//                        if (position != 3 ) {
-//                            view.setBackgroundColor(getResources().getColor(R.color.Lightgray));
-//                        } else {
-//                            view.setBackgroundColor(Color.TRANSPARENT);
-//                        }
-//                    } else {
-//                        v.setBackgroundColor(Color.TRANSPARENT);
-//                    }
-//                }
+////                    View v = parent.getChildAt(i);
+////                    if (position == i) {//当前选中的Item改变背景颜色
+////                        if (position != 3 ) {
+////                            view.setBackgroundColor(getResources().getColor(R.color.Lightgray));
+////                        } else {
+////                            view.setBackgroundColor(Color.TRANSPARENT);
+////                        }
+////                    } else {
+////                        v.setBackgroundColor(Color.TRANSPARENT);
+////                    }
+////                }
+
                 // "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"
                 switch (position) {
                     case 0://实景地图
