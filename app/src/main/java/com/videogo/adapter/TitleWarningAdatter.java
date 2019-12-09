@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -69,20 +70,20 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
             if (path!=null&&!path.equals("")){
                 //加载图片
                 try {
-                    String pic_name = DataUtils.getUrlResouse(path).get("pic_name");
+                    HashMap<String,String> map = DataUtils.getUrlResouses(path).get(0);
+                    String pic_name = map.get("pic_name");
                     String imagpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
                     File imgFile = new File(imagpath);
                     if (!imgFile.exists()) {
-                        asyncImageLoader.loadDrawable(path, new AsyncImageLoader.ImageCallback() {
+                        asyncImageLoader.loadDrawable(map, new AsyncImageLoader.ImageCallback() {
                             @Override
                             public void imageLoaded() {
-                                Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                                Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
                                         .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                             }
                         });
                     }else{
-                        Log.d("TAG","图片存在!");
-                        Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                        Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
                                 .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                     }
                 }catch (Exception e){
@@ -106,7 +107,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                 holder.address.setText("未知");
             }
         }else{
-            Picasso.with(context).load(R.mipmap.loading).transform(new RoundTransform(20))
+            Picasso.with(context).load(R.mipmap.loading).transform(new RoundTransform(20)).resize(600,300)
                     .error(context.getResources().getDrawable(R.mipmap.loading)).into(holder.imageView);
             holder.address.setText("加载中...");
         }
@@ -202,7 +203,6 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                     }else{
                         textView.setText("未知");
                     }
-                    Log.d("TAG","address="+address);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

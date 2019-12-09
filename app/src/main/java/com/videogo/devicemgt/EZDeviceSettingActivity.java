@@ -26,6 +26,7 @@ import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
 import com.videogo.openapi.EZConstants;
 import com.videogo.openapi.EZOpenSDK;
+import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.openapi.bean.EZDeviceVersion;
 import com.videogo.ui.cameralist.EZCameraListActivity;
@@ -160,6 +161,7 @@ public class EZDeviceSettingActivity extends RootActivity {
     private String mValidateCode;
     private EZDeviceVersion mDeviceVersion = null;
     private EZDeviceInfo mEZDeviceInfo = null;
+    private EZCameraInfo ezCameraInfo = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -218,6 +220,7 @@ public class EZDeviceSettingActivity extends RootActivity {
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("Bundle");
         mEZDeviceInfo = bundle.getParcelable(IntentConsts.EXTRA_DEVICE_INFO);
+        ezCameraInfo = bundle.getParcelable(IntentConsts.EXTRA_CAMERA_INFO);
         if (mEZDeviceInfo == null){
             showToast(R.string.device_have_not_added);
             finish();
@@ -244,7 +247,7 @@ public class EZDeviceSettingActivity extends RootActivity {
      * 初始化控件
      */
     private void initViews() {
-        if (mEZDeviceInfo != null) {
+        if (ezCameraInfo != null) {
             mOnClickListener = new OnClickListener() {
 
                 @Override
@@ -252,10 +255,12 @@ public class EZDeviceSettingActivity extends RootActivity {
                     Intent intent;
                     switch (v.getId()) {
                         case R.id.device_info_layout:
-                            intent = new Intent(EZDeviceSettingActivity.this, ModifyDeviceNameActivity.class);
-                            intent.putExtra(IntentConsts.EXTRA_NAME, mEZDeviceInfo.getDeviceName());
-                            intent.putExtra(IntentConsts.EXTRA_DEVICE_ID,mEZDeviceInfo.getDeviceSerial());
-                            startActivityForResult(intent, REQUEST_CODE_MODIFY_DEVICE_NAME);
+                            //修改设备名
+//                            intent = new Intent(EZDeviceSettingActivity.this, ModifyDeviceNameActivity.class);
+//                            //intent.putExtra(IntentConsts.EXTRA_NAME, mEZDeviceInfo.getDeviceName());
+//                            intent.putExtra(IntentConsts.EXTRA_NAME, ezCameraInfo.getCameraName());
+//                            intent.putExtra(IntentConsts.EXTRA_DEVICE_ID,mEZDeviceInfo.getDeviceSerial());
+//                            startActivityForResult(intent, REQUEST_CODE_MODIFY_DEVICE_NAME);
                             break;
 
                         case R.id.ez_device_serial_layout:
@@ -355,7 +360,8 @@ public class EZDeviceSettingActivity extends RootActivity {
             if (requestCode == REQUEST_CODE_MODIFY_DEVICE_NAME){
                 String name = data.getStringExtra(IntentConsts.EXTRA_NAME);
                 if (!TextUtils.isEmpty(name)){
-                    mEZDeviceInfo.setDeviceName(name);
+                    //mEZDeviceInfo.setDeviceName(name);
+                    ezCameraInfo.setCameraName(name);
                 }else{
                     LogUtil.debugLog(TAG,"modify device name is null");
                 }
@@ -370,7 +376,7 @@ public class EZDeviceSettingActivity extends RootActivity {
 //            String typeSn = String.format("%s(%s)",
 //                    TextUtils.isEmpty(mDeviceModel.getDisplay()) ? mDevice.getFullModel() : mDeviceModel.getDisplay(),
 //                    mDevice.getDeviceID());
-            String typeSn = mEZDeviceInfo.getDeviceName();
+            String typeSn = ezCameraInfo.getCameraName();
             mDeviceSerialTextView.setText(mEZDeviceInfo.getDeviceSerial());
 
             mDeviceNameView.setText(TextUtils.isEmpty(typeSn)?"":typeSn);

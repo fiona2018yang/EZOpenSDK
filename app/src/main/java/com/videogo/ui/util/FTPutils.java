@@ -25,9 +25,6 @@ import java.util.List;
 
     public FTPutils() {
         mFtpClient = new FTPClient();
-        if(mFtpClient.isConnected()){
-            useCompressedTransfer();
-        }
     }
 
     public void setFtpClient(FTPClient mFtpClient) {
@@ -36,7 +33,8 @@ import java.util.List;
 
     public void useCompressedTransfer() {
         try {
-            mFtpClient.setFileTransferMode(org.apache.commons.net.ftp.FTP.COMPRESSED_TRANSFER_MODE);
+            //mFtpClient.setFileTransferMode(org.apache.commons.net.ftp.FTP.COMPRESSED_TRANSFER_MODE);
+            mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
             // 使用被动模式设为默认
             mFtpClient.enterLocalPassiveMode();
             // 二进制文件支持
@@ -72,6 +70,7 @@ import java.util.List;
                 mFtpClient.connect(ip,port);
                 status = mFtpClient.login(userName, pass);
 //                Constant.ftpLoginResult = status;
+                useCompressedTransfer();
             }
 
             Log.i(TAG, "connect: " + status);
@@ -236,7 +235,7 @@ import java.util.List;
             }
         }else {
             localFile.createNewFile();
-
+            Log.d(TAG, "creatFile"+fileName+","+Thread.currentThread().getId());
         }
 
         // 进度
@@ -244,13 +243,14 @@ import java.util.List;
         long process = 0;
         long currentSize = localSize;
         // 开始准备下载文件
+        Log.d(TAG, "downloadSingleFile: 开始准备"+fileName+","+Thread.currentThread().getId());
         OutputStream out = new FileOutputStream(localFile, true);
         mFtpClient.setRestartOffset(localSize);
         InputStream input = mFtpClient.retrieveFileStream(serverPath);//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
         byte[] b = new byte[1024];
         int length = 0;
         while ((length = input.read(b)) !=-1) {
-            Log.d(TAG, "downloadSingleFile:正在下载"+step);
+            //Log.d(TAG, "downloadSingleFile:正在下载"+step);
             out.write(b, 0, length);
             currentSize = currentSize + length;
             if (currentSize / step != process) {
@@ -264,7 +264,7 @@ import java.util.List;
 //                Log.e(TAG,"actual_last_read"+"########"+length);
 //            }
         }
-        Log.d(TAG, "downloadSingleFile: 下载完毕");
+        Log.d(TAG, "downloadSingleFile: 下载完毕"+Thread.currentThread().getId());
         out.flush();
         out.close();
         input.close();
@@ -280,7 +280,7 @@ import java.util.List;
         }
 
         // 下载完成之后关闭连接
-//        this.disconnect();
+        this.disconnect();
         listener.onFtpProgress(Constant.FTP_DISCONNECT_SUCCESS, 0, null);
 
         return;

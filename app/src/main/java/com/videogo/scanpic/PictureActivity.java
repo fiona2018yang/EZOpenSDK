@@ -24,6 +24,7 @@ public class PictureActivity extends AppCompatActivity {
     private ImageButton shareBtn;
     private ImageButton otherBtn;
     private ImageButton delateBtn;
+    private Boolean flag = false;
     private Uri uri;
     private String path;
 
@@ -45,6 +46,12 @@ public class PictureActivity extends AppCompatActivity {
         Intent intent = getIntent();
         urlList = intent.getStringArrayListExtra("list");
         position = intent.getIntExtra("position",0);
+        flag = intent.getBooleanExtra("flag",false);
+        if (flag){
+            otherBtn.setVisibility(View.GONE);
+        }else{
+            otherBtn.setVisibility(View.VISIBLE);
+        }
         PhotoPagerAdapter viewPagerAdapter = new PhotoPagerAdapter(getSupportFragmentManager(), urlList);
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setCurrentItem(position);

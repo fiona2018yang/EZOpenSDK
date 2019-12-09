@@ -43,6 +43,35 @@ public class DataUtils {
         return null;
     }
 
+    public static List<HashMap<String,String>> getUrlResouses(String path){
+        try {
+            List<HashMap<String,String>> hashMapList = new ArrayList<>();
+            String[] urls = path.split(";");
+            for (int i = 0 ; i < urls.length ; i++){
+                String url = urls[i];
+                HashMap<String,String> map = new HashMap<>();
+                String[] rils = url.split("/");
+                String[]ips = rils[2].split("@");
+                String ip = ips[1];
+                map.put("ip",ip);
+                String[]pas = ips[0].split(":");
+                String name = pas[0];
+                map.put("name",name);
+                String password = pas[1];
+                map.put("password",password);
+                String pic_name = rils[4];
+                map.put("pic_name",pic_name);
+                String dir_name = rils[3];
+                map.put("dir_name",dir_name);
+                hashMapList.add(map);
+            }
+            return hashMapList;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public static List<String> getImagePathFromSD(String path){
         List<String> urlList = new ArrayList<>();
         // 得到sd卡内image文件夹的路径   File.separator(/)

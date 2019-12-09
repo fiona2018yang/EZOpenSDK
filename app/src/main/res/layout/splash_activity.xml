@@ -97,7 +97,7 @@
             android:id="@+id/btn_login"
             android:layout_width="116dp"
             android:layout_height="45dp"
-            android:background="#46000000"
+            android:background="@drawable/login_selector"
             android:text="登录"
             android:textColor="#ffffff"
             android:textSize="20dp" />

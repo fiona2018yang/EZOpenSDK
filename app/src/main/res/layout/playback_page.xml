@@ -441,16 +441,16 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="25dp"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageView
-                    android:id="@+id/imageview"
-                    android:scaleType="fitXY"
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/img_recycler"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="match_parent"/>
+
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

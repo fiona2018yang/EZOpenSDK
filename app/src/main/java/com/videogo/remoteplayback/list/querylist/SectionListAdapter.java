@@ -283,7 +283,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             holder.header.setText(getSpannableString(headHour));
         }
         if (dataOne != null) {
-            holder.image1.setImageResource(R.drawable.playback_cover2);
+            holder.image1.setImageResource(R.drawable.playback_cover1);
             if (dataOne.isCloud()) {
                 loadCoverPic(dataOne, holder.image1);
                 if (isEdit) {
@@ -318,7 +318,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
         }
 
         if (dataTwo != null) {
-            holder.image2.setImageResource(R.drawable.playback_cover2);
+            holder.image2.setImageResource(R.drawable.playback_cover1);
             if (dataTwo.isCloud()) {
                 loadCoverPic(dataTwo, holder.image2);
                 if (isEdit) {
@@ -353,7 +353,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
         }
 
         if (dataThree != null) {
-            holder.image3.setImageResource(R.drawable.playback_cover2);
+            holder.image3.setImageResource(R.drawable.playback_cover1);
             if (dataThree.isCloud()) {
                 loadCoverPic(dataThree, holder.image3);
                 if (isEdit) {

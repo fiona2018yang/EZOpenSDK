@@ -20,9 +20,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
-import com.baidu.mapapi.model.LatLng;
-import com.baidu.mapapi.utils.CoordinateConverter;
-import com.esri.core.geometry.Point;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
@@ -34,8 +31,10 @@ import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.remoteplayback.list.PlaybackActivity2;
 import java.util.ArrayList;
 import java.util.List;
-import ezviz.ezopensdk.R;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import ezviz.ezopensdk.R;
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 
 public class GarbageActivity extends Activity {
@@ -45,10 +44,10 @@ public class GarbageActivity extends Activity {
     private List<String> time_title = new ArrayList<>();
     private List<AlarmMessage> alarmMessageList = new ArrayList<>();
     private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
-    private List<String> address_list = new ArrayList<>();
+    private ExecutorService cachedThreadPool;
     private RecyclerView rv;
     private int page = 1;
-    private int page_size = 12;
+    private int page_size = 9;
     private SQLiteDatabase db;
     private RefreshLayout refreshLayout;
     private TitleWarningAdatter adatper;
@@ -72,6 +71,7 @@ public class GarbageActivity extends Activity {
     }
     private void initView() {
         db = ((EzvizApplication) getApplication()).getDatebase();
+        cachedThreadPool = Executors.newCachedThreadPool();
         refreshLayout = findViewById(R.id.refreshLayout);
         spinner_time = findViewById(R.id.spinner_1);
         spinner_location = findViewById(R.id.spinner_2);
@@ -120,10 +120,10 @@ public class GarbageActivity extends Activity {
                     case 103:
                         Bundle bundle = msg.getData();
                         list.clear();
+                        Log.d("TAG", "list.size....="+list.size());
                         list = bundle.getParcelableArrayList("datalist");
                         if (alarmMessageList.size()!=0){
                             alarmMessageList.clear();
-                            address_list.clear();
                         }
                         if (refreshType){
                             if (page_size<=list.size()){
@@ -133,7 +133,7 @@ public class GarbageActivity extends Activity {
                             }
                             adatper.notifyDataSetChanged();
                         }
-                        Log.d(TAG, "list.size....="+list.size());
+                        Log.d("TAG", "list.size2....="+list.size());
                         break;
                 }
             }
@@ -144,41 +144,29 @@ public class GarbageActivity extends Activity {
         refreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                refreshLayout.getLayout().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        //刷新
-                        refreshType = true;
-                        page = 1;
-                        querydata(alarm_type);
-                        refreshLayout.finishRefresh();
-                        refreshLayout.resetNoMoreData();
-                    }
-                },1000);
+                Log.d("TAG","刷新");
+                //刷新
+                refreshType = true;
+                page = 1;
+                querydata(alarm_type);
+                refreshLayout.finishRefresh(500);
+                Log.d("TAG","刷新完成");
             }
         });
         refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
-                refreshLayout.getLayout().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        refreshType = false;
-                        Log.d(TAG,"page="+page);
-                        Log.d(TAG,"page_size="+page_size);
-                        Log.d(TAG,"list_size="+list.size());
-                        if (page*page_size>list.size()||(page+1)*page_size>list.size()){
-                            ToastNotRepeat.show(GarbageActivity.this,"暂无更多的数据啦");
-                            refreshLayout.finishLoadMoreWithNoMoreData();
-                            return;
-                        }else{
-                            //加载更多数据
-                            querydata(alarm_type);
-                            refreshLayout.setEnableLoadMore(true);
-                            refreshLayout.finishLoadMore();
-                        }
-                    }
-                },1000);
+                refreshType = false;
+                if (page*page_size>list.size()||(page+1)*page_size>list.size()){
+                    ToastNotRepeat.show(GarbageActivity.this,"暂无更多的数据啦");
+                    refreshLayout.finishLoadMoreWithNoMoreData();
+                    return;
+                }else{
+                    //加载更多数据
+                    querydata(alarm_type);
+                    refreshLayout.setEnableLoadMore(true);
+                    refreshLayout.finishLoadMore(500);
+                }
             }
         });
         //自动刷新
@@ -238,10 +226,10 @@ public class GarbageActivity extends Activity {
             alarmMessageList.addAll(list.subList(page_size*page,page_size*(page+1)));
             adatper.notifyItemRangeInserted(list.size()-page_size,list.size());
             adatper.notifyItemRangeChanged(list.size()-page_size,list.size());
-            //searchaddress_push();
             page++;
         }else{
-            new Thread(new Runnable() {
+            Log.d("TAG","startrefresh");
+            Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
                     Cursor cursor = db.query("alarmMessage",null,"type = ?",new String[]{String.valueOf(alarmtype)},null,null,null);
@@ -272,7 +260,8 @@ public class GarbageActivity extends Activity {
                     message.setData(bundle);
                     handler.sendMessage(message);
                 }
-            }).start();
+            };
+            cachedThreadPool.execute(runnable);
         }
     }
 

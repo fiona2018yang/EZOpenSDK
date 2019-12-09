@@ -95,8 +95,11 @@ public class SplashActivity extends Activity {
                             startActivity(it);
                             SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
                         } else {
-                            Toast.makeText(SplashActivity.this, "登陆失败", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(SplashActivity.this, "密码错误！", Toast.LENGTH_LONG).show();
                         }
+                        break;
+                    case 103:
+                        Toast.makeText(SplashActivity.this, "网络异常！", Toast.LENGTH_LONG).show();
                         break;
                 }
             }
@@ -201,7 +204,10 @@ public class SplashActivity extends Activity {
         OkHttpUtil.post(url, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                Log.d(TAG, "onFailure: ",e);
+                Log.d(TAG, "onFailure: ");
+                Message message = new Message();
+                message.what = 103;
+                handler.sendMessage(message);
             }
 
             @Override

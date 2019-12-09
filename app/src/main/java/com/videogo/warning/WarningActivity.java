@@ -1,19 +1,12 @@
 package com.videogo.warning;
 
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,30 +14,17 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
-
-import com.google.gson.Gson;
 import com.videogo.EzvizApplication;
-import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.WarningAdapter;
 import com.videogo.been.AlarmContant;
-import com.videogo.been.LocationData;
-import com.videogo.been.SnCal;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.ui.util.FTPutils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import ezviz.ezopensdk.R;
 import okhttp3.Call;
 import okhttp3.Callback;

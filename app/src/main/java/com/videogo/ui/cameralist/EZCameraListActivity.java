@@ -316,9 +316,11 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
             public void onSetDeviceClick(BaseAdapter adapter, View view, int position) {
                 mClickType = TAG_CLICK_SET_DEVICE;
                 EZDeviceInfo deviceInfo = mAdapter.getDeviceInfoItem(position);
+                EZCameraInfo cameraInfo = mAdapter.getItem(position);
                 Intent intent = new Intent(EZCameraListActivity.this, EZDeviceSettingActivity.class);
                 Bundle bundle = new Bundle();
                 bundle.putParcelable(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                bundle.putParcelable(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                 intent.putExtra("Bundle", bundle);
                 startActivity(intent);
                 bIsFromSetting = true;

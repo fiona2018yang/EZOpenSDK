@@ -84,7 +84,7 @@ public class MyVideoThumbLoader {
 
                 if (bitmap == null) {
                     //将drawable转bitmap
-                    bitmap = android.graphics.BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.ic_launcher);
+                    bitmap = android.graphics.BitmapFactory.decodeResource(mContext.getResources(), R.mipmap.load_fail);
                 }
                 // //直接对Bitmap进行缩略操作，最后一个参数定义为OPTIONS_RECYCLE_INPUT ，来回收资源
                 bitmap2 = tu.extractThumbnail(bitmap, width, height, ThumbnailUtils.OPTIONS_RECYCLE_INPUT);

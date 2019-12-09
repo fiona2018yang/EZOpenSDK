@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -18,6 +19,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -42,6 +46,7 @@ import com.squareup.picasso.Picasso;
 import com.videogo.EzvizApplication;
 import com.videogo.HomeActivity;
 import com.videogo.RootActivity;
+import com.videogo.adapter.ImageViewRecyclerAdapter;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
 import com.videogo.been.SnCal;
@@ -55,6 +60,7 @@ import com.videogo.openapi.EZPlayer;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.remoteplayback.RemoteFileInfo;
+import com.videogo.scanpic.PictureActivity;
 import com.videogo.ui.common.ScreenOrientationHelper;
 import com.videogo.ui.util.AudioPlayUtil;
 import com.videogo.ui.util.DataUtils;
@@ -69,8 +75,8 @@ import com.videogo.util.MediaScanner;
 import com.videogo.util.RotateViewUtil;
 import com.videogo.util.SDCardUtil;
 import com.videogo.util.Utils;
+import com.videogo.warning.CommItemDecoration;
 import com.videogo.warning.OkHttpUtil;
-import com.videogo.warning.RoundTransform;
 import com.videogo.widget.CheckTextButton;
 import com.videogo.widget.CustomRect;
 import com.videogo.widget.CustomTouchListener;
@@ -78,11 +84,8 @@ import com.videogo.widget.TitleBar;
 import com.videogo.widget.WaitDialog;
 import com.videogo.widget.loading.LoadingTextView;
 import com.videogo.widget.loading.LoadingView;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
@@ -98,7 +101,6 @@ import ezviz.ezopensdk.R;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
-
 import static com.videogo.EzvizApplication.getOpenSDK;
 
 
@@ -114,8 +116,10 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private TextView tx_message;
     private TextView tx_address;
     private TextView tx_creattime;
-    private ImageView img_message;
+    private RecyclerView recyclerView;
     private String address = "";
+    private ImageViewRecyclerAdapter imageViewRecyclerAdapter;
+    private List<HashMap<String,String>> url_list = new ArrayList<>();
     // 本地播放文件
     private RemoteFileInfo fileInfo;
     // 显示数据网络提示
@@ -353,28 +357,16 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         tx_message = findViewById(R.id.message);
         tx_address = findViewById(R.id.address);
         tx_creattime = findViewById(R.id.creattime);
-        img_message = findViewById(R.id.imageview);
-        //计算图片左右间距之和
-        int padding = 15;
-        int spacePx = (int) (UiUtil.dp2px(this, padding) * 2);
-        //计算图片宽度
-        int imageWidth = UiUtil.getScreenWidth(this) - spacePx;
-        //计算宽高比，注意数字后面要加上f表示浮点型数字
-        float scale = 16f / 9f;
-        //根据图片宽度和比例计算图片高度
-        int imageHeight = (int) (imageWidth / scale);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams( imageWidth,imageHeight);
-        //设置左右边距
-        params.leftMargin = (int) UiUtil.dp2px(this, padding);
-        params.rightMargin = (int) UiUtil.dp2px(this, padding);
-        img_message.setLayoutParams(params);
+        recyclerView = findViewById(R.id.img_recycler);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.addItemDecoration(CommItemDecoration.createVertical(this,getResources().getColor(R.color.transparent),30));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+
         if (address.contains("receive")){
             String str = address.substring(8,address.length());
-            Log.d("TAG","str="+str);
             String la = str.substring(0,str.indexOf(","));
             String ln = str.substring(str.indexOf(",")+1,str.length());
-            Log.d("TAG","la="+la);
-            Log.d("TAG","ln="+ln);
             queryLocation(tx_address,la,ln);
         }else{
             tx_address.setText(address);
@@ -387,24 +379,25 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             tx_creattime.setText(alarmMessage.getCreateTime());
         }
         if (alarmMessage.getImgPath()!=null&&!alarmMessage.getImgPath().equals("")){
-            try {
-                //加载图片
-                String url = alarmMessage.getImgPath();
-                HashMap<String,String> map = DataUtils.getUrlResouse(url);
+            List<String> list = new ArrayList<>();
+            url_list = DataUtils.getUrlResouses(alarmMessage.getImgPath());
+            for (HashMap<String,String> map : url_list){
                 String pic_name = map.get("pic_name");
-                String imagpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
-                File imgFile = new File(imagpath);
-                if (!imgFile.exists()) {
-                    DownImg downImg = new DownImg(map);
-                    downImg.execute();
-                }else{
-                    Log.d("TAG","图片存在!");
-                    Picasso.with(PlaybackActivity2.this).load(imgFile).transform(new RoundTransform(10))
-                            .error(getResources().getDrawable(R.mipmap.ic_launcher)).into(img_message);
-                }
-            }catch (Exception e){
-                e.printStackTrace();
+                String imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
+                list.add(imgpath);
             }
+            imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,PlaybackActivity2.this);
+            recyclerView.setAdapter(imageViewRecyclerAdapter);
+            imageViewRecyclerAdapter.setSetOnItemClickListener(new ImageViewRecyclerAdapter.OnClickListener() {
+                @Override
+                public void OnItemClick(View view, int position) {
+                    Intent intent = new Intent(PlaybackActivity2.this, PictureActivity.class);
+                    intent.putExtra("position",position);
+                    intent.putExtra("flag",true);
+                    intent.putStringArrayListExtra("list", (ArrayList<String>) list);
+                    startActivity(intent);
+                }
+            });
         }
 
         mRemotePlayBackTouchListener = new CustomTouchListener() {
@@ -1899,54 +1892,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             Log.d("TAG","******mPlayer.startPlayback********");
         }
     }
-    private class DownImg extends AsyncTask<Void,Void,Boolean> {
-        String localpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash";
-        Boolean downloaded = false;
-        String pic_name = "";
-        HashMap<String,String> map;
-        public DownImg(HashMap<String,String> map) {
-            this.map = map;
-        }
 
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            FTPutils ftPutils = new FTPutils();
-            String ip = map.get("ip");
-            String name = map.get("name");
-            String password = map.get("password");
-            pic_name = map.get("pic_name");
-            String dir_name = map.get("dir_name");
-            Boolean flag = ftPutils.connect(ip,21,name,password);
-            if (flag){
-                try {
-                    ftPutils.downloadSingleFile(dir_name+"/"+pic_name, localpath,
-                            pic_name, new FTPutils.FtpProgressListener() {
-                                @Override
-                                public void onFtpProgress(int currentStatus, long process, File targetFile) {
-                                    Log.d("TAG","currenstatus="+currentStatus);
-                                    Log.d("TAG","process="+process);
-                                    if (process == 100){
-                                        downloaded = true;
-                                    }
-                                }
-                            });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            return downloaded;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean downloaded) {
-            super.onPostExecute(downloaded);
-            if (downloaded){
-                File file = new File(localpath+"/"+pic_name);
-                Picasso.with(PlaybackActivity2.this).load(file).transform(new RoundTransform(20))
-                        .error(getResources().getDrawable(R.mipmap.ic_launcher)).into(img_message);
-            }
-        }
-    }
     /**
      * 获取事件消息任务
      */

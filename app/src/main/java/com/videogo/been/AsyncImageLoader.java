@@ -17,9 +17,10 @@ public class AsyncImageLoader {
     public AsyncImageLoader(ExecutorService cachedThreadPool) {
         this.cachedThreadPool = cachedThreadPool;
     }
-    public Drawable loadDrawable(final String imageUrl, final ImageCallback imageCallback) {
+    public Drawable loadDrawable(final HashMap<String,String> map, final ImageCallback imageCallback) {
 //        String imageUrl = "ftp://wh:wanghao@192.168.60.81/uftp/78b8998fe074fcfc708f8d91d93678aa.jpg";
-        HashMap<String,String> map = DataUtils.getUrlResouse(imageUrl);
+        //HashMap<String,String> map = DataUtils.getUrlResouse(imageUrl);
+        //HashMap<String,String> map = DataUtils.getUrlResouses(imageUrl).get(0);
         String ip = map.get("ip");
         String name = map.get("name");
         String password = map.get("password");
@@ -44,8 +45,8 @@ public class AsyncImageLoader {
                                 pic_name, new FTPutils.FtpProgressListener() {
                                     @Override
                                     public void onFtpProgress(int currentStatus, long process, File targetFile) {
-                                        Log.d("TAG","currenstatus="+currentStatus);
-                                        Log.d("TAG","process="+process);
+                                        //Log.d("TAG","currenstatus="+currentStatus);
+                                        //Log.d("TAG","process="+process);
                                         if (process == 100){
                                             Message message = new Message();
                                             message.what = 0;

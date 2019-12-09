@@ -125,6 +125,7 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
     public static void startActivity(Context context, ArrayList<String> list, int position){
         Intent intent = new Intent(context, PictureActivity.class);
         intent.putExtra("position",position);
+        intent.putExtra("flag",false);
         intent.putStringArrayListExtra("list", (ArrayList<String>) list);
         context.startActivity(intent);
     }
