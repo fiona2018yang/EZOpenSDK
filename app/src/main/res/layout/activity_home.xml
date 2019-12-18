@@ -4,7 +4,6 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/transparent">
-
     <com.bigkoo.convenientbanner.ConvenientBanner
         android:id="@+id/convenientBanner"
         app:canLoop="true"
@@ -27,6 +26,16 @@
             android:columnWidth="80dp"
             android:stretchMode="columnWidth">
         </GridView>
+        <TextView
+            android:text="@string/company_name"
+            android:textColor="@color/leavemessage_time_text_color"
+            android:gravity="center"
+            android:textSize="12sp"
+            android:visibility="gone"
+            android:layout_marginBottom="5dp"
+            android:layout_alignParentBottom="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
     </RelativeLayout>
     <!--android:layout_marginLeft="15dp"-->
 

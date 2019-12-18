@@ -471,6 +471,7 @@
     <string name="open_camera_fail">打开相机失败，请选择手动输入添加设备</string>
      -->
 
+    <string name="company_name">江苏如是地球空间信息科技有限公司</string>
     <string name="activate">激活</string>
     <string name="sadp_activate_state1">当前设备处于出厂初始状态，请先设置设备密码</string>
     <string name="sadp_activate_state2">设备密码用于在浏览器上通过IP直接登录设备</string>

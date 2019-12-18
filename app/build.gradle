@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+def releasaTime(){
+    return new Date().from("yyyy-MM-dd" , TimeZone.getTimeZone("UTC"));
+}
+
 android {
     sourceSets {
         main {
@@ -35,6 +39,9 @@ android {
 
     buildTypes {
         release {
+            // 混淆
+            minifyEnabled false
+            // 前一部分代表系统默认的android程序的混淆文件，该文件已经包含了基本的混淆声明，后一个文件是自己的定义混淆文件
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -48,6 +55,18 @@ android {
         exclude 'META-INF/NOTICE'
     }
 }
+
+android.applicationVariants.all{variant ->
+    variant.outputs.all { output ->
+        def date = new Date().format("MM_dd_hh_mm", TimeZone.getTimeZone("GMT+08"))
+        if (variant.buildType.name == "debug") {
+            output.outputFileName = "arbitrator_v${android.defaultConfig.versionName}_debug_${android.defaultConfig.versionCode}_${date}.apk"
+        } else if (variant.buildType.name == "release") {
+            output.outputFileName = "arbitrator_v${android.defaultConfig.versionName}_${android.defaultConfig.versionCode}_${date}.apk"
+        }
+    }
+}
+
 repositories {
     flatDir {
         dirs 'libs' //this way we can find the .aar file in libs folder
