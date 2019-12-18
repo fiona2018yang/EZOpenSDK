@@ -21,6 +21,8 @@ public class AlarmContant {
     public static final int USER_TYPE_FAZHANJU = 10;
     public static final int USER_TYPE_SUPER = 11;
     public static final String DEVICE_SERIAL_NUM = "D85325086";
+    public static final String service_url = "http://192.168.60.103:8080/";
+    public static final String location_url ="http://api.map.baidu.com/reverse_geocoding/v3/";
 
     public static List<String> list_chengguan = new ArrayList<>();
     public static List<String> list_shiwuju = new ArrayList<>();

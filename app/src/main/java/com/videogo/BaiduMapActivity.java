@@ -67,7 +67,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private LocationClient locationClient;
     private MyLocationListener myLocationListener;
     private LatLng latLng ;
-    private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
+    private ImageButton change,info,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
     private String style;
     private float angle;
@@ -114,7 +114,6 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         mapView = findViewById(R.id.map);
         change = findViewById(R.id.change_ibtn);
         info = findViewById(R.id.info_ibtn);
-        warning = findViewById(R.id.warning_ibtn);
         robot = findViewById(R.id.robot_ibtn);
         measure = findViewById(R.id.measure_ibtn);
         measure_sel = findViewById(R.id.measure_ibtn_sel);
@@ -173,16 +172,15 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         options_statue.zoomGesturesEnabled(true);
         //初始化定位参数配置
         initLocation();
-        //添加图标
-        addMarker();
         //添加地块信息
         addInfo(url2);
+        //添加图标
+        addMarker();
         //添加报警信息
-        addWarning();
+        //addWarning();
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
-        warning.setOnClickListener(this);
         robot.setOnClickListener(this);
         measure.setOnClickListener(this);
         measure_sel.setOnClickListener(this);
@@ -245,7 +243,10 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             @Override
             public boolean onMarkerClick(Marker marker) {
                 Bundle bundle = marker.getExtraInfo();
-                showDialog(bundle.getString("name"),bundle.getString("des"));
+                Log.d("TAG","Bundel="+bundle);
+                if (bundle!=null){
+                    showDialog(bundle.getString("name"),bundle.getString("des"));
+                }
                 return false;
             }
         });
@@ -268,10 +269,10 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             @Override
             public void onMapStatusChangeFinish(MapStatus mapStatus) {
                 float zoom = mapStatus.zoom;
-                if (zoom >= 15 && !show_text){
+                if (zoom >= 16 && !show_text){
                     mBaiduMap.addOverlays(options_text);
                     show_text = true;
-                }else if (zoom < 15 && show_text){
+                }else if (zoom < 16 && show_text){
                     mBaiduMap.clear();
                     if (!show_camera){
                         mBaiduMap.addOverlays(options);
@@ -474,41 +475,22 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             case R.id.info_ibtn:
                 if (show_info){
                     mBaiduMap.addOverlays(options2);
+                    mBaiduMap.addOverlays(options_text);
                     info.setBackgroundResource(R.mipmap.xinxi_sel);
                     show_info = false;
+                    show_text = true;
                 }else{
                     mBaiduMap.clear();
-                    if (!show_warning){
-                        mBaiduMap.addOverlays(options3);
-                    }
+                    clearMap();
                     if (!show_camera){
                         mBaiduMap.addOverlays(options);
                     }
-                    if (show_text){
-                        mBaiduMap.addOverlays(options_text);
-                    }
+//                    if (show_text){
+//                        mBaiduMap.addOverlays(options_text);
+//                    }
                     info.setBackgroundResource(R.mipmap.xinxi);
                     show_info = true;
-                }
-                break;
-            case R.id.warning_ibtn:
-                if (show_warning){
-                    mBaiduMap.addOverlays(options3);
-                    warning.setBackgroundResource(R.mipmap.baojing_sel);
-                    show_warning = false;
-                }else{
-                    mBaiduMap.clear();
-                    if (!show_camera){
-                        mBaiduMap.addOverlays(options);
-                    }
-                    if (!show_info){
-                        mBaiduMap.addOverlays(options2);
-                    }
-                    if (show_text){
-                        mBaiduMap.addOverlays(options_text);
-                    }
-                    warning.setBackgroundResource(R.mipmap.baojing);
-                    show_warning = true;
+                    show_text = false;
                 }
                 break;
             case R.id.robot_ibtn:
@@ -518,9 +500,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                     show_camera = false;
                 }else{
                     mBaiduMap.clear();
-                    if (!show_warning){
-                        mBaiduMap.addOverlays(options3);
-                    }
+                    clearMap();
                     if (!show_info){
                         mBaiduMap.addOverlays(options2);
                     }
@@ -546,10 +526,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 measure.setVisibility(View.VISIBLE);
                 measure_sel.setVisibility(View.GONE);
                 result.setVisibility(View.GONE);
-                points.clear();
-                Overlays.clear();
-                os.clear();
-                result.setText("");
+                clearMap();
                 break;
             case R.id.zoom_in_ibtn:
                 ZoomIn();
@@ -564,6 +541,13 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
                 StopLocation();
                 break;
         }
+    }
+
+    private void clearMap(){
+        points.clear();
+        Overlays.clear();
+        os.clear();
+        result.setText("");
     }
     /**
      *计算面积

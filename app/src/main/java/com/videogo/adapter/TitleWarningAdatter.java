@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import com.squareup.picasso.Picasso;
+import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
 import com.videogo.been.AsyncImageLoader;
 import com.videogo.been.SnCal;
@@ -27,7 +28,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import ezviz.ezopensdk.R;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -44,11 +44,11 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     private boolean isSrolling = false;
 
 
-    public TitleWarningAdatter(List<AlarmMessage> alarmMessageList,List<EZCameraInfo> cameraInfos,Context context) {
+    public TitleWarningAdatter(List<AlarmMessage> alarmMessageList,List<EZCameraInfo> cameraInfos,ExecutorService executorService , Context context) {
         this.alarmMessageList = alarmMessageList;
         this.cameraInfoList = cameraInfos;
         this.context = context;
-        this.cachedThreadPool = Executors.newCachedThreadPool();
+        this.cachedThreadPool = executorService;
         this.asyncImageLoader = new AsyncImageLoader(cachedThreadPool);
     }
 
@@ -162,8 +162,8 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     public  interface OnClickListener{
         void OnItemClick(View view,int position , String address);
     }
-    public void queryLocation(TextView textView , String la, String ln) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        String url = "http://api.map.baidu.com/reverse_geocoding/v3/";
+    public  void queryLocation(TextView textView , String la, String ln) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        String url = AlarmContant.location_url;
         LinkedHashMap<String,String> map = new LinkedHashMap<>();
         map.put("location",la+","+ln);
         map.put("coordtype","wgs84ll");

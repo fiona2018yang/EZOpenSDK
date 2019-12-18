@@ -18,15 +18,17 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.ConnectionPool;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class OkHttpUtil {
+public  class OkHttpUtil {
     public static void post(String address, okhttp3.Callback callback, Map<String,String> map)
     {
-        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3,TimeUnit.SECONDS).readTimeout(20,TimeUnit.SECONDS).build();
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3,TimeUnit.SECONDS).readTimeout(20,TimeUnit.SECONDS).
+        connectionPool(new ConnectionPool(5,3,TimeUnit.SECONDS)).build();
         FormBody.Builder builder = new FormBody.Builder();
         if (map!=null)
         {
@@ -46,7 +48,8 @@ public class OkHttpUtil {
         String paramsStr = ToQueryString(map);
         String requestUrl = String.format("%s?%s", address,  paramsStr);
         String totalUrl = requestUrl+"&sn="+sn;
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder().connectTimeout(3,TimeUnit.SECONDS).readTimeout(3,TimeUnit.SECONDS)
+                .connectionPool(new ConnectionPool(5,1,TimeUnit.SECONDS)).build();
         Request request = new Request.Builder()
                 .url(totalUrl)
                 .get()

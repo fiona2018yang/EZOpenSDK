@@ -54,6 +54,7 @@ public class CameraVideoActivity extends Activity {
     private LinearLayout linear_2;
     private MyImageButton myImageButton1 = null;
     private MyImageButton myImageButton2 = null;
+    private Context context;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +62,7 @@ public class CameraVideoActivity extends Activity {
         initView();
     }
     private void initView() {
+        context = getApplicationContext();
         db = ((EzvizApplication) getApplication()).getDatebase();
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         tv = (TextView) findViewById(R.id.text);
@@ -73,15 +75,15 @@ public class CameraVideoActivity extends Activity {
         file_list = new ArrayList<>();
         datalist = new ArrayList<>();
         path_checked_list = new ArrayList<>();
-        myImageButton1 = new MyImageButton(this,R.mipmap.send,"发送",60,60);
-        myImageButton2 = new MyImageButton(this,R.mipmap.delate,"删除",60,60);
+        myImageButton1 = new MyImageButton(context,R.mipmap.send,"发送",60,60);
+        myImageButton2 = new MyImageButton(context,R.mipmap.delate,"删除",60,60);
         linear_1.addView(myImageButton1);
         linear_2.addView(myImageButton2);
         initData();
         addClickListner();
         if(adapter == null){
-            rv.setLayoutManager(new LinearLayoutManager(this));
-            adapter = new TitleAdapter(this, title_list, file_list, width, show_flag, new TitleAdapter.Callback() {
+            rv.setLayoutManager(new LinearLayoutManager(context));
+            adapter = new TitleAdapter(context, title_list, file_list, width, show_flag, new TitleAdapter.Callback() {
                 @Override
                 public void callback(boolean flag) {
                     if (flag){

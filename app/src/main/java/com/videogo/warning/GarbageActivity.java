@@ -1,7 +1,9 @@
 package com.videogo.warning;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -15,26 +17,35 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.scwang.smartrefresh.layout.api.RefreshLayout;
 import com.scwang.smartrefresh.layout.listener.OnLoadMoreListener;
 import com.scwang.smartrefresh.layout.listener.OnRefreshListener;
 import com.videogo.EzvizApplication;
 import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.TitleWarningAdatter;
+import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.remoteplayback.list.PlaybackActivity2;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import ezviz.ezopensdk.R;
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Response;
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 
 public class GarbageActivity extends Activity {
@@ -45,9 +56,11 @@ public class GarbageActivity extends Activity {
     private List<AlarmMessage> alarmMessageList = new ArrayList<>();
     private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
     private ExecutorService cachedThreadPool;
+    private ExecutorService cachedThreadPool_1;
     private RecyclerView rv;
     private int page = 1;
-    private int page_size = 9;
+    private int page_size = 12;
+    private int list_size = 0;
     private SQLiteDatabase db;
     private RefreshLayout refreshLayout;
     private TitleWarningAdatter adatper;
@@ -57,10 +70,64 @@ public class GarbageActivity extends Activity {
     private List<AlarmMessage> list = new ArrayList<>();
     private ImageButton query;
     private ImageButton back;
-    private Handler handler;
+    private String table_name;
     private Boolean refreshType = true;
     private String s1 = "全部";
     private String s2 = "全部";
+    private SharedPreferences sharedPreferences;
+    private String userid;
+    private Context context;
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 103:
+                    Bundle bundle = msg.getData();
+                    list.clear();
+                    list = bundle.getParcelableArrayList("datalist");
+                    if (alarmMessageList.size()!=0){
+                        alarmMessageList.clear();
+                    }
+                    if (refreshType){
+                        if (page_size<=list.size()){
+                            alarmMessageList.addAll(list.subList(0,page_size));
+                        }else{
+                            alarmMessageList.addAll(list);
+                        }
+                        adatper.notifyDataSetChanged();
+                    }
+                    break;
+                case 102:
+                    ToastNotRepeat.show(GarbageActivity.this,"网络异常！");
+                    break;
+                case 101:
+                    //                       try {
+                    Bundle bundle2 = msg.getData();
+                    List<AlarmMessage> list = new ArrayList<>();
+                    list = bundle2.getParcelableArrayList("datalist");
+                    list_size = list.size();
+                    Log.d(TAG,"list.isze="+list_size);
+                    if (refreshType){
+                        //刷新
+                        if (alarmMessageList.size()!=0){
+                            alarmMessageList.clear();
+                        }
+                        alarmMessageList.addAll(list);
+                        adatper.notifyDataSetChanged();
+                    }else{
+                        //加载更多
+                        alarmMessageList.addAll(list);
+                        adatper.notifyItemRangeInserted(alarmMessageList.size()-list_size,alarmMessageList.size());
+                        adatper.notifyItemRangeChanged(alarmMessageList.size()-list_size,alarmMessageList.size());
+                    }
+//                        }catch (Exception e){
+//                            e.printStackTrace();
+//                        }
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,31 +137,37 @@ public class GarbageActivity extends Activity {
         initdata();
     }
     private void initView() {
+        context = getApplicationContext();
+        sharedPreferences = getSharedPreferences("userid",MODE_PRIVATE);
+        userid = sharedPreferences.getString("id","1");
         db = ((EzvizApplication) getApplication()).getDatebase();
-        cachedThreadPool = Executors.newCachedThreadPool();
+        cachedThreadPool = Executors.newFixedThreadPool(50);
+        cachedThreadPool_1 = Executors.newFixedThreadPool(50);
         refreshLayout = findViewById(R.id.refreshLayout);
         spinner_time = findViewById(R.id.spinner_1);
         spinner_location = findViewById(R.id.spinner_2);
         query = findViewById(R.id.query);
         back = findViewById(R.id.back);
         title_text = findViewById(R.id.title);
+        table_name = EzvizApplication.table_name;
         alarm_type = getIntent().getIntExtra("type",0);
         String str = getIntent().getStringExtra("title");
         cameraInfoList = getIntent().getParcelableArrayListExtra("camerainfo_list");
         title_text.setText(str);
         //查询数据
-        querydata(alarm_type);
+        //querydata(alarm_type);
+        queryDataFromService(alarm_type,1);
         rv = findViewById(R.id.recyclerView);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         rv.setLayoutManager(layoutManager);
-        rv.addItemDecoration(CommItemDecoration.createVertical(this,getResources().getColor(R.color.blue_bg),4));
+        rv.addItemDecoration(CommItemDecoration.createVertical(context,getResources().getColor(R.color.blue_bg),4));
         rv.setItemAnimator(new DefaultItemAnimator());
-        adatper = new TitleWarningAdatter(alarmMessageList,cameraInfoList,this);
+        adatper = new TitleWarningAdatter(alarmMessageList,cameraInfoList,cachedThreadPool_1,context);
         rv.setAdapter(adatper);
         adatper.setSetOnItemClickListener(new TitleWarningAdatter.OnClickListener() {
             @Override
             public void OnItemClick(View view, int position , String address ) {
-                Intent intent = new Intent(GarbageActivity.this, PlaybackActivity2.class);
+                Intent intent = new Intent(context, PlaybackActivity2.class);
                 intent.putExtra("alarmMessage", alarmMessageList.get(position));
                 intent.putExtra("address",address);
                 startActivity(intent);
@@ -113,31 +186,6 @@ public class GarbageActivity extends Activity {
                 super.onScrollStateChanged(recyclerView, newState);
             }
         });
-        handler = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what){
-                    case 103:
-                        Bundle bundle = msg.getData();
-                        list.clear();
-                        Log.d("TAG", "list.size....="+list.size());
-                        list = bundle.getParcelableArrayList("datalist");
-                        if (alarmMessageList.size()!=0){
-                            alarmMessageList.clear();
-                        }
-                        if (refreshType){
-                            if (page_size<=list.size()){
-                                alarmMessageList.addAll(list.subList(0,page_size));
-                            }else{
-                                alarmMessageList.addAll(list);
-                            }
-                            adatper.notifyDataSetChanged();
-                        }
-                        Log.d("TAG", "list.size2....="+list.size());
-                        break;
-                }
-            }
-        };
     }
 
     private void initdata() {
@@ -148,58 +196,39 @@ public class GarbageActivity extends Activity {
                 //刷新
                 refreshType = true;
                 page = 1;
-                querydata(alarm_type);
-                refreshLayout.finishRefresh(500);
-                Log.d("TAG","刷新完成");
+                queryDataFromService(alarm_type,page);
+                refreshLayout.finishRefresh(100);
+                page++;
             }
         });
         refreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
                 refreshType = false;
-                if (page*page_size>list.size()||(page+1)*page_size>list.size()){
+                queryDataFromService(alarm_type,page);
+                if (list_size<page_size){
                     ToastNotRepeat.show(GarbageActivity.this,"暂无更多的数据啦");
                     refreshLayout.finishLoadMoreWithNoMoreData();
                     return;
                 }else{
-                    //加载更多数据
-                    querydata(alarm_type);
                     refreshLayout.setEnableLoadMore(true);
-                    refreshLayout.finishLoadMore(500);
+                    refreshLayout.finishLoadMore(100);
+                    page++;
                 }
+//                if (page*page_size>list.size()||(page+1)*page_size>list.size()){
+//                    ToastNotRepeat.show(GarbageActivity.this,"暂无更多的数据啦");
+//                    refreshLayout.finishLoadMoreWithNoMoreData();
+//                    return;
+//                }else{
+//                    //加载更多数据
+//                    querydata(alarm_type);
+//                    refreshLayout.setEnableLoadMore(true);
+//                    refreshLayout.finishLoadMore(500);
+//                }
             }
         });
         //自动刷新
-        //refreshLayout.autoRefresh();
-        ArrayAdapter adapter = new ArrayAdapter<String>(this,R.layout.spinner_item,title);
-        adapter.setDropDownViewResource(R.layout.dropdown_stytle);
-        spinner_time.setAdapter(adapter);
-        spinner_time.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                s1 = getResources().getStringArray(R.array.location_title)[position];
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
-
-        ArrayAdapter adapter2 = new ArrayAdapter<String>(this,R.layout.spinner_item,time_title);
-        adapter2.setDropDownViewResource(R.layout.dropdown_stytle);
-        spinner_location.setAdapter(adapter2);
-        spinner_location.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                s2 = getResources().getStringArray(R.array.time_title)[position];
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
+        refreshLayout.autoRefresh();
 
         back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -219,6 +248,57 @@ public class GarbageActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
+        cachedThreadPool.shutdown();
+        cachedThreadPool_1.shutdown();
+    }
+
+
+    private void queryDataFromService(int type,int page){
+        String url = AlarmContant.service_url+"api/getEarlyWarning";
+        Map<String,String> map = new HashMap<>();
+        map.put("userId",userid);
+        map.put("type",String.valueOf(type));
+        map.put("limit",String.valueOf(page_size));
+        map.put("page",String.valueOf(page));
+        OkHttpUtil.post(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Message message = Message.obtain();
+                message.what = 102;
+                handler.sendMessage(message);
+                Log.d(TAG, "onFailure: ",e);
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseBody = response.body().string();
+                Log.d(TAG, "result="+responseBody);
+                List<AlarmMessage> alarmMessageList = new ArrayList<>();
+                try {
+                    JSONObject object = new JSONObject(responseBody);
+                    String result = object.get("success").toString();
+                    if (result.equals("true")){
+                        String data = object.get("data").toString();
+                        JSONObject objectdata = new JSONObject(data);
+                        Gson gson = new Gson();
+                        List<JsonObject> list_objects = gson.fromJson(objectdata.get("data").toString(),new TypeToken<List<JsonObject>>(){}.getType());
+                        for (JsonObject object1 : list_objects){
+                            AlarmMessage alarmMessage = gson.fromJson(object1,AlarmMessage.class);
+                            alarmMessageList.add(alarmMessage);
+                        }
+                        Message message = Message.obtain();
+                        message.what = 101;
+                        Bundle bundle = new Bundle();
+                        bundle.putParcelableArrayList("datalist", (ArrayList<? extends Parcelable>) alarmMessageList);
+                        message.setData(bundle);
+                        handler.sendMessage(message);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        },map);
     }
 
     private void querydata(int alarmtype){
@@ -232,7 +312,7 @@ public class GarbageActivity extends Activity {
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-                    Cursor cursor = db.query("alarmMessage",null,"type = ?",new String[]{String.valueOf(alarmtype)},null,null,null);
+                    Cursor cursor = db.query(table_name,null,"type = ?",new String[]{String.valueOf(alarmtype)},null,null,null);
                     List<AlarmMessage> list = new ArrayList<>();
                     if (cursor.moveToFirst()){
                         do {

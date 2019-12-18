@@ -25,6 +25,7 @@ import android.support.multidex.MultiDex;
 import android.util.Log;
 
 import com.baidu.mapapi.SDKInitializer;
+import com.squareup.leakcanary.LeakCanary;
 import com.videogo.constant.Constant;
 import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.bean.EZAccessToken;
@@ -45,6 +46,7 @@ public class EzvizApplication extends Application {
     //public static String AppKey = "76d8a02ae81a4260a02e470ebb48077d";
     public static String AppKey = "bec27f333fd04a95a352bec49d466754";
     public  static int user_type;
+    public static String table_name;
     private MyDatabaseHelper dbHelper;
     private  SQLiteDatabase db;
     private IntentFilter intentFilter;
@@ -56,10 +58,18 @@ public class EzvizApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        initleakcanary();
         initSDK();
         initData();
         SDKInitializer.initialize(this);
         JPushInterface.init(this);
+    }
+
+    private void initleakcanary() {
+        if (LeakCanary.isInAnalyzerProcess(this)){
+            return;
+        }
+        LeakCanary.install(this);
     }
 
     private void initData() {
@@ -92,6 +102,11 @@ public class EzvizApplication extends Application {
     public static void setUser_type(int type){
         user_type = type;
     }
+
+    public static void setTable_name(String name){
+        table_name = name;
+    }
+
     private void initSDK() {
         {
             /**

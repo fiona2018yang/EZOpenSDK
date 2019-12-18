@@ -27,18 +27,10 @@
         android:background="@mipmap/xinxi_sel"
         android:layout_width="40dp"
         android:layout_height="40dp" />
-    <ImageButton
-        android:id="@+id/warning_ibtn"
-        android:layout_below="@+id/info_ibtn"
-        android:layout_marginTop="20dp"
-        android:layout_marginRight="20dp"
-        android:layout_alignParentRight="true"
-        android:background="@drawable/imagebutton_warning_selector"
-        android:layout_width="40dp"
-        android:layout_height="40dp" />
+
     <ImageButton
         android:id="@+id/robot_ibtn"
-        android:layout_below="@+id/warning_ibtn"
+        android:layout_below="@+id/info_ibtn"
         android:layout_marginTop="20dp"
         android:layout_marginRight="20dp"
         android:layout_alignParentRight="true"

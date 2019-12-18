@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -59,9 +60,9 @@ public class DataUtils {
                 map.put("name",name);
                 String password = pas[1];
                 map.put("password",password);
-                String pic_name = rils[4];
+                String pic_name = rils[rils.length-1];
                 map.put("pic_name",pic_name);
-                String dir_name = rils[3];
+                String dir_name = url.substring(7+rils[2].length(),url.length()-pic_name.length()-1);
                 map.put("dir_name",dir_name);
                 hashMapList.add(map);
             }
@@ -153,5 +154,16 @@ public class DataUtils {
                     ThumbnailUtils.OPTIONS_RECYCLE_INPUT);//調用ThumbnailUtils類的靜態方法extractThumbnail將原圖片（即上方截取的圖片）轉化為指定大小；
         }
         return bitmap;
+    }
+
+    //日期格式字符串转换时间戳
+    public static String date2TimeStamp(String date , String format){
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            return String.valueOf(sdf.parse(date).getTime() / 1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }

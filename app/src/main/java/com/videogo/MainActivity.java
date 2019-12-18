@@ -59,7 +59,7 @@ import ezviz.ezopensdk.R;
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
     private MapView mapView = null;
-    private ImageButton change,info,warning,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
+    private ImageButton change,info,robot,measure,measure_sel,zoom_in,zoom_out,position,position_sel;
     private TextView result;
     private String path;
     private TextView title;
@@ -88,7 +88,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         mapView = (MapView) findViewById(R.id.map);
         change = findViewById(R.id.change_ibtn);
         info = findViewById(R.id.info_ibtn);
-        warning = findViewById(R.id.warning_ibtn);
         robot = findViewById(R.id.robot_ibtn);
         measure = findViewById(R.id.measure_ibtn);
         measure_sel = findViewById(R.id.measure_ibtn_sel);
@@ -104,7 +103,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         change.setOnClickListener(this);
         info.setOnClickListener(this);
-        warning.setOnClickListener(this);
         robot.setOnClickListener(this);
         measure.setOnClickListener(this);
         measure_sel.setOnClickListener(this);
@@ -156,15 +154,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     info.setBackgroundResource(R.mipmap.xinxi_sel);
                 }
                 break;
-            case R.id.warning_ibtn:
-                if (graphicsLayer_warning.isVisible()){
-                    graphicsLayer_warning.setVisible(false);
-                    warning.setBackgroundResource(R.mipmap.baojing);
-                }else{
-                    graphicsLayer_warning.setVisible(true);
-                    warning.setBackgroundResource(R.mipmap.baojing_sel);
-                }
-                break;
             case R.id.robot_ibtn:
                 if (graphicsLayer_camera.isVisible()){
                     graphicsLayer_camera.setVisible(false);
@@ -206,15 +195,19 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     new Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            double la = locationDisplayManager.getLocation().getLatitude();
-                            double ln = locationDisplayManager.getLocation().getLongitude();
-                            Point p = new Point(ln,la);
-                            Envelope e = mapView.getMaxExtent();
-                            if (!e.contains(p)){
-                                locationDisplayManager.stop();
-                                position.setVisibility(View.VISIBLE);
-                                position_sel.setVisibility(View.GONE);
-                                ToastNotRepeat.show(MainActivity.this,"超出地图范围！");
+                            try {
+                                double la = locationDisplayManager.getLocation().getLatitude();
+                                double ln = locationDisplayManager.getLocation().getLongitude();
+                                Point p = new Point(ln,la);
+                                Envelope e = mapView.getMaxExtent();
+                                if (!e.contains(p)){
+                                    locationDisplayManager.stop();
+                                    position.setVisibility(View.VISIBLE);
+                                    position_sel.setVisibility(View.GONE);
+                                    ToastNotRepeat.show(MainActivity.this,"超出地图范围！");
+                                }
+                            }catch (Exception e){
+                                e.printStackTrace();
                             }
                         }
                     },1500);
@@ -233,25 +226,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
      *地图切换
      */
     private void selectfile() {
-//        FilePicker picker = new FilePicker(this, FilePicker.FILE);
-//        picker.setShowHideDir(false);
-//        picker.setRootPath(Environment.getExternalStorageDirectory().getPath());
-//        picker.setAllowExtensions(new String[]{".tif",".tpk"});
-//        picker.setOnFilePickListener(new FilePicker.OnFilePickListener() {
-//            @Override
-//            public void onFilePicked(String currentPath) {
-//                Log.i("TAG","currentPath="+currentPath);
-//                sharedPreferences = getSharedPreferences("path", 0);
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
-//                editor.putString("earthPath", currentPath);
-//                editor.commit();
-//                //加载离线切片地图
-//                finish();
-//                startActivity(new Intent(MainActivity.this, MainActivity.class));
-//                overridePendingTransition(0, 0);
-//            }
-//        });
-//        picker.show();
         if (path.equals("")||path==null||(path.substring(path.indexOf(".")-1)).equals("2.tif")){
             path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -324,7 +298,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                 String url3 = "违章种植.kml";
                                 loadCamera(url);
                                 loadinfo(finalUrl);
-                                loadwarning(url3);
+                                //loadwarning(url3);
                             }
                         }).start();
                     }else if(status == STATUS.INITIALIZATION_FAILED || status == STATUS.LAYER_LOADING_FAILED){

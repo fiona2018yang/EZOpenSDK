@@ -35,6 +35,7 @@ import com.bigkoo.convenientbanner.holder.Holder;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
+import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
@@ -80,6 +81,8 @@ public class HomeActivity extends Activity {
     private final static int LOAD_MY_DEVICE = 0;
     private int mLoadType = LOAD_MY_DEVICE;
     private Handler handler;
+    private String userid;
+    private String table_name;
     private static String[] allpermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_NETWORK_STATE,
@@ -106,7 +109,7 @@ public class HomeActivity extends Activity {
         checkpermission();
         initGridView();
         setConvenientBanner();
-        initData();
+        //initData();
         setAlias();
     }
     //设置别名
@@ -120,7 +123,7 @@ public class HomeActivity extends Activity {
 
     private void initData() {
         int number=0;
-        Cursor c = db.rawQuery("select * from alarmMessage",null);
+        Cursor c = db.rawQuery("select * from "+table_name,null);
         number = c.getCount();
         if (number == 0 ){
             //查询数据
@@ -133,23 +136,39 @@ public class HomeActivity extends Activity {
                     case 101:
                         Bundle bundle = msg.getData();
                         List<AlarmMessage> list = bundle.getParcelableArrayList("datalist");
-                        String sql = "insert into alarmMessage(message,type,latitude,longitude,altitude,address,imgPath,videoPath,createTime,startTime,endTime,channelNumber) " +
+                        String sql = "insert into "+table_name+"(message,type,latitude,longitude,altitude,address,imgPath,videoPath,createTime,startTime,endTime,channelNumber) " +
                                 "values(?,?,?,?,?,?,?,?,?,?,?,?)";
                         SQLiteStatement stat = db.compileStatement(sql);
                         db.beginTransaction();
-                        for (AlarmMessage message : list){
-                            stat.bindString(1,message.getMessage());
-                            stat.bindString(2,message.getType());
-                            stat.bindString(3,message.getLatitude());
-                            stat.bindString(4,message.getLongitude());
-                            stat.bindString(5,message.getAltitude());
-                            stat.bindString(6,message.getAddress());
-                            stat.bindString(7,message.getImgPath());
-                            stat.bindString(8,message.getVideoPath());
-                            stat.bindString(9,message.getCreateTime());
-                            stat.bindString(10,message.getStartTime());
-                            stat.bindString(11,message.getEndTime());
-                            stat.bindString(12,message.getChannelNumber());
+                        for (AlarmMessage alarmMessage : list){
+                            stat.bindString(1,alarmMessage.getMessage());
+                            stat.bindString(2,alarmMessage.getType());
+                            stat.bindString(3,alarmMessage.getLatitude());
+                            stat.bindString(4,alarmMessage.getLongitude());
+                            if (alarmMessage.getAltitude()!=null){
+                                stat.bindString(5,alarmMessage.getAltitude());
+                            }
+                            if (alarmMessage.getAddress()!=null){
+                                stat.bindString(6,alarmMessage.getAddress());
+                            }
+                            if (alarmMessage.getImgPath()!=null){
+                                stat.bindString(7,alarmMessage.getImgPath());
+                            }
+                            if (alarmMessage.getVideoPath()!=null){
+                                stat.bindString(8,alarmMessage.getVideoPath());
+                            }
+                            if (alarmMessage.getCreateTime()!=null){
+                                stat.bindString(9,alarmMessage.getCreateTime());
+                            }
+                            if (alarmMessage.getStartTime()!=null){
+                                stat.bindString(10,alarmMessage.getStartTime());
+                            }
+                            if (alarmMessage.getEndTime()!=null){
+                                stat.bindString(11,alarmMessage.getEndTime());
+                            }
+                            if (alarmMessage.getChannelNumber()!=null){
+                                stat.bindString(12,alarmMessage.getChannelNumber());
+                            }
                             stat.executeInsert();
                         }
                         db.setTransactionSuccessful();
@@ -161,9 +180,9 @@ public class HomeActivity extends Activity {
         };
     }
     private void startquerydata() {
-        String url = "http://192.168.60.103:8080/api/getEarlyWarning";
+        String url = AlarmContant.service_url+"api/getEarlyWarning";
         Map<String,String> map = new HashMap<>();
-        map.put("userId","1194134346510815234");
+        map.put("userId",userid);
         map.put("type","");
         map.put("limit","2000");
         map.put("page",String.valueOf(0));
@@ -181,20 +200,22 @@ public class HomeActivity extends Activity {
                 try {
                     JSONObject object = new JSONObject(responseBody);
                     String result = object.get("success").toString();
-                    String data = object.get("data").toString();
-                    JSONObject objectdata = new JSONObject(data);
-                    Gson gson = new Gson();
-                    List<JsonObject> list_objects = gson.fromJson(objectdata.get("data").toString(),new TypeToken<List<JsonObject>>(){}.getType());
-                    for (JsonObject object1 : list_objects){
-                        AlarmMessage alarmMessage = gson.fromJson(object1,AlarmMessage.class);
-                        alarmMessageList.add(0,alarmMessage);
+                    if (result.equals("true")){
+                        String data = object.get("data").toString();
+                        JSONObject objectdata = new JSONObject(data);
+                        Gson gson = new Gson();
+                        List<JsonObject> list_objects = gson.fromJson(objectdata.get("data").toString(),new TypeToken<List<JsonObject>>(){}.getType());
+                        for (JsonObject object1 : list_objects){
+                            AlarmMessage alarmMessage = gson.fromJson(object1,AlarmMessage.class);
+                            alarmMessageList.add(0,alarmMessage);
+                        }
+                        Message message = new Message();
+                        message.what = 101;
+                        Bundle bundle = new Bundle();
+                        bundle.putParcelableArrayList("datalist", (ArrayList<? extends Parcelable>) alarmMessageList);
+                        message.setData(bundle);
+                        handler.sendMessage(message);
                     }
-                    Message message = new Message();
-                    message.what = 101;
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelableArrayList("datalist", (ArrayList<? extends Parcelable>) alarmMessageList);
-                    message.setData(bundle);
-                    handler.sendMessage(message);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -205,9 +226,12 @@ public class HomeActivity extends Activity {
      * 初始化View
      */
     private void initGridView() {
+        table_name = EzvizApplication.table_name;
         db = ((EzvizApplication)getApplication()).getDatebase();
         sharedPreferences = getSharedPreferences("alias",MODE_PRIVATE);
         sharedPreferences_1 = getSharedPreferences("userid",MODE_PRIVATE);
+        userid = sharedPreferences_1.getString("id","1");
+        Log.d("TAG","userid="+userid);
         convenientBanner= (ConvenientBanner) findViewById(R.id.convenientBanner);
         imgs.add(R.mipmap.bg_home_1);
         imgs.add(R.mipmap.bg_home_2);
@@ -234,19 +258,6 @@ public class HomeActivity extends Activity {
                 ImageView  img = (ImageView) view.findViewById(R.id.grid_icon);
                 Animation animation = AnimationUtils.loadAnimation(HomeActivity.this, R.anim.item_img);
                 img.startAnimation(animation);
-//                for (int i = 0; i < parent.getCount(); i++) {
-////                    View v = parent.getChildAt(i);
-////                    if (position == i) {//当前选中的Item改变背景颜色
-////                        if (position != 3 ) {
-////                            view.setBackgroundColor(getResources().getColor(R.color.Lightgray));
-////                        } else {
-////                            view.setBackgroundColor(Color.TRANSPARENT);
-////                        }
-////                    } else {
-////                        v.setBackgroundColor(Color.TRANSPARENT);
-////                    }
-////                }
-
                 // "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"
                 switch (position) {
                     case 0://实景地图
@@ -405,9 +416,11 @@ public class HomeActivity extends Activity {
         @Override
         protected void onPostExecute(List<EZDeviceInfo> result) {
             super.onPostExecute(result);
-            for (EZDeviceInfo ezDeviceInfo : result){
-                for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
-                    list_ezCamera.add(cameraInfo);
+            if (result!=null){
+                for (EZDeviceInfo ezDeviceInfo : result){
+                    for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
+                        list_ezCamera.add(cameraInfo);
+                    }
                 }
             }
         }

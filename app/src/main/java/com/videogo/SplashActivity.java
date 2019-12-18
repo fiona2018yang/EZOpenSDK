@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.videogo.been.AlarmContant;
 import com.videogo.been.User;
 import com.videogo.main.EzvizWebViewActivity;
 import com.videogo.ui.cameralist.CountDownView;
@@ -119,21 +120,11 @@ public class SplashActivity extends Activity {
                             Toast.makeText(SplashActivity.this, "请您输入密码！", Toast.LENGTH_SHORT).show();
                         }else{
                             login(strUsername, strPassword);
+//                            Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
+//                            startActivity(it);
                         }
                     }
                 }
-                //                if (strUsername.equals("用户名")) {
-                //                    if (strPassword.equals("密码")){
-                //                        Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
-                //                        startActivity(it);
-                //                        SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
-                //                    }else{
-                //                        Toast.makeText(SplashActivity.this, "密码错误", Toast.LENGTH_LONG).show();
-                //                    }
-                //
-                //                }else {
-                //                    Toast.makeText(SplashActivity.this, "用户名错误", Toast.LENGTH_LONG).show();
-                //                }
             }
         });
         btnSignup.setOnClickListener(new View.OnClickListener() {
@@ -175,16 +166,22 @@ public class SplashActivity extends Activity {
     private void setUserType(String etUsername){
         if (etUsername.equals("chengguan")){
             EzvizApplication.setUser_type(6);
+            EzvizApplication.setTable_name("alarmMessage6");
         }else if (etUsername.equals("shiwuju")){
             EzvizApplication.setUser_type(7);
+            EzvizApplication.setTable_name("alarmMessage7");
         }else if(etUsername.equals("huanbaoju")){
             EzvizApplication.setUser_type(8);
+            EzvizApplication.setTable_name("alarmMessage8");
         }else if (etUsername.equals("zhifaju")){
             EzvizApplication.setUser_type(9);
+            EzvizApplication.setTable_name("alarmMessage9");
         }else if (etUsername.equals("fazhanju")){
             EzvizApplication.setUser_type(10);
+            EzvizApplication.setTable_name("alarmMessage10");
         }else if (etUsername.equals("admin")){
             EzvizApplication.setUser_type(11);
+            EzvizApplication.setTable_name("alarmMessage11");
         }
     }
     //验证登录
@@ -197,7 +194,7 @@ public class SplashActivity extends Activity {
 //            return true;
 //        }
 //        return false;
-        String url = "http://192.168.60.103:8080/api/login";
+        String url = AlarmContant.service_url+"api/login";
         Map<String,String> map = new HashMap<>();
         map.put("userName",strUsername);
         map.put("password",strPassword);

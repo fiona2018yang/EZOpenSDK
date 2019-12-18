@@ -220,8 +220,8 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private TextView mRemotePlayBackRecordTv = null;
     // 重播按钮
     private ImageButton replayBtn;
-    private long beginTime=System.currentTimeMillis()-1160000;
-    private long endTime=System.currentTimeMillis()-1100000;
+    private long beginTime;
+    private long endTime;
     // 下一个播放按钮
     private ImageButton nextPlayBtn;
     // 进度条拖动时的进度圈
@@ -237,7 +237,8 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private long mStreamFlow = 0;
     private RelativeLayout mControlBarRL;
     private TitleBar mLandscapeTitleBar = null;
-    private static String TAG= "handlePlayProgress";
+    private Context context;
+    private static String TAG= "PlaybackActivity2";
     // 播放分辨率
     private float mRealRatio = Constant.LIVE_VIEW_RATIO;
     private Handler playBackHandler = new Handler() {
@@ -514,19 +515,20 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             }
         });
     }
-
     private void initEzPlayer() {
         newPlayInit(true, true);
         showControlArea(true);
         timeBucketUIInit(beginTime, endTime);
-        mPlayer.setHandler(playBackHandler);
-        mPlayer.setSurfaceHold(surfaceView.getHolder());
-        Calendar begin = Calendar.getInstance();
-        Calendar end = Calendar.getInstance();
-        begin.setTime(new Date(beginTime));
-        end.setTime(new Date(endTime));
-        mPlayer.startPlayback(begin,end);
-        Log.i("TAG","startmPlayer");
+        if (alarmMessage.getChannelNumber()!=null && !alarmMessage.getChannelNumber().equals("")){
+            mPlayer.setHandler(playBackHandler);
+            mPlayer.setSurfaceHold(surfaceView.getHolder());
+            Calendar begin = Calendar.getInstance();
+            Calendar end = Calendar.getInstance();
+            begin.setTime(new Date(beginTime));
+            end.setTime(new Date(endTime));
+            mPlayer.startPlayback(begin,end);
+            Log.i("TAG","startmPlayer");
+        }
     }
 
     private int getAndroidOSVersion() {
@@ -598,8 +600,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                     return;
                 }
                 if (CameraName != null) {
-                    beginTime = System.currentTimeMillis()-1160000;
-                    endTime = System.currentTimeMillis()-1100000;
                     long avg = (endTime - beginTime) / RemoteListContant.PROGRESS_MAX_VALUE;
                     long trackTime = beginTime + (progress * avg);
 
@@ -769,6 +769,15 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             EzvizApplication.getOpenSDK().releasePlayer(mPlayer);
         }
         removeHandler(playBackHandler);
+        removeHandler(handler);
+        if (mUpdateTimer != null){
+            mUpdateTimer.cancel();
+            mUpdateTimer = null;
+        }
+        if (mUpdateTimerTask != null){
+            mUpdateTimerTask.cancel();
+            mUpdateTimerTask = null;
+        }
         //downloadHelper.setCloundDownloadListener(null);
     }
 
@@ -1310,12 +1319,18 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     }
     private void getData() {
 //        mShowNetworkTip = getIntent().getBooleanExtra(IntentConsts.EXTRA_NETWORK_TIP, false);
+        context = getApplicationContext();
         localInfo = LocalInfo.getInstance();
         Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             alarmMessage = getIntent().getParcelableExtra("alarmMessage");
             address = getIntent().getStringExtra("address");
             ChanneNumber = alarmMessage.getChannelNumber();
+            String time = alarmMessage.getStartTime();
+            beginTime = Long.parseLong(DataUtils.date2TimeStamp(time,"yyyy-MM-dd HH:mm:ss"));
+            endTime = beginTime+20000;
+            Log.d(TAG,"begintime="+beginTime);
+            Log.d(TAG,"entime="+endTime);
         }
         Application application = (Application) getApplication();
         mAudioPlayUtil = AudioPlayUtil.getInstance(application);
@@ -1324,6 +1339,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         localInfo.setScreenWidthHeight(metric.widthPixels, metric.heightPixels);
         localInfo.setNavigationBarHeight((int) Math.ceil(25 * getResources().getDisplayMetrics().density));
     }
+
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -1745,20 +1761,21 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             // 停止播放
             mPlayer.stopPlayback();
         } else {
-            mPlayer = EzvizApplication.getOpenSDK().createPlayer(AlarmContant.DEVICE_SERIAL_NUM,Integer.parseInt(alarmMessage.getChannelNumber()));
-
-            String name = AlarmContant.DEVICE_SERIAL_NUM+String.valueOf(ChanneNumber);
-            db = ((EzvizApplication) getApplication()).getDatebase();
-            Cursor cursor = db.query("verifycode", null, "name = ?", new String[]{name}, null, null, null);
-            if (cursor.moveToFirst()){
-                do {
-                    mVerifyCode = cursor.getString(cursor.getColumnIndex("code"));
-                }while (cursor.moveToNext());
+            if (alarmMessage.getChannelNumber()!=null && !alarmMessage.getChannelNumber().equals("")) {
+                mPlayer = EzvizApplication.getOpenSDK().createPlayer(AlarmContant.DEVICE_SERIAL_NUM, Integer.parseInt(alarmMessage.getChannelNumber()));
+                String name = AlarmContant.DEVICE_SERIAL_NUM + String.valueOf(ChanneNumber);
+                db = ((EzvizApplication) getApplication()).getDatebase();
+                Cursor cursor = db.query("verifycode", null, "name = ?", new String[]{name}, null, null, null);
+                if (cursor.moveToFirst()) {
+                    do {
+                        mVerifyCode = cursor.getString(cursor.getColumnIndex("code"));
+                    } while (cursor.moveToNext());
+                }
+                cursor.close();
+                mPlayer.setPlayVerifyCode(mVerifyCode);
+                Log.i("TAG", "mVerifyCode=" + mVerifyCode);
+                Log.i("TAG", "mCameraInfo.name=" + CameraName);
             }
-            cursor.close();
-            mPlayer.setPlayVerifyCode(mVerifyCode);
-            Log.i("TAG","mVerifyCode="+mVerifyCode);
-            Log.i("TAG","mCameraInfo.name="+CameraName);
         }
     }
     // 新的播放UI初始化
@@ -1922,15 +1939,17 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         @Override
         protected void onPostExecute(List<EZDeviceInfo> result) {
             super.onPostExecute(result);
-            for (EZDeviceInfo ezDeviceInfo : result){
-                for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
-                    cameraInfoList.add(cameraInfo);
-                    Message msg = new Message();
-                    msg.what = 256;
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelableArrayList("cameralist", (ArrayList<? extends Parcelable>) cameraInfoList);
-                    msg.setData(bundle);
-                    handler.sendMessage(msg);
+            if (result!=null){
+                for (EZDeviceInfo ezDeviceInfo : result){
+                    for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
+                        cameraInfoList.add(cameraInfo);
+                        Message msg = new Message();
+                        msg.what = 256;
+                        Bundle bundle = new Bundle();
+                        bundle.putParcelableArrayList("cameralist", (ArrayList<? extends Parcelable>) cameraInfoList);
+                        msg.setData(bundle);
+                        handler.sendMessage(msg);
+                    }
                 }
             }
         }
@@ -1946,7 +1965,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         return "Null";
     }
     public void queryLocation(TextView textView , String la, String ln) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        String url = "http://api.map.baidu.com/reverse_geocoding/v3/";
+        String url = AlarmContant.location_url;
         LinkedHashMap<String,String> map = new LinkedHashMap<>();
         map.put("location",la+","+ln);
         map.put("coordtype","wgs84ll");

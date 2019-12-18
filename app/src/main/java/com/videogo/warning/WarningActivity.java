@@ -2,9 +2,7 @@ package com.videogo.warning;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
@@ -18,17 +16,9 @@ import com.videogo.EzvizApplication;
 import com.videogo.adapter.WarningAdapter;
 import com.videogo.been.AlarmContant;
 import com.videogo.openapi.bean.EZCameraInfo;
-import com.videogo.ui.util.FTPutils;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import ezviz.ezopensdk.R;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.Response;
 
 public class WarningActivity  extends Activity {
     private String TAG ="WarningActivity";
@@ -105,34 +95,6 @@ public class WarningActivity  extends Activity {
         });
     }
 
-    private void addJsonData(){
-        String url = "http://192.168.60.103:8080/api/addWarning";
-        Map<String,String> map = new HashMap<>();
-        map.put("message","message1");
-        map.put("type","0");
-        map.put("latitude","30.2555");
-        map.put("longitude","114.56586");
-        map.put("altitude","");
-        map.put("address","");
-        map.put("imgPath","");
-        map.put("videoPath","");
-        map.put("createTime","2019-11-29");//非空
-        //map.put("startTime","1110000");
-        //map.put("endTime","1565656");
-        map.put("channelNumber","2");
-        OkHttpUtil.post(url, new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.d(TAG, "onFailure: ",e);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String responseBody = response.body().string();
-                Log.d(TAG, "responseBody="+responseBody);
-            }
-        },map);
-    }
     private int gettype(String str){
         if (str.equals("渣土车识别定位跟踪")){
             return AlarmContant.MESSAGE_TYPE_TRUCK_IDENTITY;
@@ -148,35 +110,5 @@ public class WarningActivity  extends Activity {
             return AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE;
         }
         return 0;
-    }
-    private class DownImg extends AsyncTask<Void,Void,Boolean>{
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            FTPutils ftPutils = new FTPutils();
-            Boolean flag = ftPutils.connect("192.168.60.79",21,"wh","wanghao");
-            if (flag){
-                String localpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash";
-                try {
-                    ftPutils.downloadSingleFile("uftp/78b8998fe074fcfc708f8d91d93678aa.jpg", localpath,
-                            "78b8998fe074fcfc708f8d91d93678aa.jpg", new FTPutils.FtpProgressListener() {
-                                @Override
-                                public void onFtpProgress(int currentStatus, long process, File targetFile) {
-                                    Log.d("TAG","currenstatus="+currentStatus);
-                                    Log.d("TAG","process="+process);
-                                }
-                            });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            return flag;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
-            Log.d("TAG","flag="+aBoolean);
-
-        }
     }
 }

@@ -63,7 +63,6 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.videogo.EzvizApplication;
 import com.videogo.RootActivity;
 import com.videogo.constant.Constant;
@@ -94,7 +93,6 @@ import com.videogo.remoteplayback.list.querylist.StandardArrayAdapter;
 import com.videogo.remoteplayback.list.querylist.StandardArrayAdapter.ArrayAdapterChangeListener;
 import com.videogo.ui.common.ScreenOrientationHelper;
 import com.videogo.ui.util.AudioPlayUtil;
-import com.videogo.ui.util.DataManager;
 import com.videogo.ui.util.EZUtils;
 import com.videogo.ui.util.VerifyCodeInput;
 import com.videogo.util.ConnectionDetector;
@@ -112,7 +110,6 @@ import com.videogo.widget.TitleBar;
 import com.videogo.widget.WaitDialog;
 import com.videogo.widget.loading.LoadingTextView;
 import com.videogo.widget.loading.LoadingView;
-
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -123,17 +120,14 @@ import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import ezviz.ezopensdk.R;
 
 /**
  * 列表回放
- * 
  * @author miguofei
  * @data 2014-10-20
  */
-@SuppressLint({
-    "DefaultLocale", "HandlerLeak", "NewApi"})
+@SuppressLint({"DefaultLocale", "HandlerLeak", "NewApi"})
 public class PlayBackListActivity extends RootActivity implements QueryPlayBackListTaskCallback,
         OnHikItemClickListener, Callback, OnClickListener, OnTouchListener,
         ArrayAdapterChangeListener,VerifyCodeInput.VerifyCodeInputListener {

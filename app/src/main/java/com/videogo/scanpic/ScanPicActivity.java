@@ -31,7 +31,7 @@ public class ScanPicActivity extends Activity {
     private void initView() {
         rv = findViewById(R.id.rv);
         back = findViewById(R.id.back);
-        LinearLayoutManager layoutManager =new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager =new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(layoutManager);
         list_ezCameras = getIntent().getParcelableArrayListExtra("cameras_pic");
 
@@ -39,7 +39,7 @@ public class ScanPicActivity extends Activity {
         info.setCameraName("最近");
         list_ezCameras.add(0,info);
 
-        rv.addItemDecoration(new DividerItemDecoration(this,DividerItemDecoration.VERTICAL));
+        rv.addItemDecoration(new DividerItemDecoration(getApplicationContext(),DividerItemDecoration.VERTICAL));
         adapter = new ScanPicAdapter(list_ezCameras);
         rv.setAdapter(adapter);
         back.setOnClickListener(new View.OnClickListener() {

@@ -48,7 +48,7 @@ public class AsyncImageLoader {
                                         //Log.d("TAG","currenstatus="+currentStatus);
                                         //Log.d("TAG","process="+process);
                                         if (process == 100){
-                                            Message message = new Message();
+                                            Message message = Message.obtain();
                                             message.what = 0;
                                             handler.sendMessage(message);
                                         }

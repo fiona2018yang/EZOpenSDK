@@ -375,11 +375,10 @@
         android:layout_height="fill_parent"
         android:background="@drawable/playback_matte"
         android:visibility="gone" />
-    <ScrollView
+    <RelativeLayout
         android:id="@+id/message_info"
         android:layout_below="@+id/remote_playback_area"
         android:background="@mipmap/bg"
-        android:scrollbars="none"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <LinearLayout
@@ -441,7 +440,7 @@
             </LinearLayout>
 
             <LinearLayout
-                android:layout_marginTop="25dp"
+                android:layout_marginTop="40dp"
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -453,5 +452,5 @@
 
             </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+    </RelativeLayout>
 </RelativeLayout>

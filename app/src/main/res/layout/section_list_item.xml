@@ -63,7 +63,13 @@
                         android:layout_gravity="center_vertical|center_horizontal"
                         android:background="@drawable/ez_border_selector"
                         android:scaleType="fitXY" />
-
+                    <ImageButton
+                        android:id="@+id/loading_play_btn_1"
+                        android:layout_width="23dp"
+                        android:layout_height="23dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/leave_message_play_selector"
+                        android:visibility="visible" />
                     <CheckBox
                         android:id="@+id/check1"
                         android:layout_width="wrap_content"
@@ -128,7 +134,13 @@
                         android:layout_gravity="center_vertical|center_horizontal"
                         android:background="@drawable/ez_border_selector"
                         android:scaleType="fitXY" />
-
+                    <ImageButton
+                        android:id="@+id/loading_play_btn_2"
+                        android:layout_width="23dp"
+                        android:layout_height="23dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/leave_message_play_selector"
+                        android:visibility="visible" />
                     <CheckBox
                         android:id="@+id/check2"
                         android:layout_width="wrap_content"
@@ -193,7 +205,13 @@
                         android:layout_gravity="center_vertical|center_horizontal"
                         android:background="@drawable/ez_border_selector"
                         android:scaleType="fitXY" />
-
+                    <ImageButton
+                        android:id="@+id/loading_play_btn_3"
+                        android:layout_width="23dp"
+                        android:layout_height="23dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/leave_message_play_selector"
+                        android:visibility="visible" />
                     <CheckBox
                         android:id="@+id/check3"
                         android:layout_width="wrap_content"

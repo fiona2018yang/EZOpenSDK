@@ -14,7 +14,17 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
     //设备序列号，验证码
     private static final String CREATE_VERIFY_CODE = "create table verifycode("+"id integer primary key autoincrement,"+"name text,"+"code text)";
     //报警信息
-    private static final String CREAT_ALARM_MESSAGE="create table alarmMessage("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
+    private static final String CREAT_ALARM_MESSAGE_6="create table alarmMessage6("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
+            +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
+    private static final String CREAT_ALARM_MESSAGE_7="create table alarmMessage7("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
+            +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
+    private static final String CREAT_ALARM_MESSAGE_8="create table alarmMessage8("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
+            +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
+    private static final String CREAT_ALARM_MESSAGE_9="create table alarmMessage9("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
+            +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
+    private static final String CREAT_ALARM_MESSAGE_10="create table alarmMessage10("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
+            +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
+    private static final String CREAT_ALARM_MESSAGE_11="create table alarmMessage11("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
             +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
     public MyDatabaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
@@ -27,7 +37,12 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_VIDEO_PATH);
         db.execSQL(USER_DATA);
         db.execSQL(CREATE_VERIFY_CODE);
-        db.execSQL(CREAT_ALARM_MESSAGE);
+        db.execSQL(CREAT_ALARM_MESSAGE_6);
+        db.execSQL(CREAT_ALARM_MESSAGE_7);
+        db.execSQL(CREAT_ALARM_MESSAGE_8);
+        db.execSQL(CREAT_ALARM_MESSAGE_9);
+        db.execSQL(CREAT_ALARM_MESSAGE_10);
+        db.execSQL(CREAT_ALARM_MESSAGE_11);
     }
 
     @Override
@@ -36,7 +51,12 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("drop table if exists videofilepath");
         db.execSQL("drop table if exists userData");
         db.execSQL("drop table if exists verifycode");
-        db.execSQL("drop table if exists alarmMessage");
+        db.execSQL("drop table if exists alarmMessage6");
+        db.execSQL("drop table if exists alarmMessage7");
+        db.execSQL("drop table if exists alarmMessage8");
+        db.execSQL("drop table if exists alarmMessage9");
+        db.execSQL("drop table if exists alarmMessage10");
+        db.execSQL("drop table if exists alarmMessage11");
         onCreate(db);
     }
 }

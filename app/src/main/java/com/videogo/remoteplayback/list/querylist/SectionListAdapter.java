@@ -72,7 +72,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
         public void onInvalidated() {
             super.onInvalidated();
             updateTotalCount();
-        };
+        }
     };
 
     private final StandardArrayAdapter linkedAdapter;
@@ -206,6 +206,9 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             holder.image1 = (ImageView) convertView.findViewById(R.id.image1);
             holder.image2 = (ImageView) convertView.findViewById(R.id.image2);
             holder.image3 = (ImageView) convertView.findViewById(R.id.image3);
+            holder.play_img1 = convertView.findViewById(R.id.loading_play_btn_1);
+            holder.play_img2 = convertView.findViewById(R.id.loading_play_btn_2);
+            holder.play_img3 = convertView.findViewById(R.id.loading_play_btn_3);
             holder.image1.setDrawingCacheEnabled(false);
             holder.image1.setWillNotCacheDrawing(true);
             holder.image2.setDrawingCacheEnabled(false);
@@ -283,7 +286,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             holder.header.setText(getSpannableString(headHour));
         }
         if (dataOne != null) {
-            holder.image1.setImageResource(R.drawable.playback_cover1);
+            holder.image1.setImageResource(R.drawable.playback_cover3);
             if (dataOne.isCloud()) {
                 loadCoverPic(dataOne, holder.image1);
                 if (isEdit) {
@@ -299,10 +302,12 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             holder.layout1.setVisibility(View.GONE);
             if (dataOne.getPosition() == selPosition && !isEdit) {
                 holder.image1.setSelected(true);
+                holder.play_img1.setVisibility(View.GONE);
             } else {
                 holder.image1.setSelected(false);
+                holder.play_img1.setVisibility(View.VISIBLE);
             }
-            holder.image1.setOnClickListener(new OnHikClickListener(dataOne, position, holder.check1));
+            holder.play_img1.setOnClickListener(new OnHikClickListener(dataOne, position, holder.check1));
             holder.image1.setVisibility(View.VISIBLE);
             holder.check1.setOnCheckedChangeListener(new OnHikCheckedChangeListener(dataOne));
             if (selectedCloudFiles.containsKey(dataOne.getFileId())) {
@@ -315,10 +320,11 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             holder.text1.setVisibility(View.GONE);
             holder.layout1.setVisibility(View.GONE);
             holder.check1.setVisibility(View.GONE);
+            holder.play_img1.setVisibility(View.GONE);
         }
 
         if (dataTwo != null) {
-            holder.image2.setImageResource(R.drawable.playback_cover1);
+            holder.image2.setImageResource(R.drawable.playback_cover3);
             if (dataTwo.isCloud()) {
                 loadCoverPic(dataTwo, holder.image2);
                 if (isEdit) {
@@ -333,7 +339,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             holder.text2.setText(getDate(Utils.convert14Calender(dataTwo.getStartTime())));
             holder.layout2.setVisibility(View.GONE);
             holder.image2.setVisibility(View.VISIBLE);
-            holder.image2.setOnClickListener(new OnHikClickListener(dataTwo, position, holder.check2));
+            holder.play_img2.setOnClickListener(new OnHikClickListener(dataTwo, position, holder.check2));
             holder.check2.setOnCheckedChangeListener(new OnHikCheckedChangeListener(dataTwo));
             if (selectedCloudFiles.containsKey(dataTwo.getFileId())) {
                 holder.check2.setChecked(true);
@@ -342,18 +348,21 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             }
             if (dataTwo.getPosition() == selPosition && !isEdit) {
                 holder.image2.setSelected(true);
+                holder.play_img2.setVisibility(View.GONE);
             } else {
                 holder.image2.setSelected(false);
+                holder.play_img2.setVisibility(View.VISIBLE);
             }
         } else {
             holder.image2.setVisibility(View.GONE);
             holder.text2.setVisibility(View.GONE);
             holder.layout2.setVisibility(View.GONE);
             holder.check2.setVisibility(View.GONE);
+            holder.play_img2.setVisibility(View.GONE);
         }
 
         if (dataThree != null) {
-            holder.image3.setImageResource(R.drawable.playback_cover1);
+            holder.image3.setImageResource(R.drawable.playback_cover3);
             if (dataThree.isCloud()) {
                 loadCoverPic(dataThree, holder.image3);
                 if (isEdit) {
@@ -368,7 +377,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             holder.text3.setText(getDate(Utils.convert14Calender(dataThree.getStartTime())));
             holder.layout3.setVisibility(View.GONE);
             holder.image3.setVisibility(View.VISIBLE);
-            holder.image3.setOnClickListener(new OnHikClickListener(dataThree, position, holder.check3));
+            holder.play_img3.setOnClickListener(new OnHikClickListener(dataThree, position, holder.check3));
             holder.check3.setOnCheckedChangeListener(new OnHikCheckedChangeListener(dataThree));
             if (selectedCloudFiles.containsKey(dataThree.getFileId())) {
                 holder.check3.setChecked(true);
@@ -377,14 +386,17 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
             }
             if (dataThree.getPosition() == selPosition && !isEdit) {
                 holder.image3.setSelected(true);
+                holder.play_img3.setVisibility(View.GONE);
             } else {
                 holder.image3.setSelected(false);
+                holder.play_img3.setVisibility(View.VISIBLE);
             }
         } else {
             holder.image3.setVisibility(View.GONE);
             holder.text3.setVisibility(View.GONE);
             holder.layout3.setVisibility(View.GONE);
             holder.check3.setVisibility(View.GONE);
+            holder.play_img3.setVisibility(View.GONE);
         }
 
         int section = getSectionForPosition(position);
@@ -574,6 +586,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
         TextView header;
 
         ImageView image1;
+        ImageView play_img1;
         TextView text1;
         LinearLayout layout1;
         TextView localTimePart1;
@@ -581,6 +594,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
         CheckBox check1;
 
         ImageView image2;
+        ImageView play_img2;
         TextView text2;
         LinearLayout layout2;
         TextView localTimePart2;
@@ -588,6 +602,7 @@ public class SectionListAdapter implements ListAdapter, OnItemClickListener, Pin
         CheckBox check2;
 
         ImageView image3;
+        ImageView play_img3;
         TextView text3;
         LinearLayout layout3;
         TextView localTimePart3;

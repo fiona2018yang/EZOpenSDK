@@ -19,6 +19,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.videogo.EzvizApplication;
 import com.videogo.MyDatabaseHelper;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
@@ -47,13 +48,16 @@ public class MyReceiver extends BroadcastReceiver {
 	private static final String TAG = "TAG";
 	private MyDatabaseHelper dbHelper;
 	private  SQLiteDatabase db;
+	private String table_name;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		try {
+//		try {
 			Bundle bundle = intent.getExtras();
 			dbHelper = new MyDatabaseHelper(context, "filepath.db", null, 1);
 			db = dbHelper.getWritableDatabase();
+			table_name = EzvizApplication.table_name;
+			Log.d("TAG","table_name="+table_name);
 			Log.d(TAG, "[MyReceiver] onReceive - " + intent.getAction() + ", extras: " + printBundle(bundle));
 			if (JPushInterface.ACTION_REGISTRATION_ID.equals(intent.getAction())) {
 				String regId = bundle.getString(JPushInterface.EXTRA_REGISTRATION_ID);
@@ -63,33 +67,11 @@ public class MyReceiver extends BroadcastReceiver {
 			} else if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
 				Log.i(TAG, "[MyReceiver] 接收到推送下来的自定义消息: " + bundle.getString(JPushInterface.EXTRA_MESSAGE));
 				//processCustomMessage(context, bundle);
-				//保存到数据库
 				String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
 				Gson gson = new Gson();
 				AlarmMessage alarmMessage = gson.fromJson(message,AlarmMessage.class);
-				String sql = "insert into alarmMessage(message,type,latitude,longitude,altitude,address,imgPath,videoPath,createTime,startTime,endTime,channelNumber) " +
-						"values(?,?,?,?,?,?,?,?,?,?,?,?)";
-				SQLiteStatement stat = db.compileStatement(sql);
-				db.beginTransaction();
-				stat.bindString(1,alarmMessage.getMessage());
-				stat.bindString(2,alarmMessage.getType());
-				stat.bindString(3,alarmMessage.getLatitude());
-				stat.bindString(4,alarmMessage.getLongitude());
-				stat.bindString(5,alarmMessage.getAltitude());
-				stat.bindString(6,alarmMessage.getAddress());
-				stat.bindString(7,alarmMessage.getImgPath());
-				stat.bindString(8,alarmMessage.getVideoPath());
-				stat.bindString(9,alarmMessage.getCreateTime());
-				stat.bindString(10,alarmMessage.getStartTime());
-				stat.bindString(11,alarmMessage.getEndTime());
-				stat.bindString(12,alarmMessage.getChannelNumber());
-				stat.executeInsert();
-				db.setTransactionSuccessful();
-				db.endTransaction();
-				Log.d(TAG,"insert success");
 				sendNotification(context,context.getString(R.string.app_name) ,alarmMessage.getMessage()
 						,alarmMessage,"receive "+alarmMessage.getLatitude()+","+alarmMessage.getLongitude());
-
 			} else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction())) {
 				Log.i(TAG, "[MyReceiver] 接收到推送下来的通知");
 				int notifactionId = bundle.getInt(JPushInterface.EXTRA_NOTIFICATION_ID);
@@ -115,10 +97,50 @@ public class MyReceiver extends BroadcastReceiver {
 			} else {
 				Log.i(TAG, "[MyReceiver] Unhandled intent - " + intent.getAction());
 			}
-		} catch (Exception e){
+//		} catch (Exception e){
+//			e.printStackTrace();
+//		}
 
+	}
+
+	private static void saveData(AlarmMessage alarmMessage,SQLiteDatabase db,String table_name){
+		//保存到数据库
+		String sql = "insert into "+table_name+"(message,type,latitude,longitude,altitude,address,imgPath,videoPath,createTime,startTime,endTime,channelNumber) " +
+				"values(?,?,?,?,?,?,?,?,?,?,?,?)";
+		SQLiteStatement stat = db.compileStatement(sql);
+		db.beginTransaction();
+		stat.bindString(1,alarmMessage.getMessage());
+		stat.bindString(2,alarmMessage.getType());
+		stat.bindString(3,alarmMessage.getLatitude());
+		stat.bindString(4,alarmMessage.getLongitude());
+		if (alarmMessage.getAltitude()!=null){
+			stat.bindString(5,alarmMessage.getAltitude());
 		}
-
+		if (alarmMessage.getAddress()!=null){
+			stat.bindString(6,alarmMessage.getAddress());
+		}
+		if (alarmMessage.getImgPath()!=null){
+			stat.bindString(7,alarmMessage.getImgPath());
+		}
+		if (alarmMessage.getVideoPath()!=null){
+			stat.bindString(8,alarmMessage.getVideoPath());
+		}
+		if (alarmMessage.getCreateTime()!=null){
+			stat.bindString(9,alarmMessage.getCreateTime());
+		}
+		if (alarmMessage.getStartTime()!=null){
+			stat.bindString(10,alarmMessage.getStartTime());
+		}
+		if (alarmMessage.getEndTime()!=null){
+			stat.bindString(11,alarmMessage.getEndTime());
+		}
+		if (alarmMessage.getChannelNumber()!=null){
+			stat.bindString(12,alarmMessage.getChannelNumber());
+		}
+		stat.executeInsert();
+		db.setTransactionSuccessful();
+		db.endTransaction();
+		Log.d(TAG,"insert success");
 	}
 
 	private static void sendNotification(Context context,String contentTitle,String contentText,AlarmMessage alarmMessage,String address){
