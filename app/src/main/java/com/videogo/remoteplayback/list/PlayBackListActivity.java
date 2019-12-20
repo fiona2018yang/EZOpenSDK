@@ -885,7 +885,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 
 //        flowTV.setText("0k/s 0MB");
 //        fileSizeText.setText(Utils.flowTv(currentClickItemFile.getFileSize()));
-        downloadBtn.setPadding(Utils.dip2px(this, 5), 0, Utils.dip2px(this, 5), 0);
+        downloadBtn.setPadding(Utils.dip2px(getApplicationContext(), 5), 0, Utils.dip2px(getApplicationContext(), 5), 0);
         if (localInfo.isSoundOpen()) {
             // 打开声音
         	if(mPlayer != null)
@@ -957,9 +957,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
             RelativeLayout.LayoutParams realPlayRatioTvLp = (RelativeLayout.LayoutParams) mRemotePlayBackRatioTv
                     .getLayoutParams();
             if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
-                realPlayRatioTvLp.setMargins(Utils.dip2px(this, 10), Utils.dip2px(this, 10), 0, 0);
+                realPlayRatioTvLp.setMargins(Utils.dip2px(getApplicationContext(), 10), Utils.dip2px(getApplicationContext(), 10), 0, 0);
             } else {
-                realPlayRatioTvLp.setMargins(Utils.dip2px(this, 70), Utils.dip2px(this, 20), 0, 0);
+                realPlayRatioTvLp.setMargins(Utils.dip2px(getApplicationContext(), 70), Utils.dip2px(getApplicationContext(), 20), 0, 0);
             }
             mRemotePlayBackRatioTv.setLayoutParams(realPlayRatioTvLp);
             String sacleStr = String.valueOf(scale);
@@ -1163,7 +1163,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
 //        ColorStateList csl = (ColorStateList) getResources().getColorStateList(R.color.next_step_selector);
 //        rightEditView.setTextColor(csl);
         //rightEditView.setText(R.string.edit_txt);
-        rightEditView.setPadding(0, 0, Utils.dip2px(this, 15), 0);
+        rightEditView.setPadding(0, 0, Utils.dip2px(getApplicationContext(), 15), 0);
         mTitleBar.addRightView(rightEditView);
         rightEditView.setVisibility(View.GONE);
         rightEditView.setOnClickListener(new OnClickListener() {
@@ -1394,7 +1394,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
     */}
 
     private boolean getWifiType() {
-        if (ConnectionDetector.getConnectionType(this) == ConnectionDetector.WIFI) {
+        if (ConnectionDetector.getConnectionType(getApplicationContext()) == ConnectionDetector.WIFI) {
             return false;
         } else {
             return true;
@@ -1447,7 +1447,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                 return;
             }
             downLayout.setVisibility(View.VISIBLE);
-            ImageButton button = new ImageButton(PlayBackListActivity.this);
+            ImageButton button = new ImageButton(this);
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                     RelativeLayout.LayoutParams.WRAP_CONTENT);
 //            button.setBackgroundResource(R.drawable.palyback_download_selector);
@@ -2167,7 +2167,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
         sharedPreferences = getSharedPreferences(Constant.VIDEOGO_PREFERENCE_NAME, 0);
         isCloudPrompt = sharedPreferences.getBoolean(HAS_BEAN_CLOUD_PROMPT, true);
 
-        downShake = AnimationUtils.loadAnimation(this, R.anim.button_shake);
+        downShake = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.button_shake);
         downShake.reset();
         downShake.setFillAfter(true);
 
@@ -2222,9 +2222,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
             partInfoFileEx.setMore(true);
             cloudPartInfoFileEx.add(partInfoFileEx);
         }
-        arrayAdapter = new StandardArrayAdapter(this, R.id.layout, cloudPartInfoFileEx);
+        arrayAdapter = new StandardArrayAdapter(getApplicationContext(), R.id.layout, cloudPartInfoFileEx);
         arrayAdapter.setAdapterChangeListener(this);
-        sectionAdapter = new SectionListAdapter(PlayBackListActivity.this,getLayoutInflater(), arrayAdapter,mCameraInfo.getDeviceSerial());
+        sectionAdapter = new SectionListAdapter(getApplicationContext(),getLayoutInflater(), arrayAdapter,mCameraInfo.getDeviceSerial());
         pinnedHeaderListView.setAdapter(sectionAdapter);
 
         pinnedHeaderListView.setOnScrollListener(sectionAdapter);
@@ -2256,9 +2256,9 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
             }
             // pinnedHeaderListView.startAnimation();
         } else {
-        	mArrayAdapterForLocal = new StandardArrayAdapter(this, R.id.layout, cloudPartInfoFileEx);
+        	mArrayAdapterForLocal = new StandardArrayAdapter(getApplicationContext(), R.id.layout, cloudPartInfoFileEx);
         	mArrayAdapterForLocal.setAdapterChangeListener(this);
-            mSectionAdapterForLocal = new SectionListAdapter(PlayBackListActivity.this,getLayoutInflater(), mArrayAdapterForLocal, mCameraInfo.getDeviceSerial());
+            mSectionAdapterForLocal = new SectionListAdapter(getApplicationContext(),getLayoutInflater(), mArrayAdapterForLocal, mCameraInfo.getDeviceSerial());
             mPinnedHeaderListViewForLocal.setAdapter(mSectionAdapterForLocal);
             mPinnedHeaderListViewForLocal.setOnScrollListener(mSectionAdapterForLocal);
 //            mPinnedHeaderListViewForLocal.setPinnedHeaderView(getLayoutInflater().inflate(R.layout.list_section,
@@ -2392,8 +2392,8 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                 sharedPreferences.edit().putBoolean(HAS_BEAN_CLOUD_PROMPT, true).commit();
                 // setWindowAlpha(0.2f);
                 matteImage.setVisibility(View.VISIBLE);
-                downPopup.showAsDropDown(downloadBtn, 0 + Utils.dip2px(this, 7), -downloadBtn.getMeasuredHeight()
-                        + Utils.dip2px(this, 7));
+                downPopup.showAsDropDown(downloadBtn, 0 + Utils.dip2px(getApplicationContext(), 7), -downloadBtn.getMeasuredHeight()
+                        + Utils.dip2px(getApplicationContext(), 7));
                 mScreenOrientationHelper.disableSensorOrientation();
             } else {
             	mCloudRecordInfo = new EZCloudRecordFile();
@@ -2596,7 +2596,7 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
     private void handleShowSafeBox() {}
 
     private void handleSafePwdError(final DeviceInfoEx deviceInfoEx) {
-        Dialog safeBox = new AlertDialog.Builder(this).setMessage(R.string.common_passwd_error)
+        Dialog safeBox = new AlertDialog.Builder(getApplicationContext()).setMessage(R.string.common_passwd_error)
                 .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -3068,12 +3068,12 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                         values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
                         db.insert("picfilepath",null,values);
 
-                        MediaScanner mMediaScanner = new MediaScanner(PlayBackListActivity.this);
+                        MediaScanner mMediaScanner = new MediaScanner(getApplicationContext());
                         mMediaScanner.scanFile(path, "jpg");
                         runOnUiThread(new Runnable(){
                             @Override
                             public void run() {
-                                Toast.makeText(PlayBackListActivity.this, getResources().getString(R.string.already_saved_to_volume), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.already_saved_to_volume), Toast.LENGTH_SHORT).show();
                             }});
                     } catch (InnerException e) {
                             e.printStackTrace();

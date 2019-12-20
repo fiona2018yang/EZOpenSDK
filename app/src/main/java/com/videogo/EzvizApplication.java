@@ -58,7 +58,7 @@ public class EzvizApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        //initleakcanary();
+        initleakcanary();
         initSDK();
         initData();
         SDKInitializer.initialize(this);

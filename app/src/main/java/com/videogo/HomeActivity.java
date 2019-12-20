@@ -2,6 +2,7 @@ package com.videogo;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -37,6 +38,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
+import com.videogo.been.AlarmRead;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
@@ -59,6 +61,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import cn.jpush.android.api.JPushInterface;
 import ezviz.ezopensdk.R;
@@ -78,11 +82,13 @@ public class HomeActivity extends Activity {
     private List<Integer> imgs=new ArrayList<>();
     private SharedPreferences sharedPreferences;
     private SharedPreferences sharedPreferences_1;
+    private ExecutorService executors_1;
     private final static int LOAD_MY_DEVICE = 0;
     private int mLoadType = LOAD_MY_DEVICE;
     private Handler handler;
     private String userid;
     private String table_name;
+    private Cursor cursor;
     private static String[] allpermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_NETWORK_STATE,
@@ -101,6 +107,14 @@ public class HomeActivity extends Activity {
     private String[] iconName = { "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"};
     private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
     private List<EZCameraInfo> list_ezCamera = new ArrayList<>();
+    private List<String> type0_list = new ArrayList<>();
+    private List<String> type1_list = new ArrayList<>();
+    private List<String> type2_list = new ArrayList<>();
+    private List<String> type3_list = new ArrayList<>();
+    private List<String> type4_list = new ArrayList<>();
+    private List<String> type5_list = new ArrayList<>();
+    private List<List<String>> list = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +125,7 @@ public class HomeActivity extends Activity {
         setConvenientBanner();
         //initData();
         setAlias();
+        initSql();
     }
     //设置别名
     private void setAlias() {
@@ -120,7 +135,28 @@ public class HomeActivity extends Activity {
             TagAliasOperatorHelper.getInstance().handleAction(getApplicationContext(),sequence,userid);
         }
     }
-
+    private void initSql() {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                int number=0;
+                Cursor c = db.rawQuery("select * from alarmSize",null);
+                number = c.getCount();
+                if (number == 0 ){
+                    //插入数据
+                    ContentValues values = new ContentValues();
+                    values.put("size0", "0");
+                    values.put("size1", "0");
+                    values.put("size2", "0");
+                    values.put("size3", "0");
+                    values.put("size4", "0");
+                    values.put("size5", "0");
+                    db.insert("alarmSize", null, values);
+                }
+            }
+        };
+        executors_1.execute(runnable);
+    }
     private void initData() {
         int number=0;
         Cursor c = db.rawQuery("select * from "+table_name,null);
@@ -230,6 +266,7 @@ public class HomeActivity extends Activity {
         db = ((EzvizApplication)getApplication()).getDatebase();
         sharedPreferences = getSharedPreferences("alias",MODE_PRIVATE);
         sharedPreferences_1 = getSharedPreferences("userid",MODE_PRIVATE);
+        executors_1 = Executors.newFixedThreadPool(5);
         userid = sharedPreferences_1.getString("id","1");
         Log.d("TAG","userid="+userid);
         convenientBanner= (ConvenientBanner) findViewById(R.id.convenientBanner);
@@ -355,6 +392,13 @@ public class HomeActivity extends Activity {
         if (isNeedCheck){
             checkpermission();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executors_1.shutdown();
+        cursor.close();
     }
 
     /**

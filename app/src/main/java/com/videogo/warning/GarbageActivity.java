@@ -1,6 +1,7 @@
 package com.videogo.warning;
 
 import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -60,6 +61,7 @@ public class GarbageActivity extends Activity {
     private List<String> time_title = new ArrayList<>();
     private List<AlarmMessage> alarmMessageList = new ArrayList<>();
     private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
+    private List<String> read_list = new ArrayList<>();
     private ExecutorService cachedThreadPool;
     private ExecutorService cachedThreadPool_1;
     private RecyclerView rv;
@@ -87,6 +89,13 @@ public class GarbageActivity extends Activity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
+                case 104:
+                    Bundle bundle3 = msg.getData();
+                    read_list.clear();
+                    read_list = bundle3.getStringArrayList("read_list");
+                    adatper.setRead_list(read_list);
+                    adatper.notifyDataSetChanged();
+                    break;
                 case 103:
                     Bundle bundle = msg.getData();
                     list.clear();
@@ -104,7 +113,7 @@ public class GarbageActivity extends Activity {
                     }
                     break;
                 case 102:
-                    ToastNotRepeat.show(GarbageActivity.this, "网络异常！");
+                    ToastNotRepeat.show(getApplicationContext(), "网络异常！");
                     break;
                 case 101:
                     try {
@@ -162,12 +171,13 @@ public class GarbageActivity extends Activity {
         title_text.setText(str);
         //查询数据
         queryDataFromService(alarm_type, 1);
+        queryReadId();
         rv = findViewById(R.id.recyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         rv.setLayoutManager(layoutManager);
         rv.addItemDecoration(CommItemDecoration.createVertical(context, getResources().getColor(R.color.blue_bg), 4));
         rv.setItemAnimator(new DefaultItemAnimator());
-        adatper = new TitleWarningAdatter(alarmMessageList, cameraInfoList, cachedThreadPool_1, context);
+        adatper = new TitleWarningAdatter(alarmMessageList ,cameraInfoList, cachedThreadPool_1, context);
         rv.setAdapter(adatper);
         adatper.setSetOnItemClickListener(new TitleWarningAdatter.OnClickListener() {
             @Override
@@ -176,6 +186,7 @@ public class GarbageActivity extends Activity {
                 intent.putExtra("alarmMessage", alarmMessageList.get(position));
                 intent.putExtra("address", address);
                 startActivity(intent);
+                updateRead(alarmMessageList.get(position).getId());
             }
         });
         rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -191,6 +202,17 @@ public class GarbageActivity extends Activity {
                 super.onScrollStateChanged(recyclerView, newState);
             }
         });
+    }
+
+    private void updateRead(String userid) {
+        if (!read_list.contains(userid)) {
+            ContentValues values = new ContentValues();
+            values.put("type0", userid);
+            db.insert("alarmReaded", null, values);
+            read_list.add(userid);
+            adatper.setRead_list(read_list);
+            adatper.notifyDataSetChanged();
+        }
     }
 
     private void initdata() {
@@ -212,7 +234,7 @@ public class GarbageActivity extends Activity {
                 refreshType = false;
                 queryDataFromService(alarm_type, page);
                 if (list_size < page_size) {
-                    ToastNotRepeat.show(GarbageActivity.this, "暂无更多的数据啦");
+                    ToastNotRepeat.show(getApplicationContext(), "暂无更多的数据啦");
                     refreshLayout.finishLoadMoreWithNoMoreData();
                     return;
                 } else {
@@ -257,7 +279,29 @@ public class GarbageActivity extends Activity {
         cachedThreadPool.shutdown();
         cachedThreadPool_1.shutdown();
     }
-
+    private void queryReadId(){
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG,"startquery");
+                Cursor cursor = db.query("alarmReaded", null, null, null, null, null, null);
+                List<String> read_list = new ArrayList<>();
+                if (cursor.moveToFirst()) {
+                    do {
+                        String type_read = cursor.getString(cursor.getColumnIndex("type0"));
+                        read_list.add(type_read);
+                    } while (cursor.moveToNext());
+                }
+                Message msg= Message.obtain();
+                msg.what = 104;
+                Bundle bundle = new Bundle();
+                bundle.putStringArrayList("read_list", (ArrayList<String>) read_list);
+                msg.setData(bundle);
+                handler.sendMessage(msg);
+            }
+        };
+        cachedThreadPool.execute(runnable);
+    }
 
     private void queryDataFromService(int type, int page) {
         String url = AlarmContant.service_url + "api/getEarlyWarning";
@@ -278,7 +322,6 @@ public class GarbageActivity extends Activity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String responseBody = response.body().string();
-                Log.d(TAG, "result=" + responseBody);
                 List<AlarmMessage> alarmMessageList = new ArrayList<>();
                 try {
                     JSONObject object = new JSONObject(responseBody);
@@ -347,7 +390,6 @@ public class GarbageActivity extends Activity {
                     handler.sendMessage(message);
                 }
             };
-            cachedThreadPool.execute(runnable);
         }
     }
 

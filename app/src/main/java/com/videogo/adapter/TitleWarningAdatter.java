@@ -39,6 +39,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     private ExecutorService cachedThreadPool;
     private OnClickListener OnClickListener;
     private List<EZCameraInfo> cameraInfoList;
+    private List<String> read_list;
     private AsyncImageLoader asyncImageLoader;
     private String address;
     private boolean isSrolling = false;
@@ -63,6 +64,11 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     public void setScrolling(boolean scrolling){
         this.isSrolling = scrolling;
     }
+
+    public void setRead_list(List<String> list){
+        this.read_list = list;
+    }
+
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         String path = alarmMessageList.get(position).getImgPath();
@@ -110,6 +116,13 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
             Picasso.with(context).load(R.mipmap.loading).transform(new RoundTransform(20)).resize(600,300)
                     .error(context.getResources().getDrawable(R.mipmap.loading)).into(holder.imageView);
             holder.address.setText("加载中...");
+        }
+        //设置已读
+        String id = alarmMessageList.get(position).getId();
+        if (read_list.contains(id)) {
+            holder.camera_name.setTextColor(context.getResources().getColor(R.color.topBarText));
+        } else {
+            holder.camera_name.setTextColor(context.getResources().getColor(R.color.a1_blue_color));
         }
         String camera_name = getCameraInfo(cameraInfoList,alarmMessageList.get(position).getChannelNumber());
         holder.camera_name.setText(camera_name);

@@ -160,7 +160,7 @@ public class DataUtils {
     public static String date2TimeStamp(String date , String format){
         try {
             SimpleDateFormat sdf = new SimpleDateFormat(format);
-            return String.valueOf(sdf.parse(date).getTime() / 1000);
+            return String.valueOf(sdf.parse(date).getTime());
         } catch (Exception e) {
             e.printStackTrace();
         }

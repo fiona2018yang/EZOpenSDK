@@ -70,6 +70,7 @@ public class MyReceiver extends BroadcastReceiver {
 				String message = bundle.getString(JPushInterface.EXTRA_MESSAGE);
 				Gson gson = new Gson();
 				AlarmMessage alarmMessage = gson.fromJson(message,AlarmMessage.class);
+				Log.d(TAG,"starttime="+alarmMessage.getStartTime());
 				sendNotification(context,context.getString(R.string.app_name) ,alarmMessage.getMessage()
 						,alarmMessage,"receive "+alarmMessage.getLatitude()+","+alarmMessage.getLongitude());
 			} else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction())) {

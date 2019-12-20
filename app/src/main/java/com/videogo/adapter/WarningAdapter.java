@@ -2,12 +2,16 @@ package com.videogo.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.videogo.been.AlarmContant;
+
 import java.util.List;
+import java.util.Map;
 
 import ezviz.ezopensdk.R;
 
@@ -15,7 +19,8 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
     private Context context;
     private List<String> list;
     private setOnclick onclick;
-
+    private List<String> type_size;
+    private List<Map<String,Integer>> type_size_url;
     public WarningAdapter(Context context, List<String> list , setOnclick onclick) {
         this.context = context;
         this.list = list;
@@ -29,13 +34,39 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
 
     @Override
     public void onBindViewHolder(WarningHolder holder, int position) {
+        String type = list.get(position);
+        int size_url = 0;
+        if (type_size_url!=null&&type_size_url.size()>0){
+            for (Map map : type_size_url){
+                if (map!=null){
+                    int ty = (int) map.get("type");
+                    if (ty == gettype(type)){
+                        size_url = (int) map.get("size");
+                        if (Integer.parseInt(type_size.get(position))<size_url){
+                            holder.tv.setTextColor(context.getResources().getColor(R.color.a1_blue_color));
+                        }else{
+                            holder.tv.setTextColor(context.getResources().getColor(R.color.topBarText));
+                        }
+                    }
+                }
+            }
+        }
         holder.tv.setText(list.get(position));
+        int finalSize_url = size_url;
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onclick.onClick(v,position);
+                onclick.onClick(v,position, finalSize_url);
             }
         });
+    }
+
+    public void setType_size_url(List<Map<String,Integer>> mapList){
+        this.type_size_url = mapList;
+    }
+
+    public void setType_size(List<String> size){
+        this.type_size = size;
     }
 
     @Override
@@ -44,7 +75,7 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
     }
 
     public interface setOnclick{
-        void onClick(View view, int p);
+        void onClick(View view, int p,int size_url);
     }
 
     public static class WarningHolder extends RecyclerView.ViewHolder{
@@ -53,5 +84,21 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
             super(itemView);
             tv = itemView.findViewById(R.id.tv);
         }
+    }
+    private int gettype(String str){
+        if (str.equals("渣土车识别定位跟踪")){
+            return AlarmContant.MESSAGE_TYPE_TRUCK_IDENTITY;
+        }else if (str.equals("违法乱建")){
+            return AlarmContant.MESSAGE_TYPE_ILLEGAL_BUILDING;
+        }else if (str.equals("违章种植")){
+            return AlarmContant.MESSAGE_TYPE_ILLEGAL_PLANT;
+        }else if (str.equals("秸秆焚烧")){
+            return AlarmContant.MESSAGE_TYPE_STRAW_BURNING;
+        }else if (str.equals("河道监测")){
+            return AlarmContant.MESSAGE_TYPE_RIVER_MONITOR;
+        }else if (str.equals("园区企业监管")){
+            return AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE;
+        }
+        return 0;
     }
 }

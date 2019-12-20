@@ -88,6 +88,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -222,6 +223,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private ImageButton replayBtn;
     private long beginTime;
     private long endTime;
+    private long sustainTime = 20000;
     // 下一个播放按钮
     private ImageButton nextPlayBtn;
     // 进度条拖动时的进度圈
@@ -295,7 +297,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         // 保持屏幕常亮
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mWaitDlg = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+        mWaitDlg = new WaitDialog(getApplicationContext(), android.R.style.Theme_Translucent_NoTitleBar);
         mWaitDlg.setCancelable(false);
         getData();
         try {
@@ -359,9 +361,9 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         tx_address = findViewById(R.id.address);
         tx_creattime = findViewById(R.id.creattime);
         recyclerView = findViewById(R.id.img_recycler);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addItemDecoration(CommItemDecoration.createVertical(this,getResources().getColor(R.color.transparent),30));
+        recyclerView.addItemDecoration(CommItemDecoration.createVertical(getApplicationContext(),getResources().getColor(R.color.transparent),30));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         if (address.contains("receive")){
@@ -377,7 +379,12 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         }
 
         if (alarmMessage.getCreateTime()!=null){
-            tx_creattime.setText(alarmMessage.getCreateTime());
+            if (alarmMessage.getCreateTime().contains("-")){
+                String time = DataUtils.date2TimeStamp(alarmMessage.getCreateTime(),"yyyy-MM-dd HH:mm:ss");
+                tx_creattime.setText(time);
+            }else{
+                tx_creattime.setText(alarmMessage.getCreateTime());
+            }
         }
         if (alarmMessage.getImgPath()!=null&&!alarmMessage.getImgPath().equals("")){
             List<String> list = new ArrayList<>();
@@ -387,12 +394,12 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                 String imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
                 list.add(imgpath);
             }
-            imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,PlaybackActivity2.this);
+            imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,getApplicationContext());
             recyclerView.setAdapter(imageViewRecyclerAdapter);
             imageViewRecyclerAdapter.setSetOnItemClickListener(new ImageViewRecyclerAdapter.OnClickListener() {
                 @Override
                 public void OnItemClick(View view, int position) {
-                    Intent intent = new Intent(PlaybackActivity2.this, PictureActivity.class);
+                    Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
                     intent.putExtra("position",position);
                     intent.putExtra("flag",true);
                     intent.putStringArrayListExtra("list", (ArrayList<String>) list);
@@ -1010,7 +1017,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 
         flowTV.setText("0k/s 0MB");
 //        fileSizeText.setText(Utils.flowTv(currentClickItemFile.getFileSize()));
-        downloadBtn.setPadding(Utils.dip2px(this, 5), 0, Utils.dip2px(this, 5), 0);
+        downloadBtn.setPadding(Utils.dip2px(getApplicationContext(), 5), 0, Utils.dip2px(getApplicationContext(), 5), 0);
         if (localInfo.isSoundOpen()) {
             // 打开声音
             if(mPlayer != null)
@@ -1043,7 +1050,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             case ErrorCode.ERROR_INNER_VERIFYCODE_ERROR:{
                 showTipDialog("");
 //                DataManager.getInstance().setDeviceSerialVerifyCode(mCameraInfo.getDeviceSerial(),null);
-                VerifyCodeInput.VerifyCodeInputDialog(this,this).show();
+                VerifyCodeInput.VerifyCodeInputDialog(getApplicationContext(),this).show();
             }
             break;
             default: {
@@ -1294,9 +1301,9 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             RelativeLayout.LayoutParams realPlayRatioTvLp = (RelativeLayout.LayoutParams) mRemotePlayBackRatioTv
                     .getLayoutParams();
             if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
-                realPlayRatioTvLp.setMargins(Utils.dip2px(this, 10), Utils.dip2px(this, 10), 0, 0);
+                realPlayRatioTvLp.setMargins(Utils.dip2px(getApplicationContext(), 10), Utils.dip2px(getApplicationContext(), 10), 0, 0);
             } else {
-                realPlayRatioTvLp.setMargins(Utils.dip2px(this, 70), Utils.dip2px(this, 20), 0, 0);
+                realPlayRatioTvLp.setMargins(Utils.dip2px(getApplicationContext(), 70), Utils.dip2px(getApplicationContext(), 20), 0, 0);
             }
             mRemotePlayBackRatioTv.setLayoutParams(realPlayRatioTvLp);
             String sacleStr = String.valueOf(scale);
@@ -1327,10 +1334,20 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             address = getIntent().getStringExtra("address");
             ChanneNumber = alarmMessage.getChannelNumber();
             String time = alarmMessage.getStartTime();
-            beginTime = Long.parseLong(DataUtils.date2TimeStamp(time,"yyyy-MM-dd HH:mm:ss"));
-            endTime = beginTime+20000;
-            Log.d(TAG,"begintime="+beginTime);
-            Log.d(TAG,"entime="+endTime);
+            Log.d(TAG,"time="+time);
+            if (!time.equals("")){
+                try {
+                    if (time.contains("-")){
+                        beginTime = Long.parseLong(DataUtils.date2TimeStamp(time,"yyyy-MM-dd HH:mm:ss"));
+                        endTime = beginTime+sustainTime;
+                    }else{
+                        beginTime = Long.parseLong(time);
+                        endTime = beginTime+sustainTime;
+                    }
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
         }
         Application application = (Application) getApplication();
         mAudioPlayUtil = AudioPlayUtil.getInstance(application);
@@ -1654,12 +1671,12 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                         values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
                         db.insert("picfilepath",null,values);
 
-                        MediaScanner mMediaScanner = new MediaScanner(PlaybackActivity2.this);
+                        MediaScanner mMediaScanner = new MediaScanner(getApplicationContext());
                         mMediaScanner.scanFile(path, "jpg");
                         runOnUiThread(new Runnable(){
                             @Override
                             public void run() {
-                                Toast.makeText(PlaybackActivity2.this, getResources().getString(R.string.already_saved_to_volume), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), getResources().getString(R.string.already_saved_to_volume), Toast.LENGTH_SHORT).show();
                             }});
                     } catch (InnerException e) {
                         e.printStackTrace();
@@ -1913,14 +1930,15 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     /**
      * 获取事件消息任务
      */
-    private class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>> {
+    private  class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>> {
         private int mErrorCode = 0;
+
         @Override
         protected List<EZDeviceInfo> doInBackground(Void... voids) {
-            if (PlaybackActivity2.this.isFinishing()){
-                return null;
-            }
-            if (!ConnectionDetector.isNetworkAvailable(PlaybackActivity2.this)){
+//            if (PlaybackActivity2.this.isFinishing()){
+//                return null;
+//            }
+            if (!ConnectionDetector.isNetworkAvailable(getApplicationContext())){
                 mErrorCode = ErrorCode.ERROR_WEB_NET_EXCEPTION;
                 return null;
             }

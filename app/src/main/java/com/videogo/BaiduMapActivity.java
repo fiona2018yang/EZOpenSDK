@@ -8,6 +8,9 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.Gravity;
@@ -52,10 +55,16 @@ import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.ui.realplay.EZRealPlayActivity;
 import com.videogo.ui.util.EZUtils;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+
 import ezviz.ezopensdk.R;
 
 
@@ -98,10 +107,41 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     private Boolean show_info = false;
     private Boolean show_warning = true;
     private Boolean show_text = false;
+    private String TAG = "baiduMapActivity";
     public final static int REQUEST_CODE = 100;
     public final static int RESULT_CODE = 101;
     private final static int LOAD_MY_DEVICE = 0;
     private int mLoadType = LOAD_MY_DEVICE;
+    private ExecutorService threadPoolExecutor;
+    private ExecutorService threadPoolExecutor_2;
+    private String url = "camera.kml";
+    private String url2 = "info.kml";
+    private String url3 = "违章种植.kml";
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 101:
+                    //添加图标
+                    addMarker();
+                    break;
+//                case 102:
+//                    Bundle bundle = msg.getData();
+//                    String linewidth = bundle.getString("linewidth");
+//                    String linecolor = bundle.getString("linecolor");
+//                    String des_info = bundle.getString("des_info");
+//                    List<LatLng> points  = new ArrayList<>();
+//                    points = bundle.getParcelableArrayList("points");
+//                    Log.d(TAG,"linewidth="+linewidth);
+//                    Log.d(TAG,"linecolor="+linecolor);
+//                    Log.d(TAG,"des_info="+des_info);
+//                    Log.d(TAG,"points.size="+points.size());
+//
+//                    break;
+            }
+        }
+    };
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -122,24 +162,11 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         position = findViewById(R.id.position_ibtn);
         result = findViewById(R.id.result);
         position_sel = findViewById(R.id.position_ibtn_sel);
+        threadPoolExecutor = Executors.newFixedThreadPool(5);
+        threadPoolExecutor_2 = Executors.newFixedThreadPool(5);
         sharedPreferences = getSharedPreferences("style", 0);
         style = sharedPreferences.getString("mapstyle", "");
         list_ezdevices = getIntent().getParcelableArrayListExtra("devices_baidu");
-        String url = "camera.kml";
-        String url2 = "info.kml";
-        String url3 = "违章种植.kml";
-        try {
-            ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,BaiduMapActivity.this);
-
-            ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,BaiduMapActivity.this);
-            readKml.parseKml2();
-            readKml_warning.parseKml2();
-            Log.i("TAG","size1 = "+list_name.size());
-            Log.i("TAG","size2 = "+list_des.size());
-            Log.i("TAG","size3 = "+list_point.size());
-        }catch (Exception e){
-            e.printStackTrace();
-        }
         // 不显示缩放比例尺
         mapView.showZoomControls(false);
         // 不显示百度地图Logo
@@ -173,12 +200,10 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
         //初始化定位参数配置
         initLocation();
         //添加地块信息
-        addInfo(url2);
-        //添加图标
-        addMarker();
+        //addInfo(url2);
         //添加报警信息
         //addWarning();
-
+        addinfo();
         change.setOnClickListener(this);
         info.setOnClickListener(this);
         robot.setOnClickListener(this);
@@ -288,6 +313,77 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             }
         });
     }
+    private void addinfo(){
+        try {
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    ReadKml readKml = new ReadKml(url,list_name,list_des,list_point,getApplicationContext());
+                    ReadKml readKml_warning = new ReadKml(url3,list_name_warning,list_des_warning,null,list_collection_warning,getApplicationContext());
+                    readKml.parseKml2();
+                    readKml_warning.parseKml2();
+                    handler.sendEmptyMessage(101);
+                }
+            };
+            threadPoolExecutor.execute(runnable);
+            Runnable runnable1 = new Runnable() {
+                @Override
+                public void run() {
+                    List<String> list_name_info = new ArrayList<>();
+                    List<String> list_des_info = new ArrayList<>();
+                    List<List<Point>> list_collection = new ArrayList<>();
+                    List<StyleId> list_styleid = new ArrayList<>();
+                    List<StyleMap> list_stylemap = new ArrayList<>();
+                    List<String> list_style_url = new ArrayList<>();
+                    ReadKml readKml = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,list_styleid,list_stylemap,list_style_url,getApplicationContext());
+                    readKml.parseKml();
+                    for (int i = 0 ; i < list_collection.size() ; i++){
+                        List<LatLng> points = new ArrayList<LatLng>();
+                        for (int j = 0 ; j < list_collection.get(i).size() ; j++){
+                            //坐标转换
+                            CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(list_collection.get(i).get(j)  ));
+                            LatLng latLng = converter.convert();
+                            points.add(latLng);
+                        }
+                        String url = list_style_url.get(i);
+                        String linecolor="";
+                        String linewidth="";
+                        for (StyleMap styleMap : list_stylemap){
+                            if (styleMap.getId().equals(url)){
+                                String stylemapUrl = styleMap.getStyleUrl();
+                                for (StyleId styleid : list_styleid){
+                                    if (styleid.getId().equals(stylemapUrl)){
+                                        linecolor = styleid.getLineColor();
+                                        linewidth = styleid.getLineWidth();
+                                    }
+                                }
+                            }
+                        }
+
+                        String des_info = list_des_info.get(i);
+                        OverlayOptions mOverlayOptions = new PolylineOptions().width(Integer.parseInt(linewidth)).color(Color.parseColor("#"+linecolor)).points(points);
+                        options2.add(mOverlayOptions);
+                        BitmapDescriptor bitmapDescriptor = stringToBitmapDescriptor(des_info);
+                        OverlayOptions option = new MarkerOptions().icon(bitmapDescriptor).position(getInterPosition(points));
+                        options_text.add(option);
+//                        Message message = Message.obtain();
+//                        message.what = 102;
+//                        Bundle bundle = new Bundle();
+//                        bundle.putString("linewidth",linewidth);
+//                        bundle.putString("linecolor",linecolor);
+//                        bundle.putString("des_info",des_info);
+//                        bundle.putParcelableArrayList("points", (ArrayList<? extends Parcelable>) points);
+//                        message.setData(bundle);
+//                        handler.sendMessage(message);
+                    }
+                    Overlays_info = mBaiduMap.addOverlays(options2);
+                }
+            };
+            threadPoolExecutor_2.execute(runnable1);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
     /**
      * marker弹窗
      */
@@ -360,48 +456,7 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
             overlay.setVisible(false);
         };
     }
-    /**
-     *添加地块信息
-     */
-    private void addInfo(String url2){
-        List<String> list_name_info = new ArrayList<>();
-        List<String> list_des_info = new ArrayList<>();
-        List<List<Point>> list_collection = new ArrayList<>();
-        List<StyleId> list_styleid = new ArrayList<>();
-        List<StyleMap> list_stylemap = new ArrayList<>();
-        List<String> list_style_url = new ArrayList<>();
-        ReadKml readKml = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,list_styleid,list_stylemap,list_style_url,BaiduMapActivity.this);
-        readKml.parseKml();
-        for (int i = 0 ; i < list_collection.size() ; i++){
-            List<LatLng> points = new ArrayList<LatLng>();
-            for (int j = 0 ; j < list_collection.get(i).size() ; j++){
-                //坐标转换
-                CoordinateConverter converter  = new CoordinateConverter().from(CoordinateConverter.CoordType.GPS).coord(tramsform(list_collection.get(i).get(j)  ));
-                LatLng latLng = converter.convert();
-                points.add(latLng);
-            }
-            String url = list_style_url.get(i);
-            String linecolor="";
-            String linewidth="";
-            for (StyleMap styleMap : list_stylemap){
-                if (styleMap.getId().equals(url)){
-                    String stylemapUrl = styleMap.getStyleUrl();
-                    for (StyleId styleid : list_styleid){
-                        if (styleid.getId().equals(stylemapUrl)){
-                            linecolor = styleid.getLineColor();
-                            linewidth = styleid.getLineWidth();
-                        }
-                    }
-                }
-            }
-            OverlayOptions mOverlayOptions = new PolylineOptions().width(Integer.parseInt(linewidth)).color(Color.parseColor("#"+linecolor)).points(points);
-            options2.add(mOverlayOptions);
-            BitmapDescriptor bitmapDescriptor = stringToBitmapDescriptor(list_des_info.get(i));
-            OverlayOptions option = new MarkerOptions().icon(bitmapDescriptor).position(getInterPosition(points));
-            options_text.add(option);
-        }
-        Overlays_info = mBaiduMap.addOverlays(options2);
-    }
+
     private LatLng tramsform(Point p ){
         LatLng latLng = new LatLng(p.getY(),p.getX());
         return latLng;
@@ -656,6 +711,9 @@ public class BaiduMapActivity extends Activity implements View.OnClickListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        threadPoolExecutor.shutdown();
+        threadPoolExecutor_2.shutdown();
+        handler.removeCallbacksAndMessages(null);
         locationClient.stop();
         myOrientationListener.stop();
         mapView.onDestroy();

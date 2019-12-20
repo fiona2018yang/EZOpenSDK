@@ -231,7 +231,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         setContentView(R.layout.cameralist_page);
         initData();
         initView();
-        Utils.clearAllNotification(this);
+        Utils.clearAllNotification(getApplicationContext());
     }
 
     private void initView() {
@@ -253,7 +253,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
             }
         });
         mNoMoreView = getLayoutInflater().inflate(R.layout.no_device_more_footer, null);
-        mAdapter = new EZCameraListAdapter(this);
+        mAdapter = new EZCameraListAdapter(getApplicationContext());
         mAdapter.setOnClickListener(new EZCameraListAdapter.OnClickListener() {
             @Override
             public void onPlayClick(BaseAdapter adapter, View view, int position) {
@@ -271,8 +271,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
 //                    if (cameraInfo == null) {
 //                        return;
 //                    }
-                    LogUtil.d(TAG, "camerainfo COUNT="+mAdapter.getCount());
-                    LogUtil.d(TAG, "device COUNT="+mAdapter.getDeviceCount());
                     Intent intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
                     intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                     intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
@@ -485,10 +483,10 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
 
         @Override
         protected List<EZDeviceInfo> doInBackground(Void... params) {
-            if (EZCameraListActivity.this.isFinishing()) {
-                return null;
-            }
-            if (!ConnectionDetector.isNetworkAvailable(EZCameraListActivity.this)) {
+//            if (EZCameraListActivity.this.isFinishing()) {
+//                return null;
+//            }
+            if (!ConnectionDetector.isNetworkAvailable(getApplicationContext())) {
                 mErrorCode = ErrorCode.ERROR_WEB_NET_EXCEPTION;
                 return null;
             }
@@ -522,9 +520,9 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         protected void onPostExecute(List<EZDeviceInfo> result) {
             super.onPostExecute(result);
             mListView.onRefreshComplete();
-            if (EZCameraListActivity.this.isFinishing()) {
-                return;
-            }
+//            if (EZCameraListActivity.this.isFinishing()) {
+//                return;
+//            }
 
             if (result != null) {
                 if (mHeaderOrFooter) {
@@ -566,10 +564,10 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     if (mAdapter.getCount() == 0) {
                         mListView.setVisibility(View.GONE);
                         mNoCameraTipLy.setVisibility(View.GONE);
-                        mCameraFailTipTv.setText(Utils.getErrorTip(EZCameraListActivity.this, R.string.get_camera_list_fail, errorCode));
+                        mCameraFailTipTv.setText(Utils.getErrorTip(getApplicationContext(), R.string.get_camera_list_fail, errorCode));
                         mGetCameraFailTipLy.setVisibility(View.VISIBLE);
                     } else {
-                        Utils.showToast(EZCameraListActivity.this, R.string.get_camera_list_fail, errorCode);
+                        Utils.showToast(getApplicationContext(), R.string.get_camera_list_fail, errorCode);
                     }
                     break;
             }
@@ -692,7 +690,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mWaitDialog = new WaitDialog(EZCameraListActivity.this, android.R.style.Theme_Translucent_NoTitleBar);
+            mWaitDialog = new WaitDialog(getApplicationContext(), android.R.style.Theme_Translucent_NoTitleBar);
             mWaitDialog.setCancelable(false);
             mWaitDialog.show();
         }

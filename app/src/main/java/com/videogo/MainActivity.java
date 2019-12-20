@@ -204,7 +204,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                                     locationDisplayManager.stop();
                                     position.setVisibility(View.VISIBLE);
                                     position_sel.setVisibility(View.GONE);
-                                    ToastNotRepeat.show(MainActivity.this,"超出地图范围！");
+                                    ToastNotRepeat.show(getApplicationContext(),"超出地图范围！");
                                 }
                             }catch (Exception e){
                                 e.printStackTrace();
