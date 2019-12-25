@@ -12,7 +12,6 @@ import android.widget.LinearLayout;
 
 import com.squareup.picasso.Picasso;
 import com.videogo.been.AsyncImageLoader;
-import com.videogo.remoteplayback.list.PlaybackActivity2;
 import com.videogo.ui.util.UiUtil;
 import com.videogo.warning.RoundTransform;
 
@@ -55,6 +54,12 @@ public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecy
                 @Override
                 public void imageLoaded() {
                     Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                }
+
+                @Override
+                public void imageLoadEmpty() {
+                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
                             .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                 }
             });

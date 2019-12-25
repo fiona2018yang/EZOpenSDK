@@ -3276,17 +3276,18 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             ErrorInfo errorInfo = (ErrorInfo) obj;
             errorCode = errorInfo.errorCode;
             LogUtil.debugLog(TAG, "handlePlayFail:" + errorInfo.errorCode);
+            hidePageAnim();
+
+            stopRealPlay();
+
+            updateRealPlayFailUI(errorInfo);
         }
 
 
-        hidePageAnim();
-
-        stopRealPlay();
-
-        updateRealPlayFailUI(errorCode);
     }
 
-    private void updateRealPlayFailUI(int errorCode) {
+    private void updateRealPlayFailUI(ErrorInfo errorInfo) {
+        int errorCode = errorInfo.errorCode;
         String txt = null;
         LogUtil.i(TAG, "updateRealPlayFailUI: errorCode:" + errorCode);
         // 判断返回的错误码
@@ -3327,7 +3328,10 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             break;
             case ErrorCode.ERROR_EXTRA_SQUARE_NO_SHARING:
             default:
-                txt = Utils.getErrorTip(this, R.string.realplay_play_fail, errorCode);
+                if (errorCode!=0){
+                    //txt = Utils.getErrorTip(this, R.string.realplay_play_fail, errorCode);
+                    txt = errorInfo.description;
+                }
                 break;
         }
 

@@ -223,7 +223,8 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private ImageButton replayBtn;
     private long beginTime;
     private long endTime;
-    private long sustainTime = 20000;
+    private long sustainTime = 20*1000;
+    private long forwardTime = 1*20*60*1000;
     // 下一个播放按钮
     private ImageButton nextPlayBtn;
     // 进度条拖动时的进度圈
@@ -380,34 +381,35 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 
         if (alarmMessage.getCreateTime()!=null){
             if (alarmMessage.getCreateTime().contains("-")){
+                tx_creattime.setText(alarmMessage.getCreateTime());
+            }else{
                 String time = DataUtils.date2TimeStamp(alarmMessage.getCreateTime(),"yyyy-MM-dd HH:mm:ss");
                 tx_creattime.setText(time);
-            }else{
-                tx_creattime.setText(alarmMessage.getCreateTime());
             }
         }
         if (alarmMessage.getImgPath()!=null&&!alarmMessage.getImgPath().equals("")){
             List<String> list = new ArrayList<>();
             url_list = DataUtils.getUrlResouses(alarmMessage.getImgPath());
-            for (HashMap<String,String> map : url_list){
-                String pic_name = map.get("pic_name");
-                String imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
-                list.add(imgpath);
-            }
-            imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,getApplicationContext());
-            recyclerView.setAdapter(imageViewRecyclerAdapter);
-            imageViewRecyclerAdapter.setSetOnItemClickListener(new ImageViewRecyclerAdapter.OnClickListener() {
-                @Override
-                public void OnItemClick(View view, int position) {
-                    Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-                    intent.putExtra("position",position);
-                    intent.putExtra("flag",true);
-                    intent.putStringArrayListExtra("list", (ArrayList<String>) list);
-                    startActivity(intent);
+            if (url_list!=null){
+                for (HashMap<String,String> map : url_list){
+                    String pic_name = map.get("pic_name");
+                    String imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
+                    list.add(imgpath);
+                    imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,getApplicationContext());
+                    recyclerView.setAdapter(imageViewRecyclerAdapter);
+                    imageViewRecyclerAdapter.setSetOnItemClickListener(new ImageViewRecyclerAdapter.OnClickListener() {
+                        @Override
+                        public void OnItemClick(View view, int position) {
+                            Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
+                            intent.putExtra("position",position);
+                            intent.putExtra("flag",true);
+                            intent.putStringArrayListExtra("list", (ArrayList<String>) list);
+                            startActivity(intent);
+                        }
+                    });
                 }
-            });
+            }
         }
-
         mRemotePlayBackTouchListener = new CustomTouchListener() {
 
             @Override
@@ -1063,7 +1065,13 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                     // 提示播放失败
                     txt = getString(R.string.camera_not_online);
                 } else {
-                    txt = getErrorTip(R.string.remoteplayback_fail, errorCode);
+                    if (errorCode!=0){
+                        //txt = getErrorTip(R.string.remoteplayback_fail, errorCode);
+                        txt = errorInfo.description;
+                        if (txt.equals("回放在不到录像文件")){
+                            txt = "回放找不到录像文件";
+                        }
+                    }
                 }
 
                 int errorId = 0; //getErrorId(errorCode);
@@ -1333,8 +1341,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             alarmMessage = getIntent().getParcelableExtra("alarmMessage");
             address = getIntent().getStringExtra("address");
             ChanneNumber = alarmMessage.getChannelNumber();
-            String time = alarmMessage.getStartTime();
-            Log.d(TAG,"time="+time);
+            String time = alarmMessage.getCreateTime();
             if (!time.equals("")){
                 try {
                     if (time.contains("-")){
@@ -1343,6 +1350,14 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                     }else{
                         beginTime = Long.parseLong(time);
                         endTime = beginTime+sustainTime;
+                    }
+                    long systime = System.currentTimeMillis();
+                    if ((systime - beginTime)<forwardTime){
+                        beginTime = beginTime-forwardTime;
+                        endTime = beginTime+sustainTime;
+                        if (endTime > systime){
+                            endTime = systime;
+                        }
                     }
                 }catch (Exception e){
                     e.printStackTrace();

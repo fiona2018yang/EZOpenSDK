@@ -76,21 +76,33 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
             if (path!=null&&!path.equals("")){
                 //加载图片
                 try {
-                    HashMap<String,String> map = DataUtils.getUrlResouses(path).get(0);
-                    String pic_name = map.get("pic_name");
-                    String imagpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
-                    File imgFile = new File(imagpath);
-                    if (!imgFile.exists()) {
-                        asyncImageLoader.loadDrawable(map, new AsyncImageLoader.ImageCallback() {
-                            @Override
-                            public void imageLoaded() {
-                                Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
-                                        .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
-                            }
-                        });
-                    }else{
-                        Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
+                    List<HashMap<String,String>> list = DataUtils.getUrlResouses(path);
+                    if (list == null){
+                        Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
                                 .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                    }else{
+                        HashMap<String,String> map = list.get(0);
+                        String pic_name = map.get("pic_name");
+                        String imagpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
+                        File imgFile = new File(imagpath);
+                        if (!imgFile.exists()) {
+                            asyncImageLoader.loadDrawable(map, new AsyncImageLoader.ImageCallback() {
+                                @Override
+                                public void imageLoaded() {
+                                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
+                                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                                }
+
+                                @Override
+                                public void imageLoadEmpty() {
+                                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
+                                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                                }
+                            });
+                        }else{
+                            Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
+                                    .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                        }
                     }
                 }catch (Exception e){
                     e.printStackTrace();
@@ -172,9 +184,15 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     public void setSetOnItemClickListener(OnClickListener onClickListener){
         this.OnClickListener = onClickListener;
     }
+
+
+
     public  interface OnClickListener{
         void OnItemClick(View view,int position , String address);
     }
+
+
+
     public  void queryLocation(TextView textView , String la, String ln) throws UnsupportedEncodingException, NoSuchAlgorithmException {
         String url = AlarmContant.location_url;
         LinkedHashMap<String,String> map = new LinkedHashMap<>();

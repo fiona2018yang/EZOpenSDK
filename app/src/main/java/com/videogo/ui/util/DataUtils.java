@@ -7,6 +7,7 @@ import android.os.Environment;
 import android.util.Log;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,21 +53,28 @@ public class DataUtils {
                 String url = urls[i];
                 HashMap<String,String> map = new HashMap<>();
                 String[] rils = url.split("/");
-                String[]ips = rils[2].split("@");
-                String ip = ips[1];
-                map.put("ip",ip);
-                String[]pas = ips[0].split(":");
-                String name = pas[0];
-                map.put("name",name);
-                String password = pas[1];
-                map.put("password",password);
-                String pic_name = rils[rils.length-1];
-                map.put("pic_name",pic_name);
-                String dir_name = url.substring(7+rils[2].length(),url.length()-pic_name.length()-1);
-                map.put("dir_name",dir_name);
-                hashMapList.add(map);
+                Log.d("TAG","rils="+ Arrays.toString(rils));
+                if (rils[2].contains("@")){
+                    String[]ips = rils[2].split("@");
+                    String ip = ips[1];
+                    map.put("ip",ip);
+                    String[]pas = ips[0].split(":");
+                    String name = pas[0];
+                    map.put("name",name);
+                    String password = pas[1];
+                    map.put("password",password);
+                    String pic_name = rils[rils.length-1];
+                    map.put("pic_name",pic_name);
+                    String dir_name = url.substring(7+rils[2].length(),url.length()-pic_name.length()-1);
+                    String serverPath = url.substring(rils[0].length()+2+rils[2].length()+1,url.length());
+                    map.put("server_name",serverPath);
+                    map.put("dir_name",dir_name);
+                    hashMapList.add(map);
+                    return hashMapList;
+                }else {
+                    return null;
+                }
             }
-            return hashMapList;
         }catch (Exception e){
             e.printStackTrace();
         }

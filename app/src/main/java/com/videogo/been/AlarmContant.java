@@ -21,7 +21,8 @@ public class AlarmContant {
     public static final int USER_TYPE_FAZHANJU = 10;
     public static final int USER_TYPE_SUPER = 11;
     public static final String DEVICE_SERIAL_NUM = "D85325086";
-    public static final String service_url = "http://192.168.60.103:8080/";
+    public static final String service_url = "http://192.168.33.11:8080/";
+    //public static final String service_url = "http://192.168.60.103:8080/";
     public static final String location_url ="http://api.map.baidu.com/reverse_geocoding/v3/";
 
     public static List<String> list_chengguan = new ArrayList<>();
@@ -33,47 +34,47 @@ public class AlarmContant {
     public static List<File> list_file_pic = new ArrayList<>();
     public static final List<String> getList_chengguan(){
         list_chengguan.clear();
-        list_chengguan.add("渣土车识别定位跟踪");
         list_chengguan.add("违法乱建");
         list_chengguan.add("违章种植");
-        list_chengguan.add("秸秆焚烧");
+        list_chengguan.add("垃圾倾倒");
+        list_chengguan.add("漂浮物");
         return list_chengguan;
     }
 
     public static final List<String> getList_shiwuju(){
         list_shiwuju.clear();
-        list_shiwuju.add("渣土车识别定位跟踪");
         list_shiwuju.add("违法乱建");
         list_shiwuju.add("违章种植");
-        list_shiwuju.add("秸秆焚烧");
+        list_shiwuju.add("垃圾倾倒");
+        list_shiwuju.add("漂浮物");
         return list_shiwuju;
     }
     public static final List<String> getList_huanbaoju(){
         list_huanbaoju.clear();
-        list_huanbaoju.add("河道监测");
+        list_huanbaoju.add("渣土车");
         return list_huanbaoju;
     }
     public static final List<String> getList_zhifaju(){
         list_zhifaju.clear();
-        list_zhifaju.add("渣土车识别定位跟踪");
         list_zhifaju.add("违法乱建");
-        list_zhifaju.add("河道监测");
-        list_zhifaju.add("园区企业监管");
+        list_zhifaju.add("违章种植");
+        list_zhifaju.add("渣土车");
+        list_zhifaju.add("火情预警");
         return list_zhifaju;
     }
     public static final List<String> getList_fazhanju(){
         list_fazhanju.clear();
-        list_fazhanju.add("园区企业监管");
+        list_fazhanju.add("火情预警");
         return list_fazhanju;
     }
     public static final List<String> getList_super(){
         list_super.clear();
-        list_super.add("渣土车识别定位跟踪");
         list_super.add("违法乱建");
         list_super.add("违章种植");
-        list_super.add("秸秆焚烧");
-        list_super.add("河道监测");
-        list_super.add("园区企业监管");
+        list_super.add("垃圾倾倒");
+        list_super.add("漂浮物");
+        list_super.add("渣土车");
+        list_super.add("火情预警");
         return list_super;
     }
     public static String getAlarmType(int type){

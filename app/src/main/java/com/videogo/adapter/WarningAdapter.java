@@ -86,17 +86,17 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
         }
     }
     private int gettype(String str){
-        if (str.equals("渣土车识别定位跟踪")){
+        if (str.equals("违法乱建")){
             return AlarmContant.MESSAGE_TYPE_TRUCK_IDENTITY;
-        }else if (str.equals("违法乱建")){
-            return AlarmContant.MESSAGE_TYPE_ILLEGAL_BUILDING;
         }else if (str.equals("违章种植")){
+            return AlarmContant.MESSAGE_TYPE_ILLEGAL_BUILDING;
+        }else if (str.equals("垃圾倾倒")){
             return AlarmContant.MESSAGE_TYPE_ILLEGAL_PLANT;
-        }else if (str.equals("秸秆焚烧")){
+        }else if (str.equals("漂浮物")){
             return AlarmContant.MESSAGE_TYPE_STRAW_BURNING;
-        }else if (str.equals("河道监测")){
+        }else if (str.equals("渣土车")){
             return AlarmContant.MESSAGE_TYPE_RIVER_MONITOR;
-        }else if (str.equals("园区企业监管")){
+        }else if (str.equals("火情预警")){
             return AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE;
         }
         return 0;

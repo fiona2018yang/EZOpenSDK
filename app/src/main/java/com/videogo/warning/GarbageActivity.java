@@ -185,6 +185,7 @@ public class GarbageActivity extends Activity {
                 Intent intent = new Intent(context, PlaybackActivity2.class);
                 intent.putExtra("alarmMessage", alarmMessageList.get(position));
                 intent.putExtra("address", address);
+                Log.d("TAG","url="+alarmMessageList.get(position).getImgPath());
                 startActivity(intent);
                 updateRead(alarmMessageList.get(position).getId());
             }
@@ -329,19 +330,29 @@ public class GarbageActivity extends Activity {
                     if (result.equals("true")) {
                         String data = object.get("data").toString();
                         JSONObject objectdata = new JSONObject(data);
-                        Gson gson = new Gson();
-                        List<JsonObject> list_objects = gson.fromJson(objectdata.get("data").toString(), new TypeToken<List<JsonObject>>() {
-                        }.getType());
-                        for (JsonObject object1 : list_objects) {
-                            AlarmMessage alarmMessage = gson.fromJson(object1, AlarmMessage.class);
-                            alarmMessageList.add(alarmMessage);
+                        String count = objectdata.get("count").toString();
+                        if (Integer.parseInt(count)>0){
+                            Gson gson = new Gson();
+                            List<JsonObject> list_objects = gson.fromJson(objectdata.get("data").toString(), new TypeToken<List<JsonObject>>() {
+                            }.getType());
+                            for (JsonObject object1 : list_objects) {
+                                AlarmMessage alarmMessage = gson.fromJson(object1, AlarmMessage.class);
+                                alarmMessageList.add(alarmMessage);
+                            }
+                            Message message = Message.obtain();
+                            message.what = 101;
+                            Bundle bundle = new Bundle();
+                            bundle.putParcelableArrayList("datalist", (ArrayList<? extends Parcelable>) alarmMessageList);
+                            message.setData(bundle);
+                            handler.sendMessage(message);
+                        }else{
+                            Message message = Message.obtain();
+                            message.what = 101;
+                            Bundle bundle = new Bundle();
+                            bundle.putParcelableArrayList("datalist", (ArrayList<? extends Parcelable>) alarmMessageList);
+                            message.setData(bundle);
+                            handler.sendMessage(message);
                         }
-                        Message message = Message.obtain();
-                        message.what = 101;
-                        Bundle bundle = new Bundle();
-                        bundle.putParcelableArrayList("datalist", (ArrayList<? extends Parcelable>) alarmMessageList);
-                        message.setData(bundle);
-                        handler.sendMessage(message);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

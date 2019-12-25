@@ -44,7 +44,7 @@ import java.util.List;
             //设置编码格式，防止中文乱码
             mFtpClient.setControlEncoding("UTF-8");
             //设置连接超时时间
-            this.mFtpClient.setConnectTimeout(10 * 1000);
+            this.mFtpClient.setConnectTimeout(1500);
             //设置数据传输超时时间
 //            mFtpClient.setDataTimeout(10*1000);
         } catch (Exception e) {
@@ -72,7 +72,6 @@ import java.util.List;
 //                Constant.ftpLoginResult = status;
                 useCompressedTransfer();
             }
-
             Log.i(TAG, "connect: " + status);
         } catch (IOException e) {
             e.printStackTrace();

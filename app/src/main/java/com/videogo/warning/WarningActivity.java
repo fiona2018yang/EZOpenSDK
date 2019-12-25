@@ -77,6 +77,7 @@ public class WarningActivity  extends Activity {
                 case AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE:
                     Bundle bundle1 = msg.getData();
                     int count1 = Integer.parseInt(bundle1.getString("count"));
+                    Log.d(TAG,"COUNT="+count1);
                     if (count1!=0){
                         Map<String , Integer> map = new HashMap<>();
                         map.put("type",msg.what);
@@ -211,6 +212,7 @@ public class WarningActivity  extends Activity {
                 list = AlarmContant.getList_super();
                 break;
         }
+        Log.d("TAG","list="+list.toString());
         for (int i = 0 ; i < list.size() ; i++){
             int type= gettype(list.get(i));
             type_list.add(type);
@@ -224,6 +226,7 @@ public class WarningActivity  extends Activity {
             public void onClick(View view,int position,int size_url) {
                 upDateUi(position,size_url);
                 alarm_type = gettype(list.get(position));
+                Log.d("TAG","alarm_type="+alarm_type);
                 String title = list.get(position);
                 Intent i1 = new Intent(view.getContext(), GarbageActivity.class);
                 i1.putExtra("type",alarm_type);
@@ -260,17 +263,17 @@ public class WarningActivity  extends Activity {
     }
 
     private int gettype(String str){
-        if (str.equals("渣土车识别定位跟踪")){
+        if (str.equals("违法乱建")){
             return AlarmContant.MESSAGE_TYPE_TRUCK_IDENTITY;
-        }else if (str.equals("违法乱建")){
-            return AlarmContant.MESSAGE_TYPE_ILLEGAL_BUILDING;
         }else if (str.equals("违章种植")){
+            return AlarmContant.MESSAGE_TYPE_ILLEGAL_BUILDING;
+        }else if (str.equals("垃圾倾倒")){
             return AlarmContant.MESSAGE_TYPE_ILLEGAL_PLANT;
-        }else if (str.equals("秸秆焚烧")){
+        }else if (str.equals("漂浮物")){
             return AlarmContant.MESSAGE_TYPE_STRAW_BURNING;
-        }else if (str.equals("河道监测")){
+        }else if (str.equals("渣土车")){
             return AlarmContant.MESSAGE_TYPE_RIVER_MONITOR;
-        }else if (str.equals("园区企业监管")){
+        }else if (str.equals("火情预警")){
             return AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE;
         }
         return 0;

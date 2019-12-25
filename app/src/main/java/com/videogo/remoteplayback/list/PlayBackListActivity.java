@@ -817,7 +817,10 @@ public class PlayBackListActivity extends RootActivity implements QueryPlayBackL
                     // 提示播放失败
                     txt = getString(R.string.camera_not_online);
                 } else {
-                    txt = getErrorTip(R.string.remoteplayback_fail, errorCode);
+                    if (errorCode!=0){
+                        //txt = getErrorTip(R.string.remoteplayback_fail, errorCode);
+                        txt = errorInfo.description;
+                    }
                 }
 
                 int errorId = 0; //getErrorId(errorCode);
