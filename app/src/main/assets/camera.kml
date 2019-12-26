@@ -89,7 +89,7 @@
 	<Folder>
 		<name>机器人点位</name>
 		<Placemark>
-			<name>西城大厦</name>
+			<name>西城大厦(西区)</name>
 			<description>西城大厦西北角楼顶</description>
 			<LookAt>
 				<longitude>118.1987589457937</longitude>
@@ -107,7 +107,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>铂金美寓</name>
+			<name>铂金美寓(西区)</name>
 			<description>铂金美寓西北角楼顶</description>
 			<LookAt>
 				<longitude>118.1894186071158</longitude>
@@ -125,7 +125,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>元大建筑</name>
+			<name>元大建筑(西区)</name>
 			<description>样板楼西南角</description>
 			<LookAt>
 				<longitude>118.1890095755219</longitude>
@@ -143,7 +143,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>华夏大道与创业路</name>
+			<name>华夏大道与创业路(南区)</name>
 			<description>华夏大道与创业路交叉口以东方向，四角塔</description>
 			<LookAt>
 				<longitude>118.2934784614752</longitude>
@@ -161,7 +161,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>公路工程处</name>
+			<name>公路工程处(南区)</name>
 			<description>宿迁公路工程处西面，四角塔</description>
 			<LookAt>
 				<longitude>118.289595239698</longitude>
@@ -179,7 +179,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>勇进路与科苑路小白河</name>
+			<name>勇进路与科苑路小白河(西区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.1968617244374</longitude>
@@ -197,7 +197,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>勇进路与耿五路交叉口小白河</name>
+			<name>勇进路与耿五路交叉口小白河(西区)</name>
 			<description>小白河边，需立杆</description>
 			<LookAt>
 				<longitude>118.1828722013054</longitude>
@@ -215,7 +215,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>勇进路与科创路小白河</name>
+			<name>勇进路与科创路小白河(西区)</name>
 			<description>小白河边，需立杆</description>
 			<LookAt>
 				<longitude>118.1775012455801</longitude>
@@ -233,7 +233,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>光大环保</name>
+			<name>光大环保(西区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.1767810449737</longitude>
@@ -251,7 +251,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>隆锦路与科苑路</name>
+			<name>隆锦路与科苑路(西区)</name>
 			<description>迪迈机械最北面楼楼顶</description>
 			<LookAt>
 				<longitude>118.1904276317215</longitude>
@@ -269,7 +269,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>科工路与复旦路</name>
+			<name>科工路与复旦路(西区)</name>
 			<description>科工路与复旦路交叉口通信塔</description>
 			<LookAt>
 				<longitude>118.203935083739</longitude>
@@ -287,7 +287,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>隆锦路与十支渠</name>
+			<name>隆锦路与十支渠(西区)</name>
 			<description>十支渠，需立杆</description>
 			<LookAt>
 				<longitude>118.2076234538281</longitude>
@@ -305,7 +305,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>古城路与十支渠</name>
+			<name>古城路与十支渠(西区)</name>
 			<description>十支渠，附近有已建水质监测点</description>
 			<LookAt>
 				<longitude>118.2075320510354</longitude>
@@ -323,7 +323,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>轩辕路与创业路</name>
+			<name>轩辕路与创业路(南区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.2886298068622</longitude>
@@ -341,7 +341,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>便民创业街</name>
+			<name>便民创业街(南区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.2991516142469</longitude>
@@ -359,7 +359,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>水韵家园</name>
+			<name>水韵家园(南区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.2861603780259</longitude>
@@ -377,7 +377,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>南海不锈钢</name>
+			<name>南海不锈钢(南区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.2924928441248</longitude>
@@ -395,7 +395,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>东盛玻璃纤维</name>
+			<name>东盛玻璃纤维(南区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.2989921188848</longitude>
@@ -413,7 +413,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>加气站</name>
+			<name>加气站(南区)</name>
 			<description>通信塔</description>
 			<LookAt>
 				<longitude>118.3035914026864</longitude>
@@ -431,7 +431,7 @@
 			</Point>
 		</Placemark>
 		<Placemark>
-			<name>鸿运路与华夏大道</name>
+			<name>鸿运路与华夏大道(南区)</name>
 			<description>鸿运路与华夏大道以西通信塔</description>
 			<LookAt>
 				<longitude>118.2974021029842</longitude>

@@ -9,18 +9,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-
 import com.squareup.picasso.Picasso;
 import com.videogo.been.AsyncImageLoader;
 import com.videogo.ui.util.UiUtil;
 import com.videogo.warning.RoundTransform;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import ezviz.ezopensdk.R;
 
 public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecyclerAdapter.ImageHolder>{
@@ -59,8 +56,8 @@ public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecy
 
                 @Override
                 public void imageLoadEmpty() {
-                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
-                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                    Picasso.with(context).load(R.mipmap.load_fail2).transform(new RoundTransform(20))
+                            .error(context.getResources().getDrawable(R.mipmap.load_fail2)).into(holder.imageView);
                 }
             });
         }else{

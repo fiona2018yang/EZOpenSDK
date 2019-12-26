@@ -2,6 +2,7 @@ package com.videogo.adapter;
 
 import android.content.Context;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -45,7 +46,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     private boolean isSrolling = false;
 
 
-    public TitleWarningAdatter(List<AlarmMessage> alarmMessageList,List<EZCameraInfo> cameraInfos,ExecutorService executorService , Context context) {
+    public TitleWarningAdatter(List<AlarmMessage> alarmMessageList,List<EZCameraInfo> cameraInfos,ExecutorService executorService  ,Context context) {
         this.alarmMessageList = alarmMessageList;
         this.cameraInfoList = cameraInfos;
         this.context = context;
@@ -78,7 +79,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                 try {
                     List<HashMap<String,String>> list = DataUtils.getUrlResouses(path);
                     if (list == null){
-                        Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
+                        Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600,300)
                                 .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                     }else{
                         HashMap<String,String> map = list.get(0);
@@ -95,7 +96,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
 
                                 @Override
                                 public void imageLoadEmpty() {
-                                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
+                                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600,300)
                                             .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                                 }
                             });
@@ -108,7 +109,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                     e.printStackTrace();
                 }
             }else{
-                Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20))
+                Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600,300)
                         .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
             }
             if (alarmMessageList.get(position).getLatitude()!=null||alarmMessageList.get(position).getLongitude()!=null){
@@ -126,7 +127,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
             }
         }else{
             Picasso.with(context).load(R.mipmap.loading).transform(new RoundTransform(20)).resize(600,300)
-                    .error(context.getResources().getDrawable(R.mipmap.loading)).into(holder.imageView);
+                    .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
             holder.address.setText("加载中...");
         }
         //设置已读
@@ -165,7 +166,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
         return alarmMessageList.size();
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder{
+    public static class MyViewHolder extends RecyclerView.ViewHolder{
         public ImageView imageView;
         public TextView camera_name;
         public TextView message_text;

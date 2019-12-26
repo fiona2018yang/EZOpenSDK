@@ -44,6 +44,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
+import static com.videogo.been.AlarmContant.gettype;
+
 public class WarningActivity  extends Activity {
     private String TAG ="WarningActivity";
     private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
@@ -255,29 +257,14 @@ public class WarningActivity  extends Activity {
             @Override
             public void run() {
                 ContentValues values = new ContentValues();
-                values.put("size"+gettype(type),String.valueOf(size_url));
+                values.put("size"+ gettype(type),String.valueOf(size_url));
                 db.update("alarmSize", values, "size"+gettype(type)+"=?", new String[]{size_db});
             }
         };
         executors.execute(runnable);
     }
 
-    private int gettype(String str){
-        if (str.equals("违法乱建")){
-            return AlarmContant.MESSAGE_TYPE_TRUCK_IDENTITY;
-        }else if (str.equals("违章种植")){
-            return AlarmContant.MESSAGE_TYPE_ILLEGAL_BUILDING;
-        }else if (str.equals("垃圾倾倒")){
-            return AlarmContant.MESSAGE_TYPE_ILLEGAL_PLANT;
-        }else if (str.equals("漂浮物")){
-            return AlarmContant.MESSAGE_TYPE_STRAW_BURNING;
-        }else if (str.equals("渣土车")){
-            return AlarmContant.MESSAGE_TYPE_RIVER_MONITOR;
-        }else if (str.equals("火情预警")){
-            return AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE;
-        }
-        return 0;
-    }
+
 
     @Override
     protected void onDestroy() {

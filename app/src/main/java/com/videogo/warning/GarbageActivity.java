@@ -33,6 +33,7 @@ import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.TitleWarningAdatter;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
+import com.videogo.been.AsyncImageLoader;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.remoteplayback.list.PlaybackActivity2;
 
@@ -89,6 +90,10 @@ public class GarbageActivity extends Activity {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             switch (msg.what) {
+                case 0:
+                    break;
+                case 1:
+                    break;
                 case 104:
                     Bundle bundle3 = msg.getData();
                     read_list.clear();

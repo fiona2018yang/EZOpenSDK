@@ -1289,7 +1289,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                     @Override
                     public void run() {
                         mRealPlayFullTalkBtn.getLocationInWindow(mStartXy);
-                        mEndXy[0] = Utils.dip2px(EZRealPlayActivity.this, 20);
+                        mEndXy[0] = Utils.dip2px(getApplicationContext(), 20);
                         mEndXy[1] = mStartXy[1];
 
                         mRealPlayFullOperateBar.setVisibility(View.GONE);
@@ -1475,7 +1475,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                 @Override
                 public void run() {
                     mRealPlayFullPtzBtn.getLocationInWindow(mStartXy);
-                    mEndXy[0] = Utils.dip2px(EZRealPlayActivity.this, 20);
+                    mEndXy[0] = Utils.dip2px(getApplicationContext(), 20);
                     mEndXy[1] = mStartXy[1];
 
                     mRealPlayFullOperateBar.setVisibility(View.GONE);
@@ -1578,14 +1578,14 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
         updateOrientation();
 
-        Utils.showToast(this, R.string.start_voice_talk);
+        Utils.showToast(getApplicationContext(), R.string.start_voice_talk);
         mRealPlayTalkBtn.setEnabled(false);
         mRealPlayFullTalkBtn.setEnabled(false);
         mRealPlayFullTalkAnimBtn.setEnabled(false);
         if (mOrientation == Configuration.ORIENTATION_LANDSCAPE) {
             mRealPlayFullAnimBtn.setBackgroundResource(R.drawable.speech_1);
             mRealPlayFullTalkBtn.getLocationInWindow(mStartXy);
-            mEndXy[0] = Utils.dip2px(this, 20);
+            mEndXy[0] = Utils.dip2px(getApplicationContext(), 20);
             mEndXy[1] = mStartXy[1];
             startFullBtnAnim(mRealPlayFullAnimBtn, mStartXy, mEndXy, new AnimationListener() {
 
@@ -1599,7 +1599,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
 
                 @Override
                 public void onAnimationEnd(Animation animation) {
-                    Utils.showToast(EZRealPlayActivity.this, R.string.realplay_full_talk_start_tip);
+                    Utils.showToast(getApplicationContext(), R.string.realplay_full_talk_start_tip);
                     mRealPlayFullTalkAnimBtn.setVisibility(View.VISIBLE);
                     mRealPlayFullAnimBtn.setVisibility(View.GONE);
                     onRealPlaySvClick();
@@ -1831,7 +1831,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
      */
     private void setQualityMode(final EZVideoLevel mode) {
         // 检查网络是否可用
-        if (!ConnectionDetector.isNetworkAvailable(EZRealPlayActivity.this)) {
+        if (!ConnectionDetector.isNetworkAvailable(getApplicationContext())) {
             // 提示没有连接网络
             Utils.showToast(EZRealPlayActivity.this, R.string.realplay_set_fail_network);
             return;
@@ -1932,7 +1932,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             public void run() {
                 if (mTalkRingView != null) {
                     mTalkRingView.setMinRadiusAndDistance(mTalkBackControlBtn.getHeight() / 2f,
-                            Utils.dip2px(EZRealPlayActivity.this, 22));
+                            Utils.dip2px(getApplicationContext(), 22));
                 }
             }
         });
@@ -2045,7 +2045,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         qualityBalancedBtn.setVisibility(View.VISIBLE);
         qualityHdBtn.setVisibility(View.VISIBLE);
 
-        height = Utils.dip2px(this, height);
+        height = Utils.dip2px(getApplicationContext(), height);
         mQualityPopupWindow = new PopupWindow(layoutView, LayoutParams.WRAP_CONTENT, height, true);
         mQualityPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         mQualityPopupWindow.setOnDismissListener(new OnDismissListener() {
@@ -2058,8 +2058,8 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             }
         });
         try {
-            mQualityPopupWindow.showAsDropDown(anchor, -Utils.dip2px(this, 5),
-                    -(height + anchor.getHeight() + Utils.dip2px(this, 8)));
+            mQualityPopupWindow.showAsDropDown(anchor, -Utils.dip2px(getApplicationContext(), 5),
+                    -(height + anchor.getHeight() + Utils.dip2px(getApplicationContext(), 8)));
         } catch (Exception e) {
             e.printStackTrace();
             closeQualityPopupWindow();
@@ -2150,7 +2150,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         if (mEZPlayer == null || !mIsRecording) {
             return;
         }
-        Toast.makeText(EZRealPlayActivity.this, getResources().getString(R.string.already_saved_to_volume), Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), getResources().getString(R.string.already_saved_to_volume), Toast.LENGTH_SHORT).show();
 
         // 设置录像按钮为check状态
         if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -2263,12 +2263,12 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                             values.put("path",path);
                             values.put("name",String.format("%tH", date) + String.format("%tM", date) + String.format("%tS", date) + String.format("%tL", date) +".jpg");
                             db.insert("picfilepath",null,values);
-                            MediaScanner mMediaScanner = new MediaScanner(EZRealPlayActivity.this);
+                            MediaScanner mMediaScanner = new MediaScanner(getApplicationContext());
                             mMediaScanner.scanFile(path, "jpg");
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Toast.makeText(EZRealPlayActivity.this, getResources().getString(R.string.already_saved_to_volume) + path, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(), getResources().getString(R.string.already_saved_to_volume) + path, Toast.LENGTH_SHORT).show();
                                 }
                             });
                         } catch (InnerException e) {
@@ -2360,7 +2360,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         }
 
         // 检查网络是否可用
-        if (!ConnectionDetector.isNetworkAvailable(this)) {
+        if (!ConnectionDetector.isNetworkAvailable(getApplicationContext())) {
             // 提示没有连接网络
             setRealPlayFailUI(getString(R.string.realplay_play_fail_becauseof_network));
             return;
@@ -3117,14 +3117,14 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         if (mRealPlayCaptureRl.getVisibility() == View.VISIBLE) {
             if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
                 if (mRealPlayControlRl.getVisibility() == View.VISIBLE) {
-                    mRealPlayCaptureRlLp.setMargins(0, 0, 0, Utils.dip2px(this, 40));
+                    mRealPlayCaptureRlLp.setMargins(0, 0, 0, Utils.dip2px(getApplicationContext(), 40));
                 } else {
                     mRealPlayCaptureRlLp.setMargins(0, 0, 0, 0);
                 }
                 mRealPlayCaptureRl.setLayoutParams(mRealPlayCaptureRlLp);
             } else {
                 LayoutParams realPlayCaptureRlLp = new LayoutParams(
-                        Utils.dip2px(this, 65), Utils.dip2px(this, 45));
+                        Utils.dip2px(getApplicationContext(), 65), Utils.dip2px(getApplicationContext(), 45));
                 realPlayCaptureRlLp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
                 realPlayCaptureRlLp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
                 mRealPlayCaptureRl.setLayoutParams(realPlayCaptureRlLp);
@@ -3172,7 +3172,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         }
 
         // 检查网络是否可用
-        if (!ConnectionDetector.isNetworkAvailable(this)) {
+        if (!ConnectionDetector.isNetworkAvailable(getApplicationContext())) {
             // 提示没有连接网络
             setRealPlayFailUI(getString(R.string.realplay_play_fail_becauseof_network));
             return;
@@ -3448,9 +3448,9 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             LayoutParams realPlayRatioTvLp = (LayoutParams) mRealPlayRatioTv
                     .getLayoutParams();
             if (mOrientation == Configuration.ORIENTATION_PORTRAIT) {
-                realPlayRatioTvLp.setMargins(Utils.dip2px(this, 10), Utils.dip2px(this, 10), 0, 0);
+                realPlayRatioTvLp.setMargins(Utils.dip2px(getApplicationContext(), 10), Utils.dip2px(getApplicationContext(), 10), 0, 0);
             } else {
-                realPlayRatioTvLp.setMargins(Utils.dip2px(this, 70), Utils.dip2px(this, 20), 0, 0);
+                realPlayRatioTvLp.setMargins(Utils.dip2px(getApplicationContext(), 70), Utils.dip2px(getApplicationContext(), 20), 0, 0);
             }
             mRealPlayRatioTv.setLayoutParams(realPlayRatioTvLp);
             String sacleStr = String.valueOf(scale);

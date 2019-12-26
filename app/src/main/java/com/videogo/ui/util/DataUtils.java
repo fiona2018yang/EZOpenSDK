@@ -46,18 +46,22 @@ public class DataUtils {
     }
 
     public static List<HashMap<String,String>> getUrlResouses(String path){
+
         try {
             List<HashMap<String,String>> hashMapList = new ArrayList<>();
             String[] urls = path.split(";");
             for (int i = 0 ; i < urls.length ; i++){
                 String url = urls[i];
+                //url = ftp://ubuntu:rushi12345@183.208.120.226:3301/node/kaifaqu/data/Suchness197/picture/2019/12/25/10_55_48_1.jpg
                 HashMap<String,String> map = new HashMap<>();
                 String[] rils = url.split("/");
-                Log.d("TAG","rils="+ Arrays.toString(rils));
                 if (rils[2].contains("@")){
                     String[]ips = rils[2].split("@");
-                    String ip = ips[1];
+                    String[] ip_port = ips[1].split(":");
+                    String ip = ip_port[0];
+                    String port = ip_port[1];
                     map.put("ip",ip);
+                    map.put("port",port);
                     String[]pas = ips[0].split(":");
                     String name = pas[0];
                     map.put("name",name);

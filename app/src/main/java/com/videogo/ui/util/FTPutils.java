@@ -25,6 +25,7 @@ import java.util.List;
 
     public FTPutils() {
         mFtpClient = new FTPClient();
+        Log.d("TAG","ftpConnect="+mFtpClient.isConnected());
     }
 
     public void setFtpClient(FTPClient mFtpClient) {
@@ -40,11 +41,11 @@ import java.util.List;
             // 二进制文件支持
             mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
             //设置缓存
-            mFtpClient.setBufferSize(1024);
+            mFtpClient.setBufferSize(1024*3);
             //设置编码格式，防止中文乱码
             mFtpClient.setControlEncoding("UTF-8");
             //设置连接超时时间
-            this.mFtpClient.setConnectTimeout(1500);
+            mFtpClient.setConnectTimeout(1000);
             //设置数据传输超时时间
 //            mFtpClient.setDataTimeout(10*1000);
         } catch (Exception e) {
@@ -67,12 +68,12 @@ import java.util.List;
 
         try {
             if(!mFtpClient.isConnected()){
+                useCompressedTransfer();
                 mFtpClient.connect(ip,port);
+                Log.d("TAG", "connect: " + mFtpClient.isConnected());
                 status = mFtpClient.login(userName, pass);
 //                Constant.ftpLoginResult = status;
-                useCompressedTransfer();
             }
-            Log.i(TAG, "connect: " + status);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -203,6 +204,16 @@ import java.util.List;
         listener.onFtpProgress(Constant.FTP_CONNECT_SUCCESS, 0, null);
 
         // 先判断服务器文件是否存在
+        mFtpClient.enterLocalPassiveMode();
+        mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+        // 使用被动模式设为默认
+        mFtpClient.enterLocalPassiveMode();
+        // 二进制文件支持
+        mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        //设置缓存
+        mFtpClient.setBufferSize(1024*3);
+        //设置编码格式，防止中文乱码
+        mFtpClient.setControlEncoding("UTF-8");
         FTPFile[] files = mFtpClient.listFiles(serverPath);
         if (files!=null &&files.length == 0) {
             listener.onFtpProgress(Constant.FTP_FILE_NOTEXISTS, 0, null);
@@ -214,7 +225,6 @@ import java.util.List;
         File mkFile = new File(localPath);
         if (!mkFile.exists()) {
             boolean ismake=mkFile.mkdirs();
-            Log.d(TAG,"是否存在"+ismake);
         }
         localPath = localPath + File.separator+fileName;
         // 接着判断下载的文件是否能断点下载
@@ -228,7 +238,6 @@ import java.util.List;
                 localFile.delete();
                 localFile.createNewFile();
                 localSize=0;
-
             }else {
                 listener.onFtpProgress(Constant.FTP_DOWN_CONTINUE, 0, null);
             }
@@ -236,7 +245,6 @@ import java.util.List;
             localFile.createNewFile();
             Log.d(TAG, "creatFile"+fileName+","+Thread.currentThread().getId());
         }
-
         // 进度
         long step = serverSize / 100;
         long process = 0;

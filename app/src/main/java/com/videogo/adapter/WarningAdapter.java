@@ -2,18 +2,14 @@ package com.videogo.adapter;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-
-import com.videogo.been.AlarmContant;
-
 import java.util.List;
 import java.util.Map;
-
 import ezviz.ezopensdk.R;
+import static com.videogo.been.AlarmContant.gettype;
 
 public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningHolder> {
     private Context context;
@@ -84,21 +80,5 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
             super(itemView);
             tv = itemView.findViewById(R.id.tv);
         }
-    }
-    private int gettype(String str){
-        if (str.equals("违法乱建")){
-            return AlarmContant.MESSAGE_TYPE_TRUCK_IDENTITY;
-        }else if (str.equals("违章种植")){
-            return AlarmContant.MESSAGE_TYPE_ILLEGAL_BUILDING;
-        }else if (str.equals("垃圾倾倒")){
-            return AlarmContant.MESSAGE_TYPE_ILLEGAL_PLANT;
-        }else if (str.equals("漂浮物")){
-            return AlarmContant.MESSAGE_TYPE_STRAW_BURNING;
-        }else if (str.equals("渣土车")){
-            return AlarmContant.MESSAGE_TYPE_RIVER_MONITOR;
-        }else if (str.equals("火情预警")){
-            return AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE;
-        }
-        return 0;
     }
 }
