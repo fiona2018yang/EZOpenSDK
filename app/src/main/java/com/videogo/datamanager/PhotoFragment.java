@@ -13,6 +13,8 @@ import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.VideoView;
 
+import com.bumptech.glide.signature.StringSignature;
+
 import ezviz.ezopensdk.R;
 import uk.co.senab.photoview.PhotoView;
 import uk.co.senab.photoview.PhotoViewAttacher;
@@ -83,13 +85,22 @@ public class PhotoFragment extends Fragment {
                 mPhotoView.setVisibility(View.GONE);
             }
         });
-        com.bumptech.glide.Glide.with(getContext())
-                .load(url)
+        if (url.contains("cash")){
+            com.bumptech.glide.Glide.with(getContext())
+                    .load(url)
+                    .signature(new StringSignature(String.valueOf(System.currentTimeMillis())))
 //                .placeholder(R.mipmap.ic_launcher)//加载过程中图片未显示时显示的本地图片
 //                .error(R.mipmap.ic_launcher)//加载异常时显示的图片
 //                .centerCrop()//图片图填充ImageView设置的大小
-                .fitCenter()//缩放图像测量出来等于或小于ImageView的边界范围,该图像将会完全显示
-                .into(mPhotoView);
+                    .fitCenter()//缩放图像测量出来等于或小于ImageView的边界范围,该图像将会完全显示
+                    .into(mPhotoView);
+        }else{
+            com.bumptech.glide.Glide.with(getContext())
+                    .load(url)
+                    .fitCenter()//缩放图像测量出来等于或小于ImageView的边界范围,该图像将会完全显示
+                    .into(mPhotoView);
+        }
+
         if(UrlEnd.equals("mp4")){
             mvideoplay.setVisibility(View.VISIBLE);
         }

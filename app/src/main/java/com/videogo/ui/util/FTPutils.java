@@ -32,16 +32,16 @@ import java.util.List;
         this.mFtpClient = mFtpClient;
     }
 
-    public void useCompressedTransfer() {
+    public void useCompressedTransfer(FTPClient mFtpClient) {
         try {
             //mFtpClient.setFileTransferMode(org.apache.commons.net.ftp.FTP.COMPRESSED_TRANSFER_MODE);
-            mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+            //mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
             // 使用被动模式设为默认
             mFtpClient.enterLocalPassiveMode();
             // 二进制文件支持
-            mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            //mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
             //设置缓存
-            mFtpClient.setBufferSize(1024*3);
+            mFtpClient.setBufferSize(1024*2);
             //设置编码格式，防止中文乱码
             mFtpClient.setControlEncoding("UTF-8");
             //设置连接超时时间
@@ -68,7 +68,7 @@ import java.util.List;
 
         try {
             if(!mFtpClient.isConnected()){
-                useCompressedTransfer();
+                useCompressedTransfer(mFtpClient);
                 mFtpClient.connect(ip,port);
                 Log.d("TAG", "connect: " + mFtpClient.isConnected());
                 status = mFtpClient.login(userName, pass);
@@ -205,15 +205,16 @@ import java.util.List;
 
         // 先判断服务器文件是否存在
         mFtpClient.enterLocalPassiveMode();
-        mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
-        // 使用被动模式设为默认
-        mFtpClient.enterLocalPassiveMode();
-        // 二进制文件支持
         mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
-        //设置缓存
-        mFtpClient.setBufferSize(1024*3);
-        //设置编码格式，防止中文乱码
-        mFtpClient.setControlEncoding("UTF-8");
+        mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+//        mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+//        // 使用被动模式设为默认
+//        mFtpClient.enterLocalPassiveMode();
+//        // 二进制文件支持
+//        mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
+//        //设置缓存
+//        mFtpClient.setBufferSize(1024*5);
+
         FTPFile[] files = mFtpClient.listFiles(serverPath);
         if (files!=null &&files.length == 0) {
             listener.onFtpProgress(Constant.FTP_FILE_NOTEXISTS, 0, null);

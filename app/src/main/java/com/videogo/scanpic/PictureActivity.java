@@ -6,11 +6,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
 import com.videogo.adapter.PhotoPagerAdapter;
 import java.io.File;
 import java.util.ArrayList;
@@ -47,15 +50,12 @@ public class PictureActivity extends AppCompatActivity {
         urlList = intent.getStringArrayListExtra("list");
         position = intent.getIntExtra("position",0);
         flag = intent.getBooleanExtra("flag",false);
-        if (flag){
-            otherBtn.setVisibility(View.GONE);
-        }else{
-            otherBtn.setVisibility(View.VISIBLE);
-        }
+        otherBtn.setVisibility(View.VISIBLE);
         PhotoPagerAdapter viewPagerAdapter = new PhotoPagerAdapter(getSupportFragmentManager(), urlList);
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setCurrentItem(position);
         uri = Uri.parse(urlList.get(position));
+        Log.d("PictureActivity","uri="+uri);
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -93,12 +93,25 @@ public class PictureActivity extends AppCompatActivity {
         delateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (!flag){
                     File file = new File(path);
                     if (file.exists()&&file.isFile()){
                         file.delete();
                         Toast.makeText(PictureActivity.this,"文件已删除!", Toast.LENGTH_SHORT).show();
                         finish();
                     }
+                }else{
+                    String path = urlList.get(0);
+                    File file = new File(path);
+                    if (file.exists()&&file.isFile()){
+                        file.delete();
+                        Toast.makeText(PictureActivity.this,"文件已删除!", Toast.LENGTH_SHORT).show();
+                        Intent intent1 = new Intent();
+                        intent1.setAction("com.delate.pic");
+                        sendBroadcast(intent1);
+                        finish();
+                    }
+                }
             }
         });
     }
@@ -133,5 +146,10 @@ public class PictureActivity extends AppCompatActivity {
         } else { // 系统默认标题
             startActivity(intent);
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

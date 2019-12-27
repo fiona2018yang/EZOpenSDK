@@ -30,6 +30,9 @@ import com.videogo.ui.LanDevice.LanDeviceActivity;
 import com.videogo.ui.cameralist.EZCameraListActivity;
 import com.videogo.ui.util.ActivityUtils;
 import ezviz.ezopensdk.R;
+
+import static com.videogo.been.AlarmContant.AppKey;
+
 /**
  * 登录选择演示
  * @author xiaxingsuo
@@ -65,7 +68,7 @@ public class LoginSelectActivity extends Activity implements OnClickListener{
         Intent intent = null;
         switch(v.getId()) {
             case R.id.web_login_btn:
-                if (TextUtils.isEmpty(EzvizApplication.AppKey)){
+                if (TextUtils.isEmpty(AppKey)){
                     Toast.makeText(this,"Appkey为空",Toast.LENGTH_LONG).show();
                     return;
                 }

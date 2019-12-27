@@ -690,7 +690,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mWaitDialog = new WaitDialog(getApplicationContext(), android.R.style.Theme_Translucent_NoTitleBar);
+            mWaitDialog = new WaitDialog(EZCameraListActivity.this, android.R.style.Theme_Translucent_NoTitleBar);
             mWaitDialog.setCancelable(false);
             mWaitDialog.show();
         }

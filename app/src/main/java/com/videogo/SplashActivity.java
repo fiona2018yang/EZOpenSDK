@@ -1,11 +1,8 @@
 package com.videogo;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,11 +13,10 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.User;
 import com.videogo.main.EzvizWebViewActivity;
-import com.videogo.ui.cameralist.CountDownView;
+import com.videogo.openapi.EZOpenSDK;
 import com.videogo.ui.util.ExampleUtil;
 import com.videogo.warning.OkHttpUtil;
 
@@ -36,13 +32,15 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
 
+import static com.videogo.been.AlarmContant.AppKey;
+import static com.videogo.been.AlarmContant.Secret;
+
 /**
  * 登录页
  */
 
 public class SplashActivity extends Activity {
 
-    private MyDatabaseHelper dbHelper;
     private SharedPreferences.Editor editor;
     private SharedPreferences.Editor editor2;
     private SharedPreferences sharedPreferences;
@@ -58,7 +56,6 @@ public class SplashActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_activity);
-        dbHelper = new MyDatabaseHelper(this, "UserStore.db", null, 1);
         editor = getSharedPreferences("userid",MODE_PRIVATE).edit();
         editor2 = getSharedPreferences("user_info",MODE_PRIVATE).edit();
         sharedPreferences = getSharedPreferences("user_info",0);
@@ -68,6 +65,7 @@ public class SplashActivity extends Activity {
         etPassword = (EditText) findViewById(R.id.et_login_password);
         btnLogin = (Button) findViewById(R.id.btn_login);
         btnSignup = (Button) findViewById(R.id.btn_signup);
+        getAccessToken();
         if (!name.equals("")&&!password.equals("")){
             etUsername.setText(name);
             etPassword.setText(password);
@@ -101,6 +99,11 @@ public class SplashActivity extends Activity {
                         break;
                     case 103:
                         Toast.makeText(SplashActivity.this, "网络异常！", Toast.LENGTH_LONG).show();
+                        break;
+                    case 104:
+                        Bundle bundle1 = msg.getData();
+                        String accessToken = bundle1.getString("accessToken");
+                        EZOpenSDK.getInstance().setAccessToken(accessToken);
                         break;
                 }
             }
@@ -186,14 +189,6 @@ public class SplashActivity extends Activity {
     }
     //验证登录
     public void login(String username, String password) {
-//        SQLiteDatabase db = dbHelper.getWritableDatabase();
-//        String sql = "select * from userData where name=? and password=?";
-//        Cursor cursor = db.rawQuery(sql, new String[]{username, password});
-//        if (cursor.moveToFirst()) {
-//            cursor.close();
-//            return true;
-//        }
-//        return false;
         String url = AlarmContant.service_url+"api/login";
         Map<String,String> map = new HashMap<>();
         map.put("userName",strUsername);
@@ -231,6 +226,43 @@ public class SplashActivity extends Activity {
                 }
             }
         },map);
+    }
+    private void getAccessToken(){
+        String url = "https://open.ys7.com/api/lapp/token/get";
+        Map<String,String> map = new HashMap<>();
+        map.put("appKey",AppKey);
+        map.put("appSecret",Secret);
+        OkHttpUtil.post(url, new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.d(TAG, "onFailure: ");
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseBody = response.body().string();
+                try {
+                    JSONObject object = new JSONObject(responseBody);
+                    String data = object.get("data").toString();
+                    JSONObject obj = new JSONObject(data);
+                    String accessToken = obj.get("accessToken").toString();
+                    Message message = new Message();
+                    message.what = 104;
+                    Bundle bundle = new Bundle();
+                    bundle.putString("accessToken",accessToken);
+                    message.setData(bundle);
+                    handler.sendMessage(message);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        },map);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
     }
 }
 

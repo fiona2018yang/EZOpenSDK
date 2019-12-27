@@ -80,7 +80,7 @@ public class WarningActivity  extends Activity {
                     Bundle bundle1 = msg.getData();
                     int count1 = Integer.parseInt(bundle1.getString("count"));
                     Log.d(TAG,"COUNT="+count1);
-                    if (count1!=0){
+                    if (count1>=0){
                         Map<String , Integer> map = new HashMap<>();
                         map.put("type",msg.what);
                         map.put("size",count1);
@@ -214,7 +214,6 @@ public class WarningActivity  extends Activity {
                 list = AlarmContant.getList_super();
                 break;
         }
-        Log.d("TAG","list="+list.toString());
         for (int i = 0 ; i < list.size() ; i++){
             int type= gettype(list.get(i));
             type_list.add(type);

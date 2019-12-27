@@ -23,6 +23,7 @@ import ezviz.ezopensdk.R;
 public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecyclerAdapter.ImageHolder>{
     private List<HashMap<String,String>> url_list;
     private Context context;
+    private String TAG = "PlaybackActivity2";
     private OnClickListener OnClickListener;
     private AsyncImageLoader asyncImageLoader;
     private ExecutorService cachedThreadPool;
@@ -45,8 +46,10 @@ public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecy
     public void onBindViewHolder(ImageHolder holder, int position) {
         String pic_name = url_list.get(position).get("pic_name");
         String imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
+        Log.d(TAG,"imgpath="+imgpath);
         File imgFile = new File(imgpath);
         if (!imgFile.exists()) {
+            Log.d(TAG,"图片不存在!");
             asyncImageLoader.loadDrawable(url_list.get(position), new AsyncImageLoader.ImageCallback() {
                 @Override
                 public void imageLoaded() {
@@ -61,7 +64,7 @@ public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecy
                 }
             });
         }else{
-            Log.d("TAG","图片存在!");
+            Log.d(TAG,"图片存在!");
             Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
                     .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
         }

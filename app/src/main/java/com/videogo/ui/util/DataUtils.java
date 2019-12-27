@@ -96,12 +96,14 @@ public class DataUtils {
             fileAll.mkdir();
         }
         File[] files = fileAll.listFiles();
-        orderByDate(files);
-        // 将所有的文件存入ArrayList中,并过滤所有图片格式的文件
-        for (int i = 0; i < files.length; i++) {
-            File file = files[i];
-            if (checkIsImageFile(file.getPath())) {
-                urlList.add(file.getPath());
+        if (files!=null){
+            orderByDate(files);
+            // 将所有的文件存入ArrayList中,并过滤所有图片格式的文件
+            for (int i = 0; i < files.length; i++) {
+                File file = files[i];
+                if (checkIsImageFile(file.getPath())) {
+                    urlList.add(file.getPath());
+                }
             }
         }
         return urlList;

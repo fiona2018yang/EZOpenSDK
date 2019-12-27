@@ -2,9 +2,11 @@ package com.videogo.remoteplayback.list;
 
 import android.app.AlertDialog;
 import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -41,6 +43,10 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.esri.core.ags.LOD;
+import com.squareup.picasso.OkHttpDownloader;
+import com.squareup.picasso.Picasso;
 import com.videogo.EzvizApplication;
 import com.videogo.RootActivity;
 import com.videogo.adapter.ImageViewRecyclerAdapter;
@@ -81,13 +87,17 @@ import com.videogo.widget.loading.LoadingTextView;
 import com.videogo.widget.loading.LoadingView;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.ref.WeakReference;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Timer;
@@ -95,6 +105,7 @@ import java.util.TimerTask;
 import ezviz.ezopensdk.R;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import static com.videogo.EzvizApplication.getOpenSDK;
 
@@ -113,6 +124,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private TextView tx_creattime;
     private RecyclerView recyclerView;
     private String address = "";
+    public String imgpath;
     private ImageViewRecyclerAdapter imageViewRecyclerAdapter;
     private List<HashMap<String,String>> url_list = new ArrayList<>();
     // 本地播放文件
@@ -236,6 +248,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private TitleBar mLandscapeTitleBar = null;
     private Context context;
     private static String TAG= "PlaybackActivity2";
+    private MyReceiver myReceiver;
     // 播放分辨率
     private float mRealRatio = Constant.LIVE_VIEW_RATIO;
     private Handler playBackHandler = new Handler() {
@@ -292,9 +305,15 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         // 保持屏幕常亮
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        mWaitDlg = new WaitDialog(getApplicationContext(), android.R.style.Theme_Translucent_NoTitleBar);
+        mWaitDlg = new WaitDialog(PlaybackActivity2.this, android.R.style.Theme_Translucent_NoTitleBar);
         mWaitDlg.setCancelable(false);
         getData();
+
+        //注册广播接收
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.delate.pic");
+        myReceiver = new MyReceiver();
+        registerReceiver(myReceiver,filter);
         try {
             initUi();
         } catch (UnsupportedEncodingException e) {
@@ -306,7 +325,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         initRemoteListPlayer();
         fakePerformClickUI();
         initEzPlayer();
-        MyTask myTask = new MyTask();
+        MyTask myTask = new MyTask(PlaybackActivity2.this);
         myTask.execute();
         initListener();
         handler = new Handler(){
@@ -387,7 +406,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             if (url_list!=null){
                 for (HashMap<String,String> map : url_list){
                     String pic_name = map.get("pic_name");
-                    String imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
+                    imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
                     list.add(imgpath);
                     imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,getApplicationContext());
                     recyclerView.setAdapter(imageViewRecyclerAdapter);
@@ -651,7 +670,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     // 退出播放按钮事件处理
     private void onPlayExitBtnOnClick() {
         stopRemoteListPlayer();
-        remotePlayBackArea.setVisibility(View.GONE);
+        //remotePlayBackArea.setVisibility(View.GONE);
         // 不允许旋转屏幕
         mScreenOrientationHelper.disableSensorOrientation();
         controlArea.setVisibility(View.GONE);
@@ -767,7 +786,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     protected void onDestroy() {
         super.onDestroy();
         closePlayBack();
-
+        unregisterReceiver(myReceiver);
         if (mPlayer != null) {
             EzvizApplication.getOpenSDK().releasePlayer(mPlayer);
         }
@@ -1171,8 +1190,8 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         onActivityStopUI();
         stopUpdateTimer();
         status = RemoteListContant.STATUS_EXIT_PAGE;
-        if(surfaceView != null)
-            surfaceView.setVisibility(View.GONE);
+//        if(surfaceView != null)
+//            surfaceView.setVisibility(View.GONE);
     }
     // 页面不可见时UI
     private void onActivityStopUI() {
@@ -1941,6 +1960,12 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
      */
     private  class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>> {
         private int mErrorCode = 0;
+        private WeakReference<PlaybackActivity2> activityReference;
+
+        MyTask(PlaybackActivity2 context) {
+            activityReference = new WeakReference<>(context);
+        }
+
 
         @Override
         protected List<EZDeviceInfo> doInBackground(Void... voids) {
@@ -1965,7 +1990,10 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 
         @Override
         protected void onPostExecute(List<EZDeviceInfo> result) {
-            super.onPostExecute(result);
+            PlaybackActivity2 activity2 = activityReference.get();
+            if (activity2 == null || activity2.isFinishing() || activity2.isDestroyed()){
+                return;
+            }
             if (result!=null){
                 for (EZDeviceInfo ezDeviceInfo : result){
                     for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
@@ -2038,5 +2066,17 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                 }
             }
         },map);
+    }
+
+    public class MyReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (imageViewRecyclerAdapter != null) {
+                Picasso.with(context).invalidate(new File(imgpath));  // clear bitmap cache in memory
+                url_list.clear();
+                url_list.addAll(DataUtils.getUrlResouses(alarmMessage.getImgPath()));
+                imageViewRecyclerAdapter.notifyDataSetChanged();
+            }
+        }
     }
 }

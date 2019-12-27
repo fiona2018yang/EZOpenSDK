@@ -34,6 +34,7 @@ import com.videogo.adapter.TitleWarningAdatter;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
 import com.videogo.been.AsyncImageLoader;
+import com.videogo.been.SnCal;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.remoteplayback.list.PlaybackActivity2;
 
@@ -41,8 +42,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -101,20 +105,17 @@ public class GarbageActivity extends Activity {
                     adatper.setRead_list(read_list);
                     adatper.notifyDataSetChanged();
                     break;
-                case 103:
-                    Bundle bundle = msg.getData();
-                    list.clear();
-                    list = bundle.getParcelableArrayList("datalist");
-                    if (alarmMessageList.size() != 0) {
-                        alarmMessageList.clear();
-                    }
+                case 105:
+                    Log.d("TAG","refreshType="+refreshType);
+                    Log.d("TAG","listsize="+list_size);
+                    Log.d("TAG","pagesize="+page_size);
                     if (refreshType) {
-                        if (page_size <= list.size()) {
-                            alarmMessageList.addAll(list.subList(0, page_size));
-                        } else {
-                            alarmMessageList.addAll(list);
-                        }
                         adatper.notifyDataSetChanged();
+                    }else{
+                        if (list_size >= page_size) {
+                            adatper.notifyItemRangeInserted(alarmMessageList.size() - list_size, alarmMessageList.size());
+                            adatper.notifyItemRangeChanged(alarmMessageList.size() - list_size, alarmMessageList.size());
+                        }
                     }
                     break;
                 case 102:
@@ -133,12 +134,17 @@ public class GarbageActivity extends Activity {
                                 alarmMessageList.clear();
                             }
                             alarmMessageList.addAll(list);
-                            adatper.notifyDataSetChanged();
+                            for (AlarmMessage alarmMessage : alarmMessageList){
+                                queryLocation(alarmMessage);
+                            }
                         } else {
                             //加载更多
-                            alarmMessageList.addAll(list);
-                            adatper.notifyItemRangeInserted(alarmMessageList.size() - list_size, alarmMessageList.size());
-                            adatper.notifyItemRangeChanged(alarmMessageList.size() - list_size, alarmMessageList.size());
+                            if (list_size>=page_size){
+                                for (AlarmMessage alarmMessage : list){
+                                    queryLocation(alarmMessage);
+                                }
+                                alarmMessageList.addAll(list);
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -248,16 +254,6 @@ public class GarbageActivity extends Activity {
                     refreshLayout.finishLoadMore(100);
                     page++;
                 }
-//                if (page*page_size>list.size()||(page+1)*page_size>list.size()){
-//                    ToastNotRepeat.show(GarbageActivity.this,"暂无更多的数据啦");
-//                    refreshLayout.finishLoadMoreWithNoMoreData();
-//                    return;
-//                }else{
-//                    //加载更多数据
-//                    querydata(alarm_type);
-//                    refreshLayout.setEnableLoadMore(true);
-//                    refreshLayout.finishLoadMore(500);
-//                }
             }
         });
         //自动刷新
@@ -408,5 +404,55 @@ public class GarbageActivity extends Activity {
             };
         }
     }
+    public  void queryLocation( AlarmMessage alarmMessage) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+        String la = alarmMessage.getLatitude();
+        String ln = alarmMessage.getLongitude();
+        String url = AlarmContant.location_url;
+        LinkedHashMap<String,String> map = new LinkedHashMap<>();
+        map.put("location",la+","+ln);
+        map.put("coordtype","wgs84ll");
+        map.put("radius","500");
+        map.put("extensions_poi","1");
+        map.put("output","json");
+        map.put("ak","KNAeq1kjoe2u24PTYfeL4kO0KvGaqNak");
+        String sn = SnCal.getSnKry(map);
+        OkHttpUtil.get(url, sn,new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                Log.d("TAG", "onFailure: ",e);
+            }
 
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String responseBody = response.body().string();
+                String address = "";
+                try {
+                    JSONObject object = new JSONObject(responseBody);
+                    String status = object.get("status").toString();
+                    if (status.equals("0")){
+                        String result = object.get("result").toString();
+                        JSONObject objectdata = new JSONObject(result);
+                        String formatted_address = objectdata.get("formatted_address").toString();
+                        String sematic_description = objectdata.get("sematic_description").toString();
+                        if (sematic_description==null || sematic_description.equals("")){
+                            address = formatted_address;
+                        } else {
+                            address = formatted_address + "(" + sematic_description + ")";
+                        }
+                        if (address.equals("")||address==null){
+                            alarmMessage.setAddress("未知");
+                        }else{
+                            alarmMessage.setAddress(address);
+                        }
+                        handler.sendEmptyMessage(105);
+                    } else {
+                        alarmMessage.setAddress("未知");
+                        handler.sendEmptyMessage(105);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        },map);
+    }
 }

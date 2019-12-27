@@ -36,6 +36,8 @@ import com.videogo.util.PermissionUtil;
 
 import cn.jpush.android.api.JPushInterface;
 
+import static com.videogo.been.AlarmContant.AppKey;
+
 /**
  * 自定义应用
  *
@@ -44,7 +46,6 @@ public class EzvizApplication extends Application {
 
     //开发者需要填入自己申请的appkey//ABC
     //public static String AppKey = "76d8a02ae81a4260a02e470ebb48077d";
-    public static String AppKey = "bec27f333fd04a95a352bec49d466754";
     public  static int user_type;
     public static String table_name;
     private MyDatabaseHelper dbHelper;

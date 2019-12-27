@@ -1,8 +1,10 @@
 package com.videogo.adapter;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.Message;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -73,9 +75,9 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         String path = alarmMessageList.get(position).getImgPath();
+        //加载图片
         if (!isSrolling){
             if (path!=null&&!path.equals("")){
-                //加载图片
                 try {
                     List<HashMap<String,String>> list = DataUtils.getUrlResouses(path);
                     if (list == null){
@@ -112,23 +114,15 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                 Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600,300)
                         .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
             }
-            if (alarmMessageList.get(position).getLatitude()!=null||alarmMessageList.get(position).getLongitude()!=null){
-                String la = alarmMessageList.get(position).getLatitude();
-                String ln = alarmMessageList.get(position).getLongitude();
-                try {
-                    queryLocation(holder.address,la,ln);
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                }
-            }else{
-                holder.address.setText("未知");
-            }
         }else{
             Picasso.with(context).load(R.mipmap.loading).transform(new RoundTransform(20)).resize(600,300)
                     .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
-            holder.address.setText("加载中...");
+        }
+        //地址
+        if (alarmMessageList.get(position).getLatitude() != null || alarmMessageList.get(position).getLongitude() != null) {
+            holder.address.setText(alarmMessageList.get(position).getAddress());
+        } else {
+            holder.address.setText("未知");
         }
         //设置已读
         String id = alarmMessageList.get(position).getId();
@@ -204,6 +198,23 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
         map.put("output","json");
         map.put("ak","KNAeq1kjoe2u24PTYfeL4kO0KvGaqNak");
         String sn = SnCal.getSnKry(map);
+        Handler handler = new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                switch (msg.what){
+                    case 100:
+                    case 101:
+                        Bundle bundle = msg.getData();
+                        String address = bundle.getString("address");
+                        if (address.equals("")||address==null){
+                            textView.setText("未知");
+                        }else{
+                            textView.setText(address);
+                        }
+                        break;
+                }
+            }
+        };
         OkHttpUtil.get(url, sn,new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -224,16 +235,22 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                         String sematic_description = objectdata.get("sematic_description").toString();
                         if (sematic_description==null || sematic_description.equals("")){
                             address = formatted_address;
-                        }else{
-                            address = formatted_address+"("+sematic_description+")";
+                        } else {
+                            address = formatted_address + "(" + sematic_description + ")";
                         }
-                        if (address.equals("")){
-                            textView.setText("未知");
-                        }else{
-                            textView.setText(address);
-                        }
-                    }else{
-                        textView.setText("未知");
+                        Message msg = Message.obtain();
+                        msg.what = 100;
+                        Bundle bundle = new Bundle();
+                        bundle.putString("address", address);
+                        msg.setData(bundle);
+                        handler.sendMessage(msg);
+                    } else {
+                        Message msg = Message.obtain();
+                        msg.what = 101;
+                        Bundle bundle = new Bundle();
+                        bundle.putString("address", address);
+                        msg.setData(bundle);
+                        handler.sendMessage(msg);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
