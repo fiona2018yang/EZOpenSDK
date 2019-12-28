@@ -106,9 +106,6 @@ public class GarbageActivity extends Activity {
                     adatper.notifyDataSetChanged();
                     break;
                 case 105:
-                    Log.d("TAG","refreshType="+refreshType);
-                    Log.d("TAG","listsize="+list_size);
-                    Log.d("TAG","pagesize="+page_size);
                     if (refreshType) {
                         adatper.notifyDataSetChanged();
                     }else{
@@ -167,8 +164,8 @@ public class GarbageActivity extends Activity {
         sharedPreferences = getSharedPreferences("userid", MODE_PRIVATE);
         userid = sharedPreferences.getString("id", "1");
         db = ((EzvizApplication) getApplication()).getDatebase();
-        cachedThreadPool = Executors.newFixedThreadPool(50);
-        cachedThreadPool_1 = Executors.newFixedThreadPool(50);
+        cachedThreadPool = Executors.newFixedThreadPool(24);
+        cachedThreadPool_1 = Executors.newFixedThreadPool(24);
         refreshLayout = findViewById(R.id.refreshLayout);
         spinner_time = findViewById(R.id.spinner_1);
         spinner_location = findViewById(R.id.spinner_2);
@@ -182,6 +179,7 @@ public class GarbageActivity extends Activity {
         title_text.setText(str);
         //查询数据
         queryDataFromService(alarm_type, 1);
+        page++;
         queryReadId();
         rv = findViewById(R.id.recyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
@@ -236,7 +234,7 @@ public class GarbageActivity extends Activity {
                 refreshType = true;
                 page = 1;
                 queryDataFromService(alarm_type, page);
-                refreshLayout.finishRefresh(100);
+                refreshLayout.finishRefresh(500);
                 page++;
             }
         });
@@ -251,7 +249,7 @@ public class GarbageActivity extends Activity {
                     return;
                 } else {
                     refreshLayout.setEnableLoadMore(true);
-                    refreshLayout.finishLoadMore(100);
+                    refreshLayout.finishLoadMore(500);
                     page++;
                 }
             }

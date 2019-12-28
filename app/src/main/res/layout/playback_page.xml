@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/remote_list_page"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@mipmap/bg" >
+    android:background="@mipmap/bg">
 
     <com.videogo.widget.TitleBar
         android:id="@+id/title"
@@ -445,10 +446,33 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/img_recycler"
+
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent">
+                    <ImageView
+                        android:id="@+id/img"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+
+
+                    <com.github.lzyzsd.circleprogress.DonutProgress
+                        android:id="@+id/donut_progress"
+                        android:visibility="gone"
+                        android:layout_centerInParent="true"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        app:donut_text_size="12sp"
+                        app:donut_finished_stroke_width="@dimen/donut_progress_size"
+                        app:donut_unfinished_stroke_width="@dimen/donut_progress_size"
+                        app:donut_progress="0"
+                        />
+                </RelativeLayout>
+
+<!--                <android.support.v7.widget.RecyclerView-->
+<!--                    android:id="@+id/img_recycler"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="match_parent"/>-->
 
             </LinearLayout>
         </LinearLayout>

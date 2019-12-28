@@ -26,6 +26,7 @@ public class AlarmContant {
     public static final String location_url ="http://api.map.baidu.com/reverse_geocoding/v3/";
     public static final String AppKey = "bec27f333fd04a95a352bec49d466754";
     public static final String Secret = "d55a02b00c894303eedf279419d2bd94";
+    public static final String short_str="_1080";
 
     public static List<String> list_chengguan = new ArrayList<>();
     public static List<String> list_shiwuju = new ArrayList<>();

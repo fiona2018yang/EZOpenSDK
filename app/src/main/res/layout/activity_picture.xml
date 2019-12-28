@@ -21,17 +21,8 @@
         android:layout_marginTop="20dp"
         android:layout_alignParentRight="true"
         android:layout_marginRight="20dp"
-        android:id="@+id/other"
-        android:background="@drawable/otherselector"
-        android:layout_width="28dp"
-        android:layout_height="28dp" />
-    <ImageButton
-        android:visibility="gone"
-        android:layout_marginTop="75dp"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="20dp"
         android:id="@+id/delate"
         android:background="@drawable/delateselector"
-        android:layout_width="60dp"
+        android:layout_width="28dp"
         android:layout_height="28dp" />
 </RelativeLayout>

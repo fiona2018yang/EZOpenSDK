@@ -19,26 +19,35 @@ import java.util.Map;
 public class DataUtils {
     /**
      * Url字符串截取
-     * @param url
+     * @param path
      * @return
      */
-    public static HashMap<String,String> getUrlResouse(String url){
+    public static List<HashMap<String,String>> getUrlResouse(String path){
         try {
-            HashMap<String,String> map = new HashMap<>();
-            String[] rils = url.split("/");
-            String[]ips = rils[2].split("@");
-            String ip = ips[1];
-            map.put("ip",ip);
-            String[]pas = ips[0].split(":");
-            String name = pas[0];
-            map.put("name",name);
-            String password = pas[1];
-            map.put("password",password);
-            String pic_name = rils[4];
-            map.put("pic_name",pic_name);
-            String dir_name = rils[3];
-            map.put("dir_name",dir_name);
-            return map;
+            List<HashMap<String,String>> hashMapList = new ArrayList<>();
+            String[] urls = path.split(";");
+            for (int i = 0 ; i < urls.length ; i++){
+                String url = urls[i];
+                HashMap<String,String> map = new HashMap<>();
+                String[] rils = url.split("/");
+                String[]ips = rils[2].split("@");
+                String ip = ips[1];
+                map.put("ip",ip);
+                map.put("port","21");
+                String[]pas = ips[0].split(":");
+                String name = pas[0];
+                map.put("name",name);
+                String password = pas[1];
+                map.put("password",password);
+                String pic_name = rils[rils.length-1];
+                map.put("pic_name",pic_name);
+                String serverPath = url.substring(rils[0].length()+2+rils[2].length()+1,url.length());
+                map.put("server_name",serverPath);
+                String dir_name = url.substring(7+rils[2].length(),url.length()-pic_name.length()-1);
+                map.put("dir_name",dir_name);
+                hashMapList.add(map);
+                return hashMapList;
+            }
         }catch (Exception e){
             e.printStackTrace();
         }

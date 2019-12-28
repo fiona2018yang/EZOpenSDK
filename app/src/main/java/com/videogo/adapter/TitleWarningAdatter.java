@@ -75,49 +75,53 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         String path = alarmMessageList.get(position).getImgPath();
+        holder.imageView.setTag(path);
         //加载图片
-        if (!isSrolling){
-            if (path!=null&&!path.equals("")){
-                try {
-                    List<HashMap<String,String>> list = DataUtils.getUrlResouses(path);
-                    if (list == null){
-                        Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600,300)
-                                .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
-                    }else{
-                        HashMap<String,String> map = list.get(0);
-                        String pic_name = map.get("pic_name");
-                        String imagpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
-                        File imgFile = new File(imagpath);
-                        if (!imgFile.exists()) {
-                            asyncImageLoader.loadDrawable(map, new AsyncImageLoader.ImageCallback() {
-                                @Override
-                                public void imageLoaded() {
-                                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
+        if (path != null && !path.equals("")) {
+            try {
+                List<HashMap<String, String>> list = DataUtils.getUrlResouses(path);
+                if (list == null) {
+                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600, 300)
+                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                } else {
+                    String avatarTag = (String) holder.imageView.getTag();
+                    HashMap<String, String> map = list.get(0);
+                    String pic_name = map.get("pic_name");
+                    String imagpath = Environment.getExternalStorageDirectory().toString() + "/EZOpenSDK/cash/" + pic_name;
+                    File imgFile = new File(imagpath);
+                    if (!imgFile.exists()) {
+                        asyncImageLoader.loadDrawable(map, new AsyncImageLoader.ImageCallback() {
+                            @Override
+                            public void imageLoaded() {
+                                if (null == avatarTag || avatarTag.equals(holder.imageView.getTag())) {
+                                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600, 300)
                                             .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                                 }
+                            }
 
-                                @Override
-                                public void imageLoadEmpty() {
-                                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600,300)
+                            @Override
+                            public void imageLoadEmpty() {
+                                if (null == avatarTag || avatarTag.equals(holder.imageView.getTag())) {
+                                    Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600, 300)
                                             .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
                                 }
-                            });
-                        }else{
-                            Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600,300)
-                                    .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+                            }
+                        });
+                    } else {
+                        if (null == avatarTag || avatarTag.equals(holder.imageView.getTag())) {
+                            Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600, 300)
+                                    .error(context.getResources().getDrawable(R.mipmap.ic_launcher)).into(holder.imageView);
                         }
                     }
-                }catch (Exception e){
-                    e.printStackTrace();
                 }
-            }else{
-                Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600,300)
-                        .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }else{
-            Picasso.with(context).load(R.mipmap.loading).transform(new RoundTransform(20)).resize(600,300)
+        } else {
+            Picasso.with(context).load(R.mipmap.load_fail).transform(new RoundTransform(20)).resize(600, 300)
                     .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
         }
+
         //地址
         if (alarmMessageList.get(position).getLatitude() != null || alarmMessageList.get(position).getLongitude() != null) {
             holder.address.setText(alarmMessageList.get(position).getAddress());
@@ -131,7 +135,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
         } else {
             holder.camera_name.setTextColor(context.getResources().getColor(R.color.a1_blue_color));
         }
-        String camera_name = getCameraInfo(cameraInfoList,alarmMessageList.get(position).getChannelNumber());
+        String camera_name = getCameraInfo(cameraInfoList, alarmMessageList.get(position).getChannelNumber());
         holder.camera_name.setText(camera_name);
         holder.message_text.setText(alarmMessageList.get(position).getMessage());
         holder.time_creat.setText(alarmMessageList.get(position).getCreateTime());
@@ -141,7 +145,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
             public void onClick(View view) {
                 //这里使用getTag方法获取position
                 address = holder.address.getText().toString();
-                OnClickListener.OnItemClick(view, (Integer) view.getTag(),address);
+                OnClickListener.OnItemClick(view, (Integer) view.getTag(), address);
             }
         });
     }
@@ -184,78 +188,5 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
 
     public  interface OnClickListener{
         void OnItemClick(View view,int position , String address);
-    }
-
-
-
-    public  void queryLocation(TextView textView , String la, String ln) throws UnsupportedEncodingException, NoSuchAlgorithmException {
-        String url = AlarmContant.location_url;
-        LinkedHashMap<String,String> map = new LinkedHashMap<>();
-        map.put("location",la+","+ln);
-        map.put("coordtype","wgs84ll");
-        map.put("radius","500");
-        map.put("extensions_poi","1");
-        map.put("output","json");
-        map.put("ak","KNAeq1kjoe2u24PTYfeL4kO0KvGaqNak");
-        String sn = SnCal.getSnKry(map);
-        Handler handler = new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what){
-                    case 100:
-                    case 101:
-                        Bundle bundle = msg.getData();
-                        String address = bundle.getString("address");
-                        if (address.equals("")||address==null){
-                            textView.setText("未知");
-                        }else{
-                            textView.setText(address);
-                        }
-                        break;
-                }
-            }
-        };
-        OkHttpUtil.get(url, sn,new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                Log.d("TAG", "onFailure: ",e);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                String responseBody = response.body().string();
-                String address = "";
-                try {
-                    JSONObject object = new JSONObject(responseBody);
-                    String status = object.get("status").toString();
-                    if (status.equals("0")){
-                        String result = object.get("result").toString();
-                        JSONObject objectdata = new JSONObject(result);
-                        String formatted_address = objectdata.get("formatted_address").toString();
-                        String sematic_description = objectdata.get("sematic_description").toString();
-                        if (sematic_description==null || sematic_description.equals("")){
-                            address = formatted_address;
-                        } else {
-                            address = formatted_address + "(" + sematic_description + ")";
-                        }
-                        Message msg = Message.obtain();
-                        msg.what = 100;
-                        Bundle bundle = new Bundle();
-                        bundle.putString("address", address);
-                        msg.setData(bundle);
-                        handler.sendMessage(msg);
-                    } else {
-                        Message msg = Message.obtain();
-                        msg.what = 101;
-                        Bundle bundle = new Bundle();
-                        bundle.putString("address", address);
-                        msg.setData(bundle);
-                        handler.sendMessage(msg);
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        },map);
     }
 }

@@ -44,14 +44,14 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.esri.core.ags.LOD;
-import com.squareup.picasso.OkHttpDownloader;
+import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.squareup.picasso.Picasso;
 import com.videogo.EzvizApplication;
 import com.videogo.RootActivity;
 import com.videogo.adapter.ImageViewRecyclerAdapter;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
+import com.videogo.been.AsyncImageLoaderPic;
 import com.videogo.been.SnCal;
 import com.videogo.constant.Constant;
 import com.videogo.errorlayer.ErrorInfo;
@@ -68,6 +68,7 @@ import com.videogo.ui.common.ScreenOrientationHelper;
 import com.videogo.ui.util.AudioPlayUtil;
 import com.videogo.ui.util.DataUtils;
 import com.videogo.ui.util.EZUtils;
+import com.videogo.ui.util.ImageUtil;
 import com.videogo.ui.util.VerifyCodeInput;
 import com.videogo.util.ConnectionDetector;
 import com.videogo.util.LocalInfo;
@@ -78,6 +79,7 @@ import com.videogo.util.SDCardUtil;
 import com.videogo.util.Utils;
 import com.videogo.warning.CommItemDecoration;
 import com.videogo.warning.OkHttpUtil;
+import com.videogo.warning.RoundTransform;
 import com.videogo.widget.CheckTextButton;
 import com.videogo.widget.CustomRect;
 import com.videogo.widget.CustomTouchListener;
@@ -87,7 +89,6 @@ import com.videogo.widget.loading.LoadingTextView;
 import com.videogo.widget.loading.LoadingView;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -97,17 +98,20 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import ezviz.ezopensdk.R;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import static com.videogo.EzvizApplication.getOpenSDK;
+import static com.videogo.been.AlarmContant.short_str;
 
 
 public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Callback , View.OnTouchListener ,
@@ -123,8 +127,12 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private TextView tx_address;
     private TextView tx_creattime;
     private RecyclerView recyclerView;
+    private ImageView imageView;
+    private DonutProgress donut_progress;
     private String address = "";
     public String imgpath;
+    public HashMap<String,String> map;
+    private AsyncImageLoaderPic asyncImageLoaderPic;
     private ImageViewRecyclerAdapter imageViewRecyclerAdapter;
     private List<HashMap<String,String>> url_list = new ArrayList<>();
     // 本地播放文件
@@ -138,6 +146,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private int mCaptureDisplaySec = 0;
     // 音频播放
     private AudioPlayUtil mAudioPlayUtil = null;
+    private ExecutorService cachedThreadPool;
 
     private SQLiteDatabase db;
     private RotateViewUtil mRecordRotateViewUtil = null;
@@ -374,11 +383,16 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         tx_message = findViewById(R.id.message);
         tx_address = findViewById(R.id.address);
         tx_creattime = findViewById(R.id.creattime);
-        recyclerView = findViewById(R.id.img_recycler);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.addItemDecoration(CommItemDecoration.createVertical(getApplicationContext(),getResources().getColor(R.color.transparent),30));
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        //recyclerView = findViewById(R.id.img_recycler);
+        imageView = findViewById(R.id.img);
+        donut_progress = findViewById(R.id.donut_progress);
+        ImageUtil.setImageSize(getApplicationContext(),imageView);
+        cachedThreadPool = Executors.newCachedThreadPool();
+        asyncImageLoaderPic = new AsyncImageLoaderPic(cachedThreadPool);
+//        LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+//        recyclerView.setLayoutManager(layoutManager);
+//        recyclerView.addItemDecoration(CommItemDecoration.createVertical(getApplicationContext(),getResources().getColor(R.color.transparent),30));
+//        recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         if (address.contains("receive")){
             String str = address.substring(8,address.length());
@@ -401,26 +415,77 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             }
         }
         if (alarmMessage.getImgPath()!=null&&!alarmMessage.getImgPath().equals("")){
+            Log.d(TAG,"path="+alarmMessage.getImgPath());
             List<String> list = new ArrayList<>();
             url_list = DataUtils.getUrlResouses(alarmMessage.getImgPath());
             if (url_list!=null){
-                for (HashMap<String,String> map : url_list){
-                    String pic_name = map.get("pic_name");
-                    imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
-                    list.add(imgpath);
-                    imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,getApplicationContext());
-                    recyclerView.setAdapter(imageViewRecyclerAdapter);
-                    imageViewRecyclerAdapter.setSetOnItemClickListener(new ImageViewRecyclerAdapter.OnClickListener() {
+                map = url_list.get(0);
+                String pic_name = map.get("pic_name");
+                Log.d(TAG,"pic_name="+pic_name);
+                String[] pic = pic_name.split("\\.");
+                String name = pic[0]+short_str+"."+pic[1];
+                imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+name;
+                list.add(imgpath);
+                File imgFile = new File(imgpath);
+//                if (!imgFile.exists()) {
+//                    Log.d(TAG,"图片不存在!");
+                    asyncImageLoaderPic.loadDrawable(map,donut_progress , short_str,new AsyncImageLoaderPic.ImageCallback() {
                         @Override
-                        public void OnItemClick(View view, int position) {
-                            Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-                            intent.putExtra("position",position);
-                            intent.putExtra("flag",true);
-                            intent.putStringArrayListExtra("list", (ArrayList<String>) list);
-                            startActivity(intent);
+                        public void imageLoaded() {
+                            Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                                    .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(imageView);
+                        }
+
+                        @Override
+                        public void imageLoadEmpty() {
+                            File imgFile = new File(Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name);
+                            Log.d(TAG,"img="+imgFile.toString());
+                            Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                                    .error(context.getResources().getDrawable(R.mipmap.load_fail2)).into(imageView);
+                        }
+
+                        @Override
+                        public void imageLoadLocal() {
+                            Log.d(TAG, "图片存在!");
+                            Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                                    .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(imageView);
                         }
                     });
-                }
+//                }else{
+//                    Log.d(TAG,"图片存在!");
+//                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+//                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(imageView);
+//                }
+                imageView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
+                        intent.putExtra("position", "0");
+                        intent.putExtra("flag", true);
+                        intent.putStringArrayListExtra("list", (ArrayList<String>) list);
+                        startActivity(intent);
+                    }
+                });
+//                for (HashMap<String,String> map : url_list){
+//                    String pic_name = map.get("pic_name");
+//                    String[] pic = pic_name.split("\\.");
+//                    String name = pic[0]+short_str+"."+pic[1];
+//                    imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+name;
+//                    list.add(imgpath);
+//                    imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,getApplicationContext());
+//                    recyclerView.setAdapter(imageViewRecyclerAdapter);
+//                    imageViewRecyclerAdapter.setSetOnItemClickListener(new ImageViewRecyclerAdapter.OnClickListener() {
+//                        @Override
+//                        public void OnItemClick(View view, int position) {
+//                            Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
+//                            intent.putExtra("position",position);
+//                            intent.putExtra("flag",true);
+//                            intent.putStringArrayListExtra("list", (ArrayList<String>) list);
+//                            startActivity(intent);
+//                        }
+//                    });
+//                }
             }
         }
         mRemotePlayBackTouchListener = new CustomTouchListener() {
@@ -800,6 +865,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             mUpdateTimerTask.cancel();
             mUpdateTimerTask = null;
         }
+        cachedThreadPool.shutdown();
         //downloadHelper.setCloundDownloadListener(null);
     }
 
@@ -2071,12 +2137,35 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     public class MyReceiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (imageViewRecyclerAdapter != null) {
-                Picasso.with(context).invalidate(new File(imgpath));  // clear bitmap cache in memory
-                url_list.clear();
-                url_list.addAll(DataUtils.getUrlResouses(alarmMessage.getImgPath()));
-                imageViewRecyclerAdapter.notifyDataSetChanged();
-            }
+            Picasso.with(context).invalidate(new File(imgpath));
+            imageView.setImageDrawable(null);
+            donut_progress.setVisibility(View.VISIBLE);
+            //下载图片
+            String pic_name = map.get("pic_name");
+            String[] pic = pic_name.split("\\.");
+            String name = pic[0]+short_str+"."+pic[1];
+            imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+name;
+            File imgFile = new File(imgpath);
+            asyncImageLoaderPic.loadDrawable(map,donut_progress , short_str,new AsyncImageLoaderPic.ImageCallback() {
+                @Override
+                public void imageLoaded() {
+                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(imageView);
+                }
+
+                @Override
+                public void imageLoadEmpty() {
+                    File imgFile = new File(Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name);
+                    Log.d(TAG,"img="+imgFile.toString());
+                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+                            .error(context.getResources().getDrawable(R.mipmap.load_fail2)).into(imageView);
+                }
+
+                @Override
+                public void imageLoadLocal() {
+
+                }
+            });
         }
     }
 }

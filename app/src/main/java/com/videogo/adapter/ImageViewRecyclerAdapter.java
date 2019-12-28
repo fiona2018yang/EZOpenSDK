@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import com.squareup.picasso.Picasso;
 import com.videogo.been.AsyncImageLoader;
+import com.videogo.been.AsyncImageLoaderPic;
 import com.videogo.ui.util.UiUtil;
 import com.videogo.warning.RoundTransform;
 import java.io.File;
@@ -20,19 +21,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import ezviz.ezopensdk.R;
 
+import static com.videogo.been.AlarmContant.short_str;
+
 public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecyclerAdapter.ImageHolder>{
     private List<HashMap<String,String>> url_list;
     private Context context;
     private String TAG = "PlaybackActivity2";
     private OnClickListener OnClickListener;
-    private AsyncImageLoader asyncImageLoader;
+    private AsyncImageLoaderPic asyncImageLoaderPic;
     private ExecutorService cachedThreadPool;
 
     public ImageViewRecyclerAdapter(List<HashMap<String, String>> url_list, Context context) {
         this.url_list = url_list;
         this.context = context;
         this.cachedThreadPool = Executors.newCachedThreadPool();
-        this.asyncImageLoader = new AsyncImageLoader(cachedThreadPool);
+        this.asyncImageLoaderPic = new AsyncImageLoaderPic(cachedThreadPool);
     }
 
     @Override
@@ -45,24 +48,32 @@ public class ImageViewRecyclerAdapter extends RecyclerView.Adapter<ImageViewRecy
     @Override
     public void onBindViewHolder(ImageHolder holder, int position) {
         String pic_name = url_list.get(position).get("pic_name");
-        String imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name;
-        Log.d(TAG,"imgpath="+imgpath);
+        String imgpath = "";
+        if (pic_name!=null&&pic_name.contains(".")){
+            String[] pic = pic_name.split("\\.");
+            String name = pic[0]+short_str+"."+pic[1];
+            Log.d(TAG,"name="+name);
+            imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+name;
+            Log.d(TAG,"imgpath="+imgpath);
+        }
         File imgFile = new File(imgpath);
         if (!imgFile.exists()) {
             Log.d(TAG,"图片不存在!");
-            asyncImageLoader.loadDrawable(url_list.get(position), new AsyncImageLoader.ImageCallback() {
-                @Override
-                public void imageLoaded() {
-                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
-                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
-                }
-
-                @Override
-                public void imageLoadEmpty() {
-                    Picasso.with(context).load(R.mipmap.load_fail2).transform(new RoundTransform(20))
-                            .error(context.getResources().getDrawable(R.mipmap.load_fail2)).into(holder.imageView);
-                }
-            });
+//            asyncImageLoaderPic.loadDrawable(url_list.get(position),short_str, new AsyncImageLoaderPic.ImageCallback() {
+//                @Override
+//                public void imageLoaded() {
+//                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+//                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(holder.imageView);
+//                }
+//
+//                @Override
+//                public void imageLoadEmpty() {
+//                    File imgFile = new File(Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name);
+//                    Log.d(TAG,"img="+imgFile.toString());
+//                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
+//                            .error(context.getResources().getDrawable(R.mipmap.load_fail2)).into(holder.imageView);
+//                }
+//            });
         }else{
             Log.d(TAG,"图片存在!");
             Picasso.with(context).load(imgFile).transform(new RoundTransform(20))

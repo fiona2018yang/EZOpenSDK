@@ -1,10 +1,14 @@
 package com.videogo.ui.util;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 //make circle image
 public class ImageUtil {
@@ -29,5 +33,21 @@ public class ImageUtil {
          */
         canvas.drawBitmap(source,0,0,paint);
         return target;
+    }
+    public static void setImageSize(Context context , ImageView imageView){
+        //计算图片左右间距之和
+        int padding = 15;
+        int spacePx = (int) (UiUtil.dp2px(context, padding) * 2);
+        //计算图片宽度
+        int imageWidth = UiUtil.getScreenWidth(context) - spacePx;
+        //计算宽高比，注意数字后面要加上f表示浮点型数字
+        float scale = 16f / 9f;
+        //根据图片宽度和比例计算图片高度
+        int imageHeight = (int) (imageWidth / scale);
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams( imageWidth,imageHeight);
+        //设置左右边距
+        params.leftMargin = (int) UiUtil.dp2px(context, padding);
+        params.rightMargin = (int) UiUtil.dp2px(context, padding);
+        imageView.setLayoutParams(params);
     }
 }

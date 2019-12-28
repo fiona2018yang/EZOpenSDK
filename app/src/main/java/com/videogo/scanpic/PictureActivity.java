@@ -25,7 +25,6 @@ public class PictureActivity extends AppCompatActivity {
     private ArrayList<String> urlList;
     private int position;
     private ImageButton shareBtn;
-    private ImageButton otherBtn;
     private ImageButton delateBtn;
     private Boolean flag = false;
     private Uri uri;
@@ -42,7 +41,6 @@ public class PictureActivity extends AppCompatActivity {
     private void initView() {
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         shareBtn = (ImageButton) findViewById(R.id.share);
-        otherBtn = (ImageButton) findViewById(R.id.other);
         delateBtn = (ImageButton) findViewById(R.id.delate);
         //tvNum = (TextView) findViewById(R.id.tv_num);
         urlList = new ArrayList<>();
@@ -50,7 +48,6 @@ public class PictureActivity extends AppCompatActivity {
         urlList = intent.getStringArrayListExtra("list");
         position = intent.getIntExtra("position",0);
         flag = intent.getBooleanExtra("flag",false);
-        otherBtn.setVisibility(View.VISIBLE);
         PhotoPagerAdapter viewPagerAdapter = new PhotoPagerAdapter(getSupportFragmentManager(), urlList);
         viewPager.setAdapter(viewPagerAdapter);
         viewPager.setCurrentItem(position);
@@ -79,17 +76,7 @@ public class PictureActivity extends AppCompatActivity {
                 shareImg("分享","分享","分享",uri);
             }
         });
-        otherBtn.setOnClickListener(new View.OnClickListener() {
-            @SuppressLint("WrongConstant")
-            @Override
-            public void onClick(View v) {
-                if (delateBtn.getVisibility()==0){
-                    delateBtn.setVisibility(View.GONE);
-                }else if (delateBtn.getVisibility()==8){
-                    delateBtn.setVisibility(View.VISIBLE);
-                }
-            }
-        });
+
         delateBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

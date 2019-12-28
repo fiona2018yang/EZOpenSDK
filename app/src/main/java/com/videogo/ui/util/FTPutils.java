@@ -35,11 +35,11 @@ import java.util.List;
     public void useCompressedTransfer(FTPClient mFtpClient) {
         try {
             //mFtpClient.setFileTransferMode(org.apache.commons.net.ftp.FTP.COMPRESSED_TRANSFER_MODE);
-            //mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+            mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
             // 使用被动模式设为默认
             mFtpClient.enterLocalPassiveMode();
             // 二进制文件支持
-            //mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
             //设置缓存
             mFtpClient.setBufferSize(1024*2);
             //设置编码格式，防止中文乱码
@@ -47,7 +47,7 @@ import java.util.List;
             //设置连接超时时间
             mFtpClient.setConnectTimeout(1000);
             //设置数据传输超时时间
-//            mFtpClient.setDataTimeout(10*1000);
+            mFtpClient.setDataTimeout(10*1000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -68,12 +68,12 @@ import java.util.List;
 
         try {
             if(!mFtpClient.isConnected()){
-                useCompressedTransfer(mFtpClient);
                 mFtpClient.connect(ip,port);
                 Log.d("TAG", "connect: " + mFtpClient.isConnected());
                 status = mFtpClient.login(userName, pass);
 //                Constant.ftpLoginResult = status;
             }
+            useCompressedTransfer(mFtpClient);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -203,18 +203,9 @@ import java.util.List;
 
         listener.onFtpProgress(Constant.FTP_CONNECT_SUCCESS, 0, null);
 
-        // 先判断服务器文件是否存在
         mFtpClient.enterLocalPassiveMode();
-        mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
-        mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
-//        mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
-//        // 使用被动模式设为默认
-//        mFtpClient.enterLocalPassiveMode();
-//        // 二进制文件支持
-//        mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
-//        //设置缓存
-//        mFtpClient.setBufferSize(1024*5);
 
+        // 先判断服务器文件是否存在
         FTPFile[] files = mFtpClient.listFiles(serverPath);
         if (files!=null &&files.length == 0) {
             listener.onFtpProgress(Constant.FTP_FILE_NOTEXISTS, 0, null);
@@ -235,6 +226,7 @@ import java.util.List;
         if (localFile.exists()) {
             localSize = localFile.length(); // 如果本地文件存在，获取本地文件的长度
             if (localSize >= serverSize) {
+                Log.d("TAG","------------------------------");
                 listener.onFtpProgress(Constant.LOCAL_FILE_AIREADY_COMPLETE, 0, localFile);
                 localFile.delete();
                 localFile.createNewFile();
@@ -251,6 +243,8 @@ import java.util.List;
         long process = 0;
         long currentSize = localSize;
         // 开始准备下载文件
+        mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
+        mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
         Log.d(TAG, "downloadSingleFile: 开始准备"+fileName+","+Thread.currentThread().getId());
         OutputStream out = new FileOutputStream(localFile, true);
         mFtpClient.setRestartOffset(localSize);
@@ -276,6 +270,7 @@ import java.util.List;
         out.flush();
         out.close();
         input.close();
+        mFtpClient.completePendingCommand();
 
         // 此方法是来确保流处理完毕，如果没有此方法，可能会造成现程序死掉
         if (mFtpClient.completePendingCommand()&&localFile.length()==serverSize) {
@@ -290,9 +285,103 @@ import java.util.List;
         // 下载完成之后关闭连接
         this.disconnect();
         listener.onFtpProgress(Constant.FTP_DISCONNECT_SUCCESS, 0, null);
-
         return;
     }
+
+        public void downloadSingleFile2(String serverPath, String localPath, String fileName, FtpProgressListener listener) throws Exception {
+
+            listener.onFtpProgress(Constant.FTP_CONNECT_SUCCESS, 0, null);
+
+            mFtpClient.enterLocalPassiveMode();
+
+            // 先判断服务器文件是否存在
+            FTPFile[] files = mFtpClient.listFiles(serverPath);
+            if (files!=null &&files.length == 0) {
+                listener.onFtpProgress(Constant.FTP_FILE_NOTEXISTS, 0, null);
+                Log.d("TAG","文件不存在");
+                return;
+            }
+
+            // 创建本地文件夹
+            File mkFile = new File(localPath);
+            if (!mkFile.exists()) {
+                boolean ismake=mkFile.mkdirs();
+            }
+            localPath = localPath + File.separator+fileName;
+            Log.d("TAG","localpath="+localPath);
+            // 接着判断下载的文件是否能断点下载
+            long serverSize = files[0].getSize(); // 获取远程文件的长度
+            Log.d("PlaybackActivity2","serverSize="+serverSize);
+            File localFile = new File(localPath);
+            long localSize = 0;
+            if (localFile.exists()) {
+                localSize = localFile.length(); // 如果本地文件存在，获取本地文件的长度
+                Log.d("PlaybackActivity2","localSize="+localSize);
+                if (localSize >= serverSize) {
+                    listener.onFtpProgress(Constant.LOCAL_FILE_AIREADY_COMPLETE, 0, localFile);
+                    //加载本地图片
+
+                }else {
+                    localFile.delete();
+                    localFile.createNewFile();
+                    localSize = 0;
+                    listener.onFtpProgress(Constant.FTP_DOWN_CONTINUE, 0, null);
+                }
+            }else {
+                localFile.createNewFile();
+                Log.d(TAG, "creatFile"+fileName+","+Thread.currentThread().getId());
+            }
+            // 进度
+            long step = serverSize / 100;
+            long process = 0;
+            long currentSize = localSize;
+            // 开始准备下载文件
+            mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
+            mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
+            Log.d(TAG, "downloadSingleFile: 开始准备"+fileName+","+Thread.currentThread().getId());
+            OutputStream out = new FileOutputStream(localFile, true);
+            mFtpClient.setRestartOffset(localSize);
+//        InputStream input = mFtpClient.retrieveFileStream(serverPath);//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
+            InputStream input = mFtpClient.retrieveFileStream(serverPath);//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
+            byte[] b = new byte[1024];
+            int length = 0;
+            while ((length = input.read(b)) !=-1) {
+                //Log.d(TAG, "downloadSingleFile:正在下载"+step);
+                out.write(b, 0, length);
+                currentSize = currentSize + length;
+                if (currentSize / step != process) {
+                    process = currentSize / step;
+                    if (process % 1 == 0) { // 每隔%1的进度返回一次
+                        listener.onFtpProgress(Constant.FTP_DOWN_LOADING, process, null);
+                    }
+                }
+//            if(length!=b.length){
+//                Log.e(TAG,"theory_last_read"+"########"+(serverSize%b.length));
+//                Log.e(TAG,"actual_last_read"+"########"+length);
+//            }
+            }
+            Log.d(TAG, "downloadSingleFile: 下载完毕"+Thread.currentThread().getId());
+            out.flush();
+            out.close();
+            input.close();
+            mFtpClient.completePendingCommand();
+
+            // 此方法是来确保流处理完毕，如果没有此方法，可能会造成现程序死掉
+            if (mFtpClient.completePendingCommand()&&localFile.length()==serverSize) {
+                listener.onFtpProgress(Constant.FTP_DOWN_SUCCESS, process, localFile);
+            } else  if(localFile.length()!=serverSize){
+                listener.onFtpProgress(Constant.FTP_DOWN_SIZEOUT,serverSize,localFile);
+            }
+            else {
+                listener.onFtpProgress(Constant.FTP_DOWN_FAIL, 0, null);
+            }
+
+            // 下载完成之后关闭连接
+            this.disconnect();
+            listener.onFtpProgress(Constant.FTP_DISCONNECT_SUCCESS, 0, null);
+            return;
+        }
+
 
     // -------------------------------------------------------文件删除方法------------------------------------------------
 
