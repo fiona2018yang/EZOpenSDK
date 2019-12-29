@@ -48,6 +48,7 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
         return showCheck;
     }
 
+
     public void setCheck(boolean showCheck){
         this.showCheck = showCheck;
     }
@@ -56,6 +57,8 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
     public int getItemViewType(int position) {
         return ITEM_TYPE;
     }
+
+
     @Override
     public void onBindViewHolder(TitleHolder holder, int position) {
         holder.title.setText(titile_list.get(position));

@@ -1,8 +1,10 @@
 package com.videogo.scanpic;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -28,6 +30,7 @@ import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.ImageRecyclerAdapter;
 import com.videogo.adapter.MyPaddingDecoration;
 import com.videogo.adapter.TitleAdapter;
+import com.videogo.remoteplayback.list.PlaybackActivity2;
 import com.videogo.ui.util.DataUtils;
 
 import java.io.ByteArrayInputStream;
@@ -46,6 +49,7 @@ public class CameraPicActivity extends Activity  {
     private RecyclerView rv;
     private TextView tv;
     private List<String> datalist;
+    private List<String> datalist_db = new ArrayList<>();
     private List<List<String>> file_list ;
     private List<String> title_list;
     private List<String> path_checked_list;
@@ -55,6 +59,7 @@ public class CameraPicActivity extends Activity  {
     private Boolean show_flag = true;
     private int width;
     private SQLiteDatabase db;
+    private MyReceiver myReceiver;
     private LinearLayout linearLayout;
     private LinearLayout linear_1;
     private LinearLayout linear_2;
@@ -66,9 +71,27 @@ public class CameraPicActivity extends Activity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_pic);
         initView();
+        getDataFromDB();
     }
+
+    private void getDataFromDB() {
+        Cursor cursor = db.query("picfilepath", null, null, null, null, null, null);
+        if (cursor.moveToFirst()){
+            do {
+                String file_path = cursor.getString(cursor.getColumnIndex("path"));
+                datalist_db.add(file_path);
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+    }
+
     private void initView() {
         context=getApplicationContext();
+        myReceiver = new MyReceiver();
+        //注册广播接收
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.refresh.pic");
+        registerReceiver(myReceiver,filter);
         db = ((EzvizApplication) getApplication()).getDatebase();
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         tv = (TextView) findViewById(R.id.text);
@@ -102,6 +125,7 @@ public class CameraPicActivity extends Activity  {
                         linearLayout.setVisibility(View.VISIBLE);
                     }
                 }
+
                 //选中Checkbox
                 @Override
                 public void addStringPath(int p1, int p2) {
@@ -144,6 +168,13 @@ public class CameraPicActivity extends Activity  {
                     File file = new File(path_checked_list.get(i));
                     if (file.exists()){
                         file.delete();
+                    }
+                    try {
+                        if (datalist_db.contains(path_checked_list.get(i))){
+                            db.delete("picfilepath","path=?",new String[]{path_checked_list.get(i)});
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
                 }
                 //更新数据
@@ -191,6 +222,7 @@ public class CameraPicActivity extends Activity  {
                 for (int i = 0 ; i < index_list.size() ; i++){
                     title_list.add(time_list.get(index_list.get(i)));
                 }
+                Log.i("TAG","size1="+file_list.get(0).size());
             }else{
                 rv.setVisibility(View.GONE);
                 tv.setVisibility(View.VISIBLE);
@@ -291,8 +323,12 @@ public class CameraPicActivity extends Activity  {
     @Override
     protected void onResume() {
         super.onResume();
-        initData();
-        adapter.notifyDataSetChanged();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(myReceiver);
     }
 
     /**
@@ -314,6 +350,46 @@ public class CameraPicActivity extends Activity  {
             startActivity(Intent.createChooser(intent, dlgTitle));
         } else { // 系统默认标题
             startActivity(intent);
+        }
+    }
+    public class MyReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String path = intent.getStringExtra("path");
+            try {
+                if (datalist_db.contains(path)){
+                    db.delete("picfilepath","path=?",new String[]{path});
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+            initData();
+            adapter = new TitleAdapter(context, title_list, file_list, width, show_flag,new TitleAdapter.Callback() {
+                @Override
+                public void callback(boolean flag) {
+                    if (flag){
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.GONE);
+                    }else{
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.VISIBLE);
+                    }
+                }
+                //选中Checkbox
+                @Override
+                public void addStringPath(int p1, int p2) {
+                    path_checked_list.add(file_list.get(p1).get(p2));
+                }
+                //取消Checkbox
+                @Override
+                public void removeStringPath(int p1, int p2) {
+                    path_checked_list.remove(file_list.get(p1).get(p2));
+                }
+            });
+            rv.setAdapter(adapter);
         }
     }
 }

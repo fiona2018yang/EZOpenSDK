@@ -45,6 +45,7 @@ import com.videogo.exception.ErrorCode;
 import com.videogo.jpush.TagAliasOperatorHelper;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
+import com.videogo.remoteplayback.list.PlaybackActivity2;
 import com.videogo.scanpic.ScanPicActivity;
 import com.videogo.scanvideo.ScanVideoActivity;
 import com.videogo.util.ConnectionDetector;
@@ -55,6 +56,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,13 +109,7 @@ public class HomeActivity extends Activity {
     private String[] iconName = { "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"};
     private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
     private List<EZCameraInfo> list_ezCamera = new ArrayList<>();
-    private List<String> type0_list = new ArrayList<>();
-    private List<String> type1_list = new ArrayList<>();
-    private List<String> type2_list = new ArrayList<>();
-    private List<String> type3_list = new ArrayList<>();
-    private List<String> type4_list = new ArrayList<>();
-    private List<String> type5_list = new ArrayList<>();
-    private List<List<String>> list = new ArrayList<>();
+
 
 
     @Override
@@ -274,7 +270,7 @@ public class HomeActivity extends Activity {
         imgs.add(R.mipmap.bg_home_2);
         imgs.add(R.mipmap.bg_home_3);
 
-        MyTask myTask = new MyTask();
+        MyTask myTask = new MyTask(HomeActivity.this);
         myTask.execute();
 
         HomeGView = (GridView) findViewById(R.id.gv_home);
@@ -298,33 +294,53 @@ public class HomeActivity extends Activity {
                 // "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"
                 switch (position) {
                     case 0://实景地图
-                        Intent iRealMap = new Intent(view.getContext(), MainActivity.class);
-                        iRealMap.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezdevices);
-                        startActivity(iRealMap);
+                        if (list_ezdevices.size()!=0){
+                            Intent iRealMap = new Intent(view.getContext(), MainActivity.class);
+                            iRealMap.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezdevices);
+                            startActivity(iRealMap);
+                        }else {
+                            ToastNotRepeat.show(HomeActivity.this,"服务器异常！");
+                        }
                         break;
                     case 1://画面预览
                         Intent iRreview = new Intent(view.getContext(), com.videogo.ui.cameralist.EZCameraListActivity  .class);
                         startActivity(iRreview);
                         break;
                     case 2://百度地图
-                        Intent iBaiduMap = new Intent(view.getContext(), BaiduMapActivity.class);
-                        iBaiduMap.putParcelableArrayListExtra("devices_baidu", (ArrayList<? extends Parcelable>) list_ezdevices);
-                        startActivity(iBaiduMap);
+                        if (list_ezdevices.size()!=0){
+                            Intent iBaiduMap = new Intent(view.getContext(), BaiduMapActivity.class);
+                            iBaiduMap.putParcelableArrayListExtra("devices_baidu", (ArrayList<? extends Parcelable>) list_ezdevices);
+                            startActivity(iBaiduMap);
+                        }else {
+                            ToastNotRepeat.show(HomeActivity.this,"服务器异常！");
+                        }
                         break;
                     case 3: //报警信息
-                        Intent iWarning = new Intent(view.getContext(), WarningActivity.class);
-                        iWarning.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
-                        startActivity(iWarning);
+                        if (list_ezCamera.size()!=0){
+                            Intent iWarning = new Intent(view.getContext(), WarningActivity.class);
+                            iWarning.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
+                            startActivity(iWarning);
+                        }else {
+                            ToastNotRepeat.show(HomeActivity.this,"服务器异常！");
+                        }
                         break;
                     case 4://视频查看
-                        Intent ivideoView = new Intent(view.getContext(), ScanVideoActivity.class);
-                        ivideoView.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
-                        startActivity(ivideoView);
+                        if (list_ezCamera.size()!=0){
+                            Intent ivideoView = new Intent(view.getContext(), ScanVideoActivity.class);
+                            ivideoView.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
+                            startActivity(ivideoView);
+                        }else {
+                            ToastNotRepeat.show(HomeActivity.this,"服务器异常！");
+                        }
                         break;
                     case 5://图片查看
-                        Intent iPicView = new Intent(view.getContext(), ScanPicActivity.class);
-                        iPicView.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
-                        startActivity(iPicView);
+                        if (list_ezCamera.size()!=0){
+                            Intent iPicView = new Intent(view.getContext(), ScanPicActivity.class);
+                            iPicView.putParcelableArrayListExtra("cameras_pic", (ArrayList<? extends Parcelable>) list_ezCamera);
+                            startActivity(iPicView);
+                        }else {
+                            ToastNotRepeat.show(HomeActivity.this,"服务器异常！");
+                        }
                         break;
                     default:
                         break;
@@ -433,6 +449,11 @@ public class HomeActivity extends Activity {
      */
     private class MyTask extends AsyncTask<Void, Void, List<EZDeviceInfo>> {
         private int mErrorCode = 0;
+        private WeakReference<HomeActivity> activityReference;
+        MyTask(HomeActivity context) {
+            activityReference = new WeakReference<>(context);
+        }
+
         @Override
         protected List<EZDeviceInfo> doInBackground(Void... voids) {
             if (HomeActivity.this.isFinishing()){
@@ -459,7 +480,10 @@ public class HomeActivity extends Activity {
 
         @Override
         protected void onPostExecute(List<EZDeviceInfo> result) {
-            super.onPostExecute(result);
+            HomeActivity activity2 = activityReference.get();
+            if (activity2 == null || activity2.isFinishing() || activity2.isDestroyed()){
+                return;
+            }
             if (result!=null){
                 for (EZDeviceInfo ezDeviceInfo : result){
                     for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){

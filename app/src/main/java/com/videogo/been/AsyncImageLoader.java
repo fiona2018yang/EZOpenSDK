@@ -46,13 +46,11 @@ public class AsyncImageLoader {
                 FTPutils ftPutils = new FTPutils();
                 String localpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash";
                 Boolean flag = ftPutils.connect(ip,Integer.parseInt(port),name,password);
-                Log.d("TAG","flag="+flag);
                 if (flag){
                     try {
                         ftPutils.downloadSingleFile(server_name, localpath, pic_name, new FTPutils.FtpProgressListener() {
                                     @Override
                                     public void onFtpProgress(int currentStatus, long process, File targetFile) {
-//                                        Log.d("TAG","process="+process);
                                         if (currentStatus == Constant.FTP_FILE_NOTEXISTS){
                                             Message message = Message.obtain();
                                             message.what = 1;

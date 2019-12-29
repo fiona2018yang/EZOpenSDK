@@ -126,7 +126,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     private TextView tx_message;
     private TextView tx_address;
     private TextView tx_creattime;
-    private RecyclerView recyclerView;
     private ImageView imageView;
     private DonutProgress donut_progress;
     private String address = "";
@@ -419,17 +418,16 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             List<String> list = new ArrayList<>();
             url_list = DataUtils.getUrlResouses(alarmMessage.getImgPath());
             if (url_list!=null){
-                map = url_list.get(0);
-                String pic_name = map.get("pic_name");
-                Log.d(TAG,"pic_name="+pic_name);
-                String[] pic = pic_name.split("\\.");
-                String name = pic[0]+short_str+"."+pic[1];
-                imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+name;
-                list.add(imgpath);
-                File imgFile = new File(imgpath);
-//                if (!imgFile.exists()) {
-//                    Log.d(TAG,"图片不存在!");
-                    asyncImageLoaderPic.loadDrawable(map,donut_progress , short_str,new AsyncImageLoaderPic.ImageCallback() {
+                try {
+                    map = url_list.get(0);
+                    String pic_name = map.get("pic_name");
+                    Log.d(TAG,"pic_name="+pic_name);
+                    String[] pic = pic_name.split("\\.");
+                    String name = pic[0]+short_str+"."+pic[1];
+                    imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+name;
+                    list.add(imgpath);
+                    File imgFile = new File(imgpath);
+                    asyncImageLoaderPic.loadDrawable(map, donut_progress, short_str, new AsyncImageLoaderPic.ImageCallback() {
                         @Override
                         public void imageLoaded() {
                             Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
@@ -438,8 +436,8 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 
                         @Override
                         public void imageLoadEmpty() {
-                            File imgFile = new File(Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+pic_name);
-                            Log.d(TAG,"img="+imgFile.toString());
+                            File imgFile = new File(Environment.getExternalStorageDirectory().toString() + "/EZOpenSDK/cash/" + pic_name);
+                            Log.d(TAG, "img=" + imgFile.toString());
                             Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
                                     .error(context.getResources().getDrawable(R.mipmap.load_fail2)).into(imageView);
                         }
@@ -451,52 +449,27 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                                     .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(imageView);
                         }
                     });
-//                }else{
-//                    Log.d(TAG,"图片存在!");
-//                    Picasso.with(context).load(imgFile).transform(new RoundTransform(20))
-//                            .error(context.getResources().getDrawable(R.mipmap.load_fail)).into(imageView);
-//                }
-                imageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
+                    imageView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
 
-                        Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-                        intent.putExtra("position", "0");
-                        intent.putExtra("flag", true);
-                        intent.putStringArrayListExtra("list", (ArrayList<String>) list);
-                        startActivity(intent);
-                    }
-                });
-//                for (HashMap<String,String> map : url_list){
-//                    String pic_name = map.get("pic_name");
-//                    String[] pic = pic_name.split("\\.");
-//                    String name = pic[0]+short_str+"."+pic[1];
-//                    imgpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash/"+name;
-//                    list.add(imgpath);
-//                    imageViewRecyclerAdapter = new ImageViewRecyclerAdapter(url_list,getApplicationContext());
-//                    recyclerView.setAdapter(imageViewRecyclerAdapter);
-//                    imageViewRecyclerAdapter.setSetOnItemClickListener(new ImageViewRecyclerAdapter.OnClickListener() {
-//                        @Override
-//                        public void OnItemClick(View view, int position) {
-//                            Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
-//                            intent.putExtra("position",position);
-//                            intent.putExtra("flag",true);
-//                            intent.putStringArrayListExtra("list", (ArrayList<String>) list);
-//                            startActivity(intent);
-//                        }
-//                    });
-//                }
+                            Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
+                            intent.putExtra("position", "0");
+                            intent.putExtra("flag", true);
+                            intent.putStringArrayListExtra("list", (ArrayList<String>) list);
+                            startActivity(intent);
+                        }
+                    });
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
             }
         }
         mRemotePlayBackTouchListener = new CustomTouchListener() {
 
             @Override
             public boolean canZoom(float scale) {
-//                if (status == RemoteListContant.STATUS_PLAYING) {
-//                    return true;
-//                } else {
-//                    return false;
-//                }
+
                 return false;
             }
 
@@ -846,6 +819,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             onActivityResume();
             startUpdateTimer();
         }
+        //initEzPlayer();
     }
 
     protected void onDestroy() {
@@ -872,6 +846,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG,"onStart");
         mScreenOrientationHelper.postOnStart();
     }
     protected void onStop() {
@@ -888,6 +863,19 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         if (notPause) {
             closePlayBack();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG,"onPause");
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        initEzPlayer();
+        Log.d(TAG,"onrestart");
     }
 
     @Override
@@ -2139,7 +2127,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
         public void onReceive(Context context, Intent intent) {
             Picasso.with(context).invalidate(new File(imgpath));
             imageView.setImageDrawable(null);
-            donut_progress.setVisibility(View.VISIBLE);
+            //donut_progress.setVisibility(View.VISIBLE);
             //下载图片
             String pic_name = map.get("pic_name");
             String[] pic = pic_name.split("\\.");

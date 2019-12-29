@@ -100,6 +100,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -455,7 +456,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         if (this.isFinishing()) {
             return;
         }
-        new GetCamersInfoListTask(headerOrFooter).execute();
+        new GetCamersInfoListTask(headerOrFooter,EZCameraListActivity.this).execute();
     }
 
     /**
@@ -464,9 +465,10 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     private class GetCamersInfoListTask extends AsyncTask<Void, Void, List<EZDeviceInfo>> {
         private boolean mHeaderOrFooter;
         private int mErrorCode = 0;
-
-        public GetCamersInfoListTask(boolean headerOrFooter) {
+        private WeakReference<EZCameraListActivity> activityReference;
+        public GetCamersInfoListTask(boolean headerOrFooter,EZCameraListActivity context) {
             mHeaderOrFooter = headerOrFooter;
+            activityReference = new WeakReference<>(context);
         }
 
         @Override
@@ -519,6 +521,10 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         @Override
         protected void onPostExecute(List<EZDeviceInfo> result) {
             super.onPostExecute(result);
+            EZCameraListActivity activity2 = activityReference.get();
+            if (activity2 == null || activity2.isFinishing() || activity2.isDestroyed()){
+                return;
+            }
             mListView.onRefreshComplete();
 //            if (EZCameraListActivity.this.isFinishing()) {
 //                return;

@@ -1,6 +1,5 @@
 package com.videogo.scanpic;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,10 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.bumptech.glide.Glide;
 import com.videogo.adapter.PhotoPagerAdapter;
 import java.io.File;
 import java.util.ArrayList;
@@ -21,11 +17,11 @@ import ezviz.ezopensdk.R;
 
 public class PictureActivity extends AppCompatActivity {
     private ViewPager viewPager;
-    private TextView tvNum;
     private ArrayList<String> urlList;
     private int position;
     private ImageButton shareBtn;
     private ImageButton delateBtn;
+    private ImageButton refresh;
     private Boolean flag = false;
     private Uri uri;
     private String path;
@@ -42,7 +38,7 @@ public class PictureActivity extends AppCompatActivity {
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         shareBtn = (ImageButton) findViewById(R.id.share);
         delateBtn = (ImageButton) findViewById(R.id.delate);
-        //tvNum = (TextView) findViewById(R.id.tv_num);
+        refresh = (ImageButton) findViewById(R.id.refresh);
         urlList = new ArrayList<>();
         Intent intent = getIntent();
         urlList = intent.getStringArrayListExtra("list");
@@ -53,10 +49,16 @@ public class PictureActivity extends AppCompatActivity {
         viewPager.setCurrentItem(position);
         uri = Uri.parse(urlList.get(position));
         Log.d("PictureActivity","uri="+uri);
+        if (!flag){
+            delateBtn.setVisibility(View.VISIBLE);
+            refresh.setVisibility(View.GONE);
+        }else{
+            delateBtn.setVisibility(View.GONE);
+            refresh.setVisibility(View.VISIBLE);
+        }
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                //tvNum.setText(String.valueOf(position + 1) + "/" + urlList.size());
                 uri = Uri.parse(urlList.get(position));
                 path = urlList.get(position);
             }
@@ -76,28 +78,46 @@ public class PictureActivity extends AppCompatActivity {
                 shareImg("分享","分享","分享",uri);
             }
         });
-
-        delateBtn.setOnClickListener(new View.OnClickListener() {
+        refresh.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (!flag){
-                    File file = new File(path);
-                    if (file.exists()&&file.isFile()){
-                        file.delete();
-                        Toast.makeText(PictureActivity.this,"文件已删除!", Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
-                }else{
-                    String path = urlList.get(0);
-                    File file = new File(path);
-                    if (file.exists()&&file.isFile()){
-                        file.delete();
-                        Toast.makeText(PictureActivity.this,"文件已删除!", Toast.LENGTH_SHORT).show();
+            public void onClick(View view) {
+                String path = urlList.get(0);
+                File file = new File(path);
+                if (file.exists()&&file.isFile()){
+                    file.delete();
+                    //Toast.makeText(PictureActivity.this,"文件已删除!", Toast.LENGTH_SHORT).show();
+                    Intent intent1 = new Intent();
+                    intent1.setAction("com.delate.pic");
+                    sendBroadcast(intent1);
+                    finish();
+                } else {
+                    String[] str = path.split("\\.");
+                    String s1 = str[0].substring(0, str[0].length() - 5);
+                    String path2 = s1 + "." + str[1];
+                    File file2 = new File(path2);
+                    if (file2.exists()&&file2.isFile()){
+                        file2.delete();
+                        //Toast.makeText(PictureActivity.this,"文件已删除!", Toast.LENGTH_SHORT).show();
                         Intent intent1 = new Intent();
                         intent1.setAction("com.delate.pic");
                         sendBroadcast(intent1);
                         finish();
                     }
+                }
+            }
+        });
+        delateBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File file = new File(path);
+                if (file.exists() && file.isFile()) {
+                    file.delete();
+                    Toast.makeText(PictureActivity.this, "文件已删除!", Toast.LENGTH_SHORT).show();
+                    Intent intent1 = new Intent();
+                    intent1.putExtra("path",path);
+                    intent1.setAction("com.refresh.pic");
+                    sendBroadcast(intent1);
+                    finish();
                 }
             }
         });

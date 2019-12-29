@@ -1,8 +1,10 @@
 package com.videogo.scanvideo;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -49,9 +51,11 @@ public class CameraVideoActivity extends Activity {
     private Boolean show_flag = true;
     private int width;
     private SQLiteDatabase db;
+    private List<String> datalist_db = new ArrayList<>();
     private LinearLayout linearLayout;
     private LinearLayout linear_1;
     private LinearLayout linear_2;
+    private MyReceiver myReceiver;
     private MyImageButton myImageButton1 = null;
     private MyImageButton myImageButton2 = null;
     private Context context;
@@ -60,9 +64,28 @@ public class CameraVideoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_pic);
         initView();
+        getDataFromDB();
     }
+
+    private void getDataFromDB() {
+        Cursor cursor = db.query("videofilepath", null, null, null, null, null, null);
+        if (cursor.moveToFirst()){
+            do {
+                String file_path = cursor.getString(cursor.getColumnIndex("path"));
+                datalist_db.add(file_path);
+            }while (cursor.moveToNext());
+        }
+        cursor.close();
+    }
+
     private void initView() {
         context = getApplicationContext();
+        myReceiver = new MyReceiver();
+        myReceiver = new MyReceiver();
+        //注册广播接收
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.refresh.pic");
+        registerReceiver(myReceiver,filter);
         db = ((EzvizApplication) getApplication()).getDatebase();
         rv = (RecyclerView) findViewById(R.id.recyclerView);
         tv = (TextView) findViewById(R.id.text);
@@ -138,6 +161,13 @@ public class CameraVideoActivity extends Activity {
                     File file = new File(path_checked_list.get(i));
                     if (file.exists()){
                         file.delete();
+                    }
+                    try {
+                        if (datalist_db.contains(path_checked_list.get(i))){
+                            db.delete("videofilepath","path=?",new String[]{path_checked_list.get(i)});
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
                 }
                 //更新数据
@@ -284,9 +314,14 @@ public class CameraVideoActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        initData();
-        adapter.notifyDataSetChanged();
     }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(myReceiver);
+    }
+
     /**
      * 文件发送
      * @param dlgTitle
@@ -306,6 +341,48 @@ public class CameraVideoActivity extends Activity {
             startActivity(Intent.createChooser(intent, dlgTitle));
         } else { // 系统默认标题
             startActivity(intent);
+        }
+    }
+    public class MyReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            String path = intent.getStringExtra("path");
+            try {
+                if (datalist_db.contains(path)){
+                    db.delete("videofilepath","path=?",new String[]{path});
+                }
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+
+            initData();
+            adapter = new TitleAdapter(context, title_list, file_list, width, show_flag, new TitleAdapter.Callback() {
+                @Override
+                public void callback(boolean flag) {
+                    if (flag){
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.GONE);
+                    }else{
+                        path_checked_list.clear();
+                        adapter.notifyDataSetChanged();
+                        linearLayout.setVisibility(View.VISIBLE);
+                    }
+                }
+
+                @Override
+                public void addStringPath(int p1, int p2) {
+                    path_checked_list.add(file_list.get(p1).get(p2));
+                }
+
+                @Override
+                public void removeStringPath(int p1, int p2) {
+                    path_checked_list.remove(file_list.get(p1).get(p2));
+                }
+            });
+            rv.setAdapter(adapter);
         }
     }
 }
