@@ -13,6 +13,7 @@ public class AlarmContant {
     public static final int MESSAGE_TYPE_STRAW_BURNING= 3 ;
     public static final int MESSAGE_TYPE_RIVER_MONITOR= 4 ;
     public static final int MESSAGE_TYPE_COMPANY_MANAGE= 5 ;
+    public static final int MESSAGE_TYPE_DATA_CHECK= 6 ;
 
     public static final int USER_TYPE_CHENGGUAN = 6;
     public static final int USER_TYPE_SHIWUJU = 7;
@@ -21,8 +22,8 @@ public class AlarmContant {
     public static final int USER_TYPE_FAZHANJU = 10;
     public static final int USER_TYPE_SUPER = 11;
     public static final String DEVICE_SERIAL_NUM = "D85325086";
-    //public static final String service_url = "http://183.208.120.226:18080/";
-    public static final String service_url = "http://222.187.219.82:18080/";
+    public static final String service_url = "http://183.208.120.226:18080/";
+    //public static final String service_url = "http://222.187.219.82:18080/";
     //public static final String service_url = "http://192.168.60.103:8080/";
     public static final String location_url ="http://api.map.baidu.com/reverse_geocoding/v3/";
     public static final String AppKey = "bec27f333fd04a95a352bec49d466754";
@@ -36,7 +37,7 @@ public class AlarmContant {
     public static List<String> list_fazhanju = new ArrayList<>();
     public static List<String> list_super = new ArrayList<>();
     public static List<File> list_file_pic = new ArrayList<>();
-    public static String[] typeString = new String[]{"违法乱建","违章种植","垃圾倾倒","漂浮物","渣土车","火情预警"};
+    public static String[] typeString = new String[]{"违法乱建","违章种植","垃圾倾倒","漂浮物","渣土车","火情预警","水质监测站"};
     public static final List<String> getList_chengguan(){
         list_chengguan.clear();
         list_chengguan.add(typeString[0]);
@@ -57,6 +58,7 @@ public class AlarmContant {
     public static final List<String> getList_huanbaoju(){
         list_huanbaoju.clear();
         list_huanbaoju.add(typeString[4]);
+        list_huanbaoju.add(typeString[6]);
         return list_huanbaoju;
     }
     public static final List<String> getList_zhifaju(){
@@ -80,6 +82,7 @@ public class AlarmContant {
         list_super.add(typeString[3]);
         list_super.add(typeString[4]);
         list_super.add(typeString[5]);
+        list_super.add(typeString[6]);
         return list_super;
     }
     public static String getAlarmType(int type){
@@ -106,6 +109,8 @@ public class AlarmContant {
             return AlarmContant.MESSAGE_TYPE_RIVER_MONITOR;
         }else if (str.equals(typeString[5])){
             return AlarmContant.MESSAGE_TYPE_COMPANY_MANAGE;
+        }else if (str.equals(typeString[6])){
+            return AlarmContant.MESSAGE_TYPE_DATA_CHECK;
         }
         return 0;
     }

@@ -26,8 +26,8 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
             +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
     private static final String CREAT_ALARM_MESSAGE_11="create table alarmMessage11("+"id integer primary key autoincrement,"+"message text,"+"type text,"+"latitude text,"
             +"longitude text,"+"altitude text,"+"address text,"+"imgPath text,"+"videoPath text,"+"createTime text,"+"startTime text,"+"endTime text,"+"channelNumber text)";
-    private static final String CREAT_ALARM_READED="create table alarmReaded("+"id integer primary key autoincrement,"+"type0 text,"+"type1 text,"+"type2 text,"+"type3 text,"+"type4 text,"+"type5 text)";
-    private static final String CREAT_ALARM_SIZE="create table alarmSize("+"id integer primary key autoincrement,"+"size0 text,"+"size1 text,"+"size2 text,"+"size3 text,"+"size4 text,"+"size5 text)";
+    private static final String CREAT_ALARM_READED="create table alarmReaded("+"id integer primary key autoincrement,"+"type0 text,"+"type1 text,"+"type2 text,"+"type3 text,"+"type4 text,"+"type5 text,"+"type6 text)";
+    private static final String CREAT_ALARM_SIZE="create table alarmSize("+"id integer primary key autoincrement,"+"size0 text,"+"size1 text,"+"size2 text,"+"size3 text,"+"size4 text,"+"size5 text,"+"size6 text)";
     public MyDatabaseHelper(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, version);
         this.context = context;

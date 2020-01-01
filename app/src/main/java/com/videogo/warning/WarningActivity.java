@@ -225,15 +225,20 @@ public class WarningActivity  extends Activity {
         adapter = new WarningAdapter(getApplicationContext(), list, new WarningAdapter.setOnclick() {
             @Override
             public void onClick(View view,int position,int size_url) {
-                upDateUi(position,size_url);
-                alarm_type = gettype(list.get(position));
-                Log.d("TAG","alarm_type="+alarm_type);
-                String title = list.get(position);
-                Intent i1 = new Intent(view.getContext(), GarbageActivity.class);
-                i1.putExtra("type",alarm_type);
-                i1.putExtra("title",title);
-                i1.putParcelableArrayListExtra("camerainfo_list", (ArrayList<? extends Parcelable>) cameraInfoList);
-                startActivity(i1);
+                if (position==6){
+                    Intent i = new Intent(view.getContext(),DataQueryActivity.class);
+                    startActivity(i);
+                }else {
+                    upDateUi(position,size_url);
+                    alarm_type = gettype(list.get(position));
+                    Log.d("TAG","alarm_type="+alarm_type);
+                    String title = list.get(position);
+                    Intent i1 = new Intent(view.getContext(), GarbageActivity.class);
+                    i1.putExtra("type",alarm_type);
+                    i1.putExtra("title",title);
+                    i1.putParcelableArrayListExtra("camerainfo_list", (ArrayList<? extends Parcelable>) cameraInfoList);
+                    startActivity(i1);
+                }
             }
         });
         rv.setAdapter(adapter);

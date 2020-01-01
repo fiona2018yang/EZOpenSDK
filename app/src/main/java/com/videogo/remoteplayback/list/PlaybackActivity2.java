@@ -21,9 +21,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -43,7 +40,6 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.squareup.picasso.Picasso;
 import com.videogo.EzvizApplication;
@@ -77,7 +73,6 @@ import com.videogo.util.MediaScanner;
 import com.videogo.util.RotateViewUtil;
 import com.videogo.util.SDCardUtil;
 import com.videogo.util.Utils;
-import com.videogo.warning.CommItemDecoration;
 import com.videogo.warning.OkHttpUtil;
 import com.videogo.warning.RoundTransform;
 import com.videogo.widget.CheckTextButton;
@@ -104,11 +99,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import ezviz.ezopensdk.R;
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import static com.videogo.EzvizApplication.getOpenSDK;
 import static com.videogo.been.AlarmContant.short_str;
@@ -452,7 +445,6 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                     imageView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-
                             Intent intent = new Intent(getApplicationContext(), PictureActivity.class);
                             intent.putExtra("position", "0");
                             intent.putExtra("flag", true);
@@ -584,6 +576,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             mPlayer.setSurfaceHold(surfaceView.getHolder());
             Calendar begin = Calendar.getInstance();
             Calendar end = Calendar.getInstance();
+            Log.d(TAG,"beginTime3="+beginTime);
             begin.setTime(new Date(beginTime));
             end.setTime(new Date(endTime));
             mPlayer.startPlayback(begin,end);
@@ -1409,13 +1402,15 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
             address = getIntent().getStringExtra("address");
             ChanneNumber = alarmMessage.getChannelNumber();
             String time = alarmMessage.getCreateTime();
+            Log.d(TAG,"time="+time);
             if (!time.equals("")){
                 try {
                     if (time.contains("-")){
-                        beginTime = Long.parseLong(DataUtils.date2TimeStamp(time,"yyyy-MM-dd HH:mm:ss"));
+                        beginTime = Long.parseLong(DataUtils.date2TimeStamp(time,"yyyy-MM-dd HH:mm:ss"))-2000;
+                        Log.d(TAG,"beginTime="+beginTime);
                         endTime = beginTime+sustainTime;
                     }else{
-                        beginTime = Long.parseLong(time);
+                        beginTime = Long.parseLong(time)-2000;
                         endTime = beginTime+sustainTime;
                     }
                     long systime = System.currentTimeMillis();
@@ -1426,6 +1421,7 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                             endTime = systime;
                         }
                     }
+                    Log.d(TAG,"beginTime2="+beginTime);
                 }catch (Exception e){
                     e.printStackTrace();
                 }

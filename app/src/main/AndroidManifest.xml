@@ -298,6 +298,12 @@
             android:name="com.videogo.warning.GarbageActivity"
             android:screenOrientation="portrait" />
         <activity
+            android:name="com.videogo.warning.DataQueryActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name="com.videogo.warning.DataQueryActivity2"
+            android:screenOrientation="portrait" />
+        <activity
             android:name="com.videogo.ui.devicelist.SeriesNumSearchActivity"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
