@@ -81,5 +81,6 @@
     <dimen name="device_set_small_text_size">13sp</dimen>
     <dimen name="fourteen">14dp</dimen>
     <dimen name="botton_text_size">13dp</dimen>
+    <dimen name="text_corner">5dp</dimen>
 
 </resources>

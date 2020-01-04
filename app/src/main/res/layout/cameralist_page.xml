@@ -71,32 +71,61 @@
         android:orientation="vertical">
 
         <RelativeLayout
+            android:visibility="visible"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_below="@+id/page_head">
 
-            <TextView
-                android:id="@+id/page_text"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:textColor="@color/topBarText"
-                android:paddingLeft="16dp"
-                android:text="设备列表"
-                android:textSize="14sp" />
+<!--            <TextView-->
+<!--                android:id="@+id/page_text"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:gravity="center_vertical"-->
+<!--                android:textColor="@color/topBarText"-->
+<!--                android:paddingLeft="16dp"-->
+<!--                android:text="设备列表"-->
+<!--                android:textSize="14sp" />-->
+                <com.videogo.ui.spinner.FuzzyMatchSpinner
+                    android:id="@+id/fuzzysp_mode_ddjdevwrite"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="60dp"
+                    android:clickable="true"/>
 
-            <!--<ImageView-->
-                <!--android:id="@+id/page_photos"-->
-                <!--android:layout_width="60dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_alignParentRight="true"-->
-                <!--android:layout_centerVertical="true"-->
-                <!--android:clickable="true"-->
-                <!--android:paddingBottom="16dp"-->
-                <!--android:paddingLeft="8dp"-->
-                <!--android:paddingRight="8dp"-->
-                <!--android:paddingTop="16dp"-->
-                <!--android:src="@drawable/icon_photo_selector" />-->
+                <Button
+                    android:id="@+id/connect"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="10dp"
+                    android:layout_marginLeft="10dp"
+                    android:text="SEND"
+                    android:textSize="12sp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/open_cameralist_send_selector"
+                    android:layout_width="50dp"
+                    android:layout_height="wrap_content"/>
+<!--                <ImageButton-->
+<!--                    android:id="@+id/connect"-->
+<!--                    android:layout_alignParentRight="true"-->
+<!--                    android:layout_centerVertical="true"-->
+<!--                    android:layout_marginRight="10dp"-->
+<!--                    android:background="@drawable/open_cameralist_alarmlist_selector"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"/>-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/page_photos"-->
+<!--                android:layout_width="60dp"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:layout_alignParentRight="true"-->
+<!--                android:layout_centerVertical="true"-->
+<!--                android:clickable="true"-->
+<!--                android:paddingBottom="16dp"-->
+<!--                android:paddingLeft="8dp"-->
+<!--                android:paddingRight="8dp"-->
+<!--                android:paddingTop="16dp"-->
+<!--                android:src="@drawable/icon_photo_selector" />-->
         </RelativeLayout>
 
         <View

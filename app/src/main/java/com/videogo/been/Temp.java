@@ -4,13 +4,14 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Temp implements Parcelable {
+    //九支渠隆锦路站
     private String temp;//温度
-    private String Ph;//ph
-    private String Oxygen;//氧气
-    private String Nitrogen;//氮气
-    private String Permanganate;//高锰酸盐
-    private String Phosphorus;//磷
-    private String Potential;//频率
+    private String Ph;//ph(6-9)
+    private String Oxygen;//溶解氧(>=2)
+    private String Nitrogen;//氨氮(<=2)
+    private String Permanganate;//高锰酸盐(<=15)
+    private String Phosphorus;//总磷(<=0.4)
+    private String Potential;//氧化还原定位(>=50)
     private String Time;//时间
 
     public Temp() {

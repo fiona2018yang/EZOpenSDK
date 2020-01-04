@@ -1,6 +1,7 @@
 package com.videogo.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -86,7 +87,46 @@ public class RightAdapter extends BaseAdapter {
         holder.Permanganate.setText(temp.getPermanganate());
         holder.Phosphorus.setText(temp.getPhosphorus());
         holder.Potential.setText(temp.getPotential());
-        holder.Time.setText(temp.getTime());
+        holder.Time.setText(temp.getTime().substring(0,temp.getTime().length()-7));
+
+        int a1 = Double.compare(Double.parseDouble(temp.getPh()),6.00);
+        int b1 = Double.compare(Double.parseDouble(temp.getPh()),9.00);
+        if (a1<0||b1>0){
+            holder.Ph.setTextColor(Color.RED);
+        }else {
+            holder.Ph.setTextColor(context.getResources().getColor(R.color.topBarText));
+        }
+        int a2 = Double.compare(Double.parseDouble(temp.getOxygen()),2.00);
+        if (a2 < 0){
+            holder.Oxygen.setTextColor(Color.RED);
+        }else {
+            holder.Oxygen.setTextColor(context.getResources().getColor(R.color.topBarText));
+        }
+        int a3 = Double.compare(Double.parseDouble(temp.getNitrogen()),2.00);
+        if (a3 > 0 ){
+            holder.Nitrogen.setTextColor(Color.RED);
+        }else{
+            holder.Nitrogen.setTextColor(context.getResources().getColor(R.color.topBarText));
+        }
+        int a4 = Double.compare(Double.parseDouble(temp.getPermanganate()),15.00);
+        if (a4 > 0){
+            holder.Permanganate.setTextColor(Color.RED);
+        }else{
+            holder.Permanganate.setTextColor(context.getResources().getColor(R.color.topBarText));
+        }
+        int a5 = Double.compare(Double.parseDouble(temp.getPhosphorus()),0.40);
+        if (a5 > 0 ){
+            holder.Phosphorus.setTextColor(Color.RED);
+        }else{
+            holder.Phosphorus.setTextColor(context.getResources().getColor(R.color.topBarText));
+        }
+        int a6 = Double.compare(Double.parseDouble(temp.getPotential()),50.00);
+        if (a6 < 0 ){
+            holder.Potential.setTextColor(Color.RED);
+        }else {
+            holder.Potential.setTextColor(context.getResources().getColor(R.color.topBarText));
+        }
+
         if (i==selectItem){
             convertView.setBackgroundColor(context.getResources().getColor(R.color.auto_blue_text));
         }else {

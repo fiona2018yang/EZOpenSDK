@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import com.videogo.adapter.ScanPicAdapter;
@@ -34,6 +35,8 @@ public class ScanPicActivity extends Activity {
         LinearLayoutManager layoutManager =new LinearLayoutManager(getApplicationContext());
         rv.setLayoutManager(layoutManager);
         list_ezCameras = getIntent().getParcelableArrayListExtra("cameras_pic");
+
+        Log.d("pic","list_ezCameras.size="+list_ezCameras.size());
 
         EZCameraInfo info = new EZCameraInfo();
         info.setCameraName("最近");

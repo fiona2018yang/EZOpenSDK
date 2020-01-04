@@ -345,6 +345,7 @@
             </com.videogo.widget.GroupLayout>
 
             <com.videogo.widget.GroupLayout
+                android:visibility="gone"
                 style="@style/CommonGroupLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -405,6 +406,7 @@
                     android:layout_marginTop="@dimen/device_set_layout_padding" >
 
                     <LinearLayout
+                        android:visibility="gone"
                         android:id="@+id/encrypt_layout"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/device_set_layout_height"
@@ -437,6 +439,7 @@
                     </LinearLayout>
 
                     <LinearLayout
+                        android:visibility="gone"
                         android:id="@+id/modify_password_layout"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/device_set_layout_height"
@@ -502,6 +505,7 @@
                 </LinearLayout>
             </com.videogo.widget.GroupLayout>
             <com.videogo.widget.GroupLayout
+                android:visibility="gone"
                 style="@style/CommonGroupLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

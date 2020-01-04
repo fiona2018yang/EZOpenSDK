@@ -23,9 +23,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -39,28 +36,20 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
-import com.baidu.mapapi.map.BitmapDescriptorFactory;
-import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
-import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MapView;
-import com.baidu.mapapi.map.Marker;
-import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.OverlayOptions;
-import com.baidu.mapapi.model.LatLng;
-import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.videogo.EzvizApplication;
-import com.videogo.camera.CameraInfo;
+import com.videogo.been.LoBody;
 import com.videogo.constant.Constant;
 import com.videogo.constant.IntentConsts;
 import com.videogo.devicemgt.EZDeviceSettingActivity;
@@ -72,14 +61,12 @@ import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.openapi.bean.EZLeaveMessage;
 import com.videogo.remoteplayback.list.PlayBackListActivity;
-import com.videogo.remoteplayback.list.PlaybackActivity;
 import com.videogo.remoteplayback.list.RemoteListContant;
 import com.videogo.scan.main.CaptureActivity;
 import com.videogo.ui.message.EZMessageActivity2;
 import com.videogo.ui.realplay.EZRealPlayActivity;
+import com.videogo.ui.spinner.FuzzyMatchSpinner;
 import com.videogo.ui.util.ActivityUtils;
-import com.videogo.ui.util.EZUtils;
-import com.videogo.ui.util.ImageUtil;
 import com.videogo.util.ConnectionDetector;
 import com.videogo.util.DateTimeUtil;
 import com.videogo.util.LogUtil;
@@ -95,25 +82,24 @@ import com.videogo.widget.pulltorefresh.PullToRefreshBase;
 import com.videogo.widget.pulltorefresh.PullToRefreshBase.LoadingLayoutCreator;
 import com.videogo.widget.pulltorefresh.PullToRefreshBase.Orientation;
 import com.videogo.widget.pulltorefresh.PullToRefreshListView;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import ezviz.ezopensdk.R;
-
 import static com.videogo.EzvizApplication.getOpenSDK;
+import static com.videogo.been.AlarmContant.modeArrayData;
 
 
 /**
@@ -131,13 +117,13 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
      */
     private final static int SHOW_DIALOG_DEL_DEVICE = 1;
 
-    //private EzvizAPI mEzvizAPI = null;
     private BroadcastReceiver mReceiver = null;
 
     private PullToRefreshListView mListView = null;
     private View mNoMoreView;
     private EZCameraListAdapter mAdapter = null;
-
+    private WaitDialog mWaitDlg = null;
+    private List<LoBody> loBodyList = new ArrayList<>();
     private LinearLayout mNoCameraTipLy = null;
     private LinearLayout mGetCameraFailTipLy = null;
     private TextView mCameraFailTipTv = null;
@@ -145,8 +131,12 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     private Button mUserBtn;
     private TextView mMyDevice;
     private TextView mShareDevice;
-    private List<EZCameraInfo> cameraInfoList;
+    private String send_tx;
+    private List<EZCameraInfo> cameraInfoList = new ArrayList<>();
+    private List<EZDeviceInfo> deviceInfoList = new ArrayList<>();
+    private List<String> arrayList = new ArrayList<>();
     private boolean bIsFromSetting = false;
+    private FuzzyMatchSpinner spMode;
 
     public final static int TAG_CLICK_PLAY = 1;
     public final static int TAG_CLICK_REMOTE_PLAY_BACK = 2;
@@ -158,6 +148,8 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     private final static int LOAD_MY_DEVICE = 0;
     private final static int LOAD_SHARE_DEVICE = 1;
     private int mLoadType = LOAD_MY_DEVICE;
+    private Button connectTcp;
+    private TcpClient tcpClient;
     private BitmapDescriptor bdA = null;
     private MapStatusUpdate mMapStatusUpdate;
     //线程池
@@ -384,8 +376,126 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         mNoCameraTipLy = (LinearLayout) findViewById(R.id.no_camera_tip_ly);
         mGetCameraFailTipLy = (LinearLayout) findViewById(R.id.get_camera_fail_tip_ly);
         mCameraFailTipTv = (TextView) findViewById(R.id.get_camera_list_fail_tv);
+        spMode = findViewById(R.id.fuzzysp_mode_ddjdevwrite);
 
+        List<String> datalist = Arrays.asList(modeArrayData);
+        Gson gson = new Gson();
+        List<JsonObject> list_objects = gson.fromJson(datalist.toString(),new TypeToken<List<JsonObject>>() {}.getType());
+        for (JsonObject object : list_objects){
+            LoBody loBody = gson.fromJson(object,LoBody.class);
+            loBodyList.add(loBody);
+            arrayList.add(loBody.getName());
+        }
+        ArrayAdapter modelAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item,arrayList.toArray(new String[arrayList.size()]));
+        modelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spMode.setAdapter(modelAdapter,loBodyList);
+
+        mWaitDlg = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+        mWaitDlg.setCancelable(false);
+        connectTcp = findViewById(R.id.connect);
+        connectTcp.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String ip = "192.168.60.86";
+                int port =6060;
+                String et_send = spMode.getText();
+                int pos = arrayList.lastIndexOf(et_send);
+                send_tx = "{'address': '"+loBodyList.get(pos).getAddress()+"', 'Preset': '"+loBodyList.get(pos).getPreset()+"'}.";
+                Log.d("Socket","send_tx = "+et_send);
+                tcpClient = TcpClient.getInstance();
+                if (!tcpClient.isConnect()){
+                    tcpClient.connect(ip,port);
+                }else {
+                    byte[] data = send_tx.getBytes();
+                    tcpClient.sendByteCmd(data,1001);
+                    Log.d("Socket","data.size="+data.length);
+                }
+                mWaitDlg.show();
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                            mWaitDlg.dismiss();
+                            Toast.makeText(EZCameraListActivity.this,"无响应！",Toast.LENGTH_LONG).show();
+                        }
+                    }
+                },4000);
+
+            }
+        });
+        initDataReceiver();
     }
+    /**
+     * socket data receive
+     * */
+    private void initDataReceiver(){
+        TcpClient.getInstance().setOnDataReceiveListener(dataReceiveListener);
+    }
+
+    private TcpClient.OnDataReceiveListener dataReceiveListener = new TcpClient.OnDataReceiveListener(){
+
+        @Override
+        public void onConnectSuccess() {
+            byte[] data = send_tx.getBytes();
+            tcpClient.sendByteCmd(data,1001);
+            Log.d("Socket","onDataReceive connect success");
+            Log.d("Socket","data.size="+data.length);
+
+        }
+
+        @Override
+        public void onConnectFail() {
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                        mWaitDlg.dismiss();
+                        Log.e("Socket","onDataReceive connect fail");
+                        Toast.makeText(EZCameraListActivity.this,"尚未连接，请连接Socket",Toast.LENGTH_LONG).show();
+                    }
+                }
+            },2000);
+        }
+
+        @Override
+        public void onDataReceive(byte[] buffer, int size, int requestCode) {
+            //获取有效长度的数据
+            byte[] data = new byte[size];
+            System.arraycopy(buffer, 0, data, 0, size);
+            final String oxValue = new String(data);
+            Log.i("Socket","onDataReceive requestCode = "+requestCode + ", content = "+oxValue);
+            Toast.makeText(EZCameraListActivity.this,oxValue,Toast.LENGTH_LONG).show();
+            tcpClient.disconnect();
+            if (oxValue.equals("OK")){
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                            mWaitDlg.dismiss();
+                            //Activity跳转
+                            EZCameraInfo cameraInfo = cameraInfoList.get(0);
+                            EZDeviceInfo deviceInfo = deviceInfoList.get(0);
+                            Intent intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
+                            intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
+                            intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                            startActivityForResult(intent, REQUEST_CODE);
+                        }
+                    }
+                },2000);
+            }else{
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                            mWaitDlg.dismiss();
+                            Toast.makeText(EZCameraListActivity.this,"通道被占用，请稍等！",Toast.LENGTH_LONG).show();
+                        }
+                    }
+                },2000);
+            }
+        }
+    };
 
     private void initData() {
         mReceiver = new BroadcastReceiver() {
@@ -550,6 +660,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     mListView.setFooterRefreshEnabled(true);
                     mListView.getRefreshableView().removeFooterView(mNoMoreView);
                 }
+                deviceInfoList.addAll(result);
                 addCameraList(result);
                 mAdapter.notifyDataSetChanged();
                 refreshPic();
@@ -598,6 +709,11 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
 
         if (mReceiver != null) {
             unregisterReceiver(mReceiver);
+        }
+        if (tcpClient!=null){
+            if (tcpClient.isConnect()){
+                tcpClient.disconnect();
+            }
         }
     }
 

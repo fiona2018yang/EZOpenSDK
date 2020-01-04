@@ -25,7 +25,7 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
     private Context context;
     private List<String> titile_list;
     private List<List<String>> file_list;
-    private Boolean showCheck;
+    private Boolean showCheck ;
     private Callback callback;
     private int width;
     //新增itemType
@@ -64,10 +64,12 @@ public class TitleAdapter extends RecyclerView.Adapter<TitleAdapter.TitleHolder>
         holder.title.setText(titile_list.get(position));
         if (holder.imageRecyclerAdapter == null){
             holder.recyclerView.setHasFixedSize(true);
+            holder.recyclerView.addItemDecoration(new MyPaddingDecoration(context,3));
             holder.recyclerView.setLayoutManager(new GridLayoutManager(context,width/350));
             holder.recyclerView.setItemAnimator(new DefaultItemAnimator());
             holder.imageRecyclerAdapter = new ImageRecyclerAdapter(context,file_list.get(position),showCheck);
             holder.recyclerView.setAdapter(holder.imageRecyclerAdapter);
+
         }
         if(!showCheck){
             holder.imageRecyclerAdapter.setShowChecked(true);

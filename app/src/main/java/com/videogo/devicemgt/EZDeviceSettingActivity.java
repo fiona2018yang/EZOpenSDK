@@ -231,7 +231,7 @@ public class EZDeviceSettingActivity extends RootActivity {
      * 初始化标题栏
      */
     private void initTitleBar() {
-        mTitleBar.setTitle(R.string.ez_setting);
+        mTitleBar.setTitle(R.string.ez_setting_1);
         mTitleBar.setStyle(Color.rgb(0xff, 0xff, 0xff),getResources().getDrawable(R.color.blue_bg),
                 getResources().getDrawable(R.drawable.message_back_selector_1));
         mTitleBar.addBackButton(new OnClickListener() {

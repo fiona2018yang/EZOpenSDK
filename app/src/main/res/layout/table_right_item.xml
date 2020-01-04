@@ -8,6 +8,18 @@
     android:gravity="center"
     android:orientation="horizontal"
     >
+
+    <TextView
+        android:id="@+id/tv_table_content_right_item7"
+        style="@style/TextView_Table_Rightitem"
+        android:layout_width="180dp"
+        android:gravity="center"
+        tools:text="列数-7"/>
+    <View
+        android:layout_width="1dp"
+        android:layout_height="30dp"
+        android:background="@color/gray_text"/>
+
     <View
         android:layout_width="1dp"
         android:layout_height="30dp"
@@ -52,7 +64,7 @@
     <TextView
         android:id="@+id/tv_table_content_right_item4"
         style="@style/TextView_Table_Rightitem"
-        android:layout_width="140dp"
+        android:layout_width="180dp"
         tools:text="列数-4"/>
     <View
         android:layout_width="1dp"
@@ -78,14 +90,5 @@
         android:layout_width="1dp"
         android:layout_height="30dp"
         android:background="@color/gray_text"/>
-    <TextView
-        android:id="@+id/tv_table_content_right_item7"
-        style="@style/TextView_Table_Rightitem"
-        android:layout_width="280dp"
-        android:gravity="center"
-        tools:text="列数-7"/>
-    <View
-        android:layout_width="1dp"
-        android:layout_height="30dp"
-        android:background="@color/gray_text"/>
+
 </LinearLayout>

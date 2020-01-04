@@ -16,6 +16,10 @@
         <attr name="donut_background_color" format="color"/>
     </declare-styleable>
 
+    <declare-styleable name="fuzzymatchspinner">
+        <attr name="prompt" format="string"></attr>
+    </declare-styleable>
+
     <declare-styleable name="LoadingTextView">
         <attr name="textStyle">
             <enum name="noText" value="-1" />

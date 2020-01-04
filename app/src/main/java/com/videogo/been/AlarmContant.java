@@ -22,7 +22,7 @@ public class AlarmContant {
     public static final int USER_TYPE_FAZHANJU = 10;
     public static final int USER_TYPE_SUPER = 11;
     public static final String DEVICE_SERIAL_NUM = "D85325086";
-    public static final String service_url = "http://183.208.120.226:18080/";
+    public static final String service_url = "http://183.208.120.226:18080/";//西城大厦
     //public static final String service_url = "http://222.187.219.82:18080/";
     //public static final String service_url = "http://192.168.60.103:8080/";
     public static final String location_url ="http://api.map.baidu.com/reverse_geocoding/v3/";
@@ -114,4 +114,25 @@ public class AlarmContant {
         }
         return 0;
     }
+
+
+
+    public static String[] modeArrayData = new String[]{
+            "{'name':'激光小镇','address': 'Suchness136', 'Preset': 'LaserTown'}",
+            "{'name':'激光产业园三期','address': 'Suchness136', 'Preset': 'LaserPark3'}",
+            "{'name':'激光产业园南门','address': 'Suchness136', 'Preset': 'LaserParkSouthGate'}",
+            "{'name':'激光产业园东门','address': 'Suchness199', 'Preset': 'LaserParkEastGate'}",
+            "{'name':'激光产业园二期','address': 'Suchness139', 'Preset': 'LaserPark2'}",
+            "{'name':'电子电气产业园南门','address': 'Suchness199', 'Preset': 'ElectronicParkSouthGate'}",
+            "{'name':'电子电气产业园西门','address': 'Suchness199', 'Preset': 'ElectronicParkWestGate'}",
+            "{'name':'元大科技','address': 'Suchness197', 'Preset': 'YuandaBuilding'}",
+            "{'name':'兄弟木业东门','address': 'Suchness197', 'Preset': 'BrotherWoodEastGate'}",
+            "{'name':'兄弟木业厂内','address': 'Suchness197', 'Preset': 'BrotherWoodIndustry'}",
+            "{'name':'光大环保','address': 'Suchness160', 'Preset': 'GuangdaEnvPro'}",
+            "{'name':'亿茂滤材','address': 'Suchness160', 'Preset': 'EimoFilter'}",
+            "{'name':'光电科技综合体','address': 'Suchness148', 'Preset': 'LaserElectricTechnology'}",
+            "{'name':'如是科技','address': 'Suchness142', 'Preset': 'Suchness'}",
+            "{'name':'华工蓝天','address': 'Suchness142', 'Preset': 'Huagong'}"
+    };
+
 }

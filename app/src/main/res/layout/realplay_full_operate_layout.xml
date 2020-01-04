@@ -35,6 +35,7 @@
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_marginLeft="9dp"
+			android:visibility="gone"
 	        android:layout_toRightOf="@+id/realplay_full_sound_btn"
 	        android:background="@drawable/speech_full_selector"
 	        android:onClick="onClick" />

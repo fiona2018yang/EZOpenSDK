@@ -2821,7 +2821,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                 mRealPlayTalkBtn.setEnabled(false);
             }
             if (mDeviceInfo.isSupportTalk() != EZConstants.EZTalkbackCapability.EZTalkbackNoSupport) {
-                mRealPlayFullTalkBtn.setVisibility(View.VISIBLE);
+                //mRealPlayFullTalkBtn.setVisibility(View.VISIBLE);
             } else {
                 mRealPlayFullTalkBtn.setVisibility(View.GONE);
             }

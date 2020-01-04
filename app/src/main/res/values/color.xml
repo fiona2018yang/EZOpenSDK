@@ -3,6 +3,9 @@
 
     <!-- common -->
     <color name="mode_bg">#88000000</color>
+    <color name="send">#82d01c</color>
+    <color name="drop_down">#52648d</color>
+    <color name="send_sel">#416e06</color>
     <color name="black_bg">#000000</color>
     <color name="shadow">#80000000</color>
     <color name="blue_bg">#344173</color>

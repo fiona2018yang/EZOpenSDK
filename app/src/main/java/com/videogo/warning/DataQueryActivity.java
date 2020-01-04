@@ -1,6 +1,9 @@
 package com.videogo.warning;
 
 import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.content.DialogInterface;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -9,27 +12,44 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.DatePicker;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.github.lzyzsd.circleprogress.DonutProgress;
+import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.LeftAdapter;
 import com.videogo.adapter.RightAdapter;
 import com.videogo.been.Temp;
+import com.videogo.ui.cameralist.EZCameraListActivity;
 import com.videogo.ui.util.MyListView;
+import com.videogo.ui.util.MySpinner;
 import com.videogo.ui.util.SyncHorizontalScrollView;
+import com.videogo.ui.util.ToChineseNumUtill;
+import com.videogo.util.LogUtil;
+import com.videogo.widget.WaitDialog;
 
-import org.MediaPlayer.PlayM4.Player;
-
+import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
 import ezviz.ezopensdk.R;
 
 public class DataQueryActivity extends Activity {
@@ -47,11 +67,15 @@ public class DataQueryActivity extends Activity {
     private SyncHorizontalScrollView contentHorScv;
     private DonutProgress donutProgress;
     private ExecutorService cachedThreadPool;
-    private ExecutorService cachedThreadPool_1;
+    private Date queryDate = null;
+    private WaitDialog mWaitDlg = null;
+    private MySpinner spinner;
+    private TextView date;
+    private ImageButton back;
+    private ImageButton query;
+    private String[] mItems;
     private int count = 0;
-    private int totlacount = 410 ;
-    private int page = 0;
-    private int pagesize = 400;
+    private int pagesize = 200;
     private Handler handler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -77,6 +101,17 @@ public class DataQueryActivity extends Activity {
                     }
                     Log.d(TAG,"progress="+progress);
                     break;
+                case 104:
+                    if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                        mWaitDlg.dismiss();
+                    }
+                    Bundle bundle4 = msg.getData();
+                    tempList.clear();
+                    tempList.addAll(bundle4.getParcelableArrayList("data"));
+                    getInt(tempList.size());
+                    leftListAdapter.notifyDataSetChanged();
+                    rightlistAdapter.notifyDataSetChanged();
+                    break;
             }
         }
     };
@@ -84,11 +119,15 @@ public class DataQueryActivity extends Activity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_query_data);
-        initView();
+        try {
+            initView();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         getCount();
     }
 
-    private void initView() {
+    private void initView() throws ParseException {
         tv_table_title_left = (TextView) findViewById(R.id.tv_table_title_left);
         tv_table_title_left.setText("序号");
         right_title_container = (LinearLayout) findViewById(R.id.right_title_container);
@@ -97,16 +136,34 @@ public class DataQueryActivity extends Activity {
         rightlistView= (MyListView) findViewById(R.id.right_container_listview);
         titleHorScv = (SyncHorizontalScrollView) findViewById(R.id.title_horsv);
         contentHorScv = (SyncHorizontalScrollView) findViewById(R.id.content_horsv);
+        spinner = findViewById(R.id.spinner);
+        date = findViewById(R.id.date);
         donutProgress = findViewById(R.id.donut_progress);
-        cachedThreadPool = Executors.newFixedThreadPool(2);
-        cachedThreadPool_1 = Executors.newFixedThreadPool(2);
+        query = findViewById(R.id.query);
+        back = findViewById(R.id.back);
+        cachedThreadPool = Executors.newFixedThreadPool(5);
         // 设置两个水平控件的联动
         titleHorScv.setScrollView(contentHorScv);
         contentHorScv.setScrollView(titleHorScv);
+        long systime = System.currentTimeMillis();
+        queryDate = longToDate(systime,"yyyy-MM-dd");
+        date.setText(dateToString(queryDate,"yyyy-MM-dd"));
+        mWaitDlg = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+        mWaitDlg.setCancelable(false);
     }
 
     private void setView(){
-        addListData(pagesize*page+1,pagesize*(page+1));
+//        String[] mItems = new String[]{"第一页", "第二页", "第三页", "第四页",
+//                "第五页", "第六页", "第七页", "第八页", "第九页", "第十页"};
+        List<String> arrayList = new ArrayList<>();
+        arrayList = getSpinerData();
+        mItems = arrayList.toArray(new String[arrayList.size()]);
+        ArrayAdapter<String> adapter=new ArrayAdapter<String>(this,R.layout.spinner_item, mItems);
+        adapter.setDropDownViewResource(R.layout.spinner_dropdown_item);
+        //绑定 Adapter到控件
+        spinner .setAdapter(adapter);
+
+        tempList.addAll(totalList.subList(0,pagesize));
         leftListAdapter = new LeftAdapter(integerList,getApplicationContext());
         rightlistAdapter = new RightAdapter(tempList,getApplicationContext());
         leftlistView.setAdapter(leftListAdapter);
@@ -123,17 +180,54 @@ public class DataQueryActivity extends Activity {
                 setSelected(i);
             }
         });
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Log.d(TAG,"position="+position);
+                Log.d(TAG,"id="+id);
+                tempList.clear();
+                tempList.addAll(totalList.subList(position*pagesize,(position+1)*pagesize));
+                getInt(pagesize);
+                rightlistAdapter.notifyDataSetChanged();
+                leftListAdapter.notifyDataSetChanged();
+
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.d(TAG,"noSelected");
+            }
+        });
+        date.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                goToCalendar();
+            }
+        });
+        back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+        query.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getQueryData(date.getText().toString());
+            }
+        });
+    }
+    private List<String> getSpinerData(){
+        int a = count/pagesize;
+        List<String> list = new ArrayList<>();
+        for (int i = 1 ;i <= a ; i++){
+            list.add("第"+ ToChineseNumUtill.numberToChinese(i) +"页");
+        }
+        return list;
     }
 
     private void setSelected(int i){
         rightlistAdapter.update(i,rightlistView);
         leftListAdapter.update(i,leftlistView);
-    }
-
-    private void addListData(int a, int b) {
-        for (int i = a ; i <= b ;i++){
-            tempList.add(totalList.get(i));
-        }
     }
 
     private void getCount() {
@@ -174,9 +268,58 @@ public class DataQueryActivity extends Activity {
     }
 
     private void getInt(int count){
+        integerList.clear();
         for (int i = 1 ; i <= count ; i ++){
             integerList.add(i);
         }
+    }
+
+    private void getQueryData(String date){
+        mWaitDlg.show();
+        Runnable runnable = new Runnable() {
+            private Connection connection = null;
+            @Override
+            public void run() {
+                try {
+                    /** 创建数据库对象 */
+                    Class.forName("net.sourceforge.jtds.jdbc.Driver");
+                    connection = DriverManager.getConnection("jdbc:jtds:sqlserver://183.208.120.208:14333/prd_env_dts;charset=utf8","sa","sa123123");
+                    Log.d(TAG,"连接成功");
+                    //String sql = "select top 20 * from WMS_60 where NODEID = '4028812268176ca801688930b0310004'";
+                    String sql = "select  f_301,f_302,f_315,f_311,f_314,f_313,f_1005,datetime from WMS_60 where NODEID = '4028812268176ca801688930b0310004'and datetime like '%"+date+"%'order by id desc";
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery(sql);
+                    List<Temp> list = new ArrayList<>();
+                    while (rs.next()) {
+                        Temp temp = new Temp();
+                        temp.setTemp(rs.getString("f_301"));
+                        temp.setPh(rs.getString("f_302"));
+                        temp.setOxygen(rs.getString("f_315"));
+                        temp.setNitrogen(rs.getString("f_311"));
+                        temp.setPermanganate(rs.getString("f_314"));
+                        temp.setPhosphorus(rs.getString("f_313"));
+                        temp.setPotential(rs.getString("f_1005"));
+                        temp.setTime(rs.getString("datetime"));
+                        list.add(temp);
+                    }
+                    Message message = Message.obtain();
+                    message.what = 104;
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelableArrayList("data", (ArrayList<? extends Parcelable>) list);
+                    message.setData(bundle);
+                    handler.sendMessage(message);
+                    rs.close();
+                    stmt.close();
+                    connection.close();
+                }catch (Exception e){
+                    if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                        mWaitDlg.dismiss();
+                    }
+                    e.printStackTrace();
+                }
+            }
+        };
+        cachedThreadPool.execute(runnable);
     }
 
     private void initData() {
@@ -191,12 +334,12 @@ public class DataQueryActivity extends Activity {
                     connection = DriverManager.getConnection("jdbc:jtds:sqlserver://183.208.120.208:14333/prd_env_dts;charset=utf8","sa","sa123123");
                     Log.d(TAG,"连接成功");
                     //String sql = "select top 20 * from WMS_60 where NODEID = '4028812268176ca801688930b0310004'";
-                    String sql = "select top 410 f_301,f_302,f_315,f_311,f_314,f_313,f_1005,datetime from WMS_60 where NODEID = '4028812268176ca801688930b0310004'order by id desc";
+                    String sql = "select  f_301,f_302,f_315,f_311,f_314,f_313,f_1005,datetime from WMS_60 where NODEID = '4028812268176ca801688930b0310004'order by id desc";
                     Statement stmt = connection.createStatement();
                     ResultSet rs = stmt.executeQuery(sql);
                     List<Temp> list = new ArrayList<>();
 
-                    long step = totlacount / 100 ;
+                    long step = count / 100 ;
                     long progress = 0 ;
                     while (rs.next()) {
                         Temp temp = new Temp();
@@ -238,14 +381,105 @@ public class DataQueryActivity extends Activity {
                 }
             }
         };
-        cachedThreadPool_1.execute(runnable);
+        cachedThreadPool.execute(runnable);
+    }
+    // 切换到日历界面
+    private void goToCalendar() {
+        if (getMinDate() != null && new Date().before(getMinDate())) {
+            ToastNotRepeat.show(getApplicationContext(),"请先将日期设置到2012/01/01之后");
+            return;
+        }
+        showDatePicker();
+    }
+    private Date getMinDate() {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = sdf.parse("2012-01-01");
+            return date;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
+    private void showDatePicker() {
+        Calendar nowCalendar = Calendar.getInstance();
+        nowCalendar.setTime(queryDate);
+        DatePickerDialog dpd = new DatePickerDialog(this, null, nowCalendar.get(Calendar.YEAR),
+                nowCalendar.get(Calendar.MONTH), nowCalendar.get(Calendar.DAY_OF_MONTH));
+
+        dpd.setCancelable(true);
+        dpd.setTitle(R.string.select_date);
+        dpd.setCanceledOnTouchOutside(true);
+        dpd.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.certain),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dg, int which) {
+                        DatePicker dp = null;
+                        Field[] fields = dg.getClass().getDeclaredFields();
+                        for (Field field : fields) {
+                            field.setAccessible(true);
+                            if (field.getName().equals("mDatePicker")) {
+                                try {
+                                    dp = (DatePicker) field.get(dg);
+                                } catch (IllegalArgumentException e) {
+                                    e.printStackTrace();
+                                } catch (IllegalAccessException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                        dp.clearFocus();
+                        Calendar selectCalendar = Calendar.getInstance();
+                        selectCalendar.set(Calendar.YEAR, dp.getYear());
+                        selectCalendar.set(Calendar.MONTH, dp.getMonth());
+                        selectCalendar.set(Calendar.DAY_OF_MONTH, dp.getDayOfMonth());
+                        queryDate = (Date) selectCalendar.getTime();
+                        date.setText(dateToString(queryDate,"yyyy-MM-dd"));
+                    }
+                });
+        dpd.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel),
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        LogUtil.debugLog("Picker", "Cancel!");
+                        if (!isFinishing()) {
+                            dialog.dismiss();
+                        }
+
+                    }
+                });
+
+        dpd.show();
+    }
+    // currentTime要转换的long类型的时间
+    // formatType要转换的时间格式yyyy-MM-dd HH:mm:ss//yyyy年MM月dd日 HH时mm分ss秒
+    public static Date longToDate(long currentTime, String formatType)
+            throws ParseException {
+        Date dateOld = new Date(currentTime); // 根据long类型的毫秒数生命一个date类型的时间
+        String sDateTime = dateToString(dateOld, formatType); // 把date类型的时间转换为string
+        Date date = stringToDate(sDateTime, formatType); // 把String类型转换为Date类型
+        return date;
+    }
+    // formatType格式为yyyy-MM-dd HH:mm:ss//yyyy年MM月dd日 HH时mm分ss秒
+    // data Date类型的时间
+    public static String dateToString(Date data, String formatType) {
+        return new SimpleDateFormat(formatType).format(data);
+    }
+    // strTime要转换的string类型的时间，formatType要转换的格式yyyy-MM-dd HH:mm:ss//yyyy年MM月dd日
+    // HH时mm分ss秒，
+    // strTime的时间格式必须要与formatType的时间格式相同
+    public static Date stringToDate(String strTime, String formatType)
+            throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat(formatType);
+        Date date = null;
+        date = formatter.parse(strTime);
+        return date;
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
         cachedThreadPool.shutdown();
-        cachedThreadPool_1.shutdownNow();
         handler.removeCallbacksAndMessages(null);
     }
 }
