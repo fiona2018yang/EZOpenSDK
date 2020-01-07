@@ -97,6 +97,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.validation.constraints.Null;
+
 import ezviz.ezopensdk.R;
 import static com.videogo.EzvizApplication.getOpenSDK;
 import static com.videogo.been.AlarmContant.modeArrayData;
@@ -144,7 +147,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     public final static int TAG_CLICK_ALARM_LIST = 4;
 
     private int mClickType;
-
+    private String No = "0";
     private final static int LOAD_MY_DEVICE = 0;
     private final static int LOAD_SHARE_DEVICE = 1;
     private int mLoadType = LOAD_MY_DEVICE;
@@ -396,10 +399,11 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         connectTcp.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                String ip = "192.168.60.86";
-                int port =6060;
                 String et_send = spMode.getText();
                 int pos = arrayList.lastIndexOf(et_send);
+                String ip = loBodyList.get(pos).getIp();
+                int port = Integer.parseInt(loBodyList.get(pos).getPort());
+                No = loBodyList.get(pos).getNo();
                 send_tx = "{'address': '"+loBodyList.get(pos).getAddress()+"', 'Preset': '"+loBodyList.get(pos).getPreset()+"'}.";
                 Log.d("Socket","send_tx = "+et_send);
                 tcpClient = TcpClient.getInstance();
@@ -465,7 +469,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
             System.arraycopy(buffer, 0, data, 0, size);
             final String oxValue = new String(data);
             Log.i("Socket","onDataReceive requestCode = "+requestCode + ", content = "+oxValue);
-            Toast.makeText(EZCameraListActivity.this,oxValue,Toast.LENGTH_LONG).show();
             tcpClient.disconnect();
             if (oxValue.equals("OK")){
                 new Handler().postDelayed(new Runnable() {
@@ -474,8 +477,9 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                         if (mWaitDlg != null && mWaitDlg.isShowing()) {
                             mWaitDlg.dismiss();
                             //Activity跳转
-                            EZCameraInfo cameraInfo = cameraInfoList.get(0);
+                            EZCameraInfo cameraInfo = getCameraInfo(cameraInfoList,No);
                             EZDeviceInfo deviceInfo = deviceInfoList.get(0);
+                            Log.d(TAG,"deviceInfoList.size="+deviceInfoList.size());
                             Intent intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
                             intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                             intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
@@ -496,7 +500,16 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
             }
         }
     };
-
+    private EZCameraInfo getCameraInfo(List<EZCameraInfo> cameraInfos , String no){
+        if (no!=null&&!no.equals("")){
+            for (EZCameraInfo cameraInfo : cameraInfos){
+                if (cameraInfo.getCameraNo() == Integer.parseInt(no)){
+                    return cameraInfo;
+                }
+            }
+        }
+        return cameraInfoList.get(0);
+    }
     private void initData() {
         mReceiver = new BroadcastReceiver() {
             @Override

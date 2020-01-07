@@ -118,21 +118,19 @@ public class AlarmContant {
 
 
     public static String[] modeArrayData = new String[]{
-            "{'name':'激光小镇','address': 'Suchness136', 'Preset': 'LaserTown'}",
-            "{'name':'激光产业园三期','address': 'Suchness136', 'Preset': 'LaserPark3'}",
-            "{'name':'激光产业园南门','address': 'Suchness136', 'Preset': 'LaserParkSouthGate'}",
-            "{'name':'激光产业园东门','address': 'Suchness199', 'Preset': 'LaserParkEastGate'}",
-            "{'name':'激光产业园二期','address': 'Suchness139', 'Preset': 'LaserPark2'}",
-            "{'name':'电子电气产业园南门','address': 'Suchness199', 'Preset': 'ElectronicParkSouthGate'}",
-            "{'name':'电子电气产业园西门','address': 'Suchness199', 'Preset': 'ElectronicParkWestGate'}",
-            "{'name':'元大科技','address': 'Suchness197', 'Preset': 'YuandaBuilding'}",
-            "{'name':'兄弟木业东门','address': 'Suchness197', 'Preset': 'BrotherWoodEastGate'}",
-            "{'name':'兄弟木业厂内','address': 'Suchness197', 'Preset': 'BrotherWoodIndustry'}",
-            "{'name':'光大环保','address': 'Suchness160', 'Preset': 'GuangdaEnvPro'}",
-            "{'name':'亿茂滤材','address': 'Suchness160', 'Preset': 'EimoFilter'}",
-            "{'name':'光电科技综合体','address': 'Suchness148', 'Preset': 'LaserElectricTechnology'}",
-            "{'name':'如是科技','address': 'Suchness142', 'Preset': 'Suchness'}",
-            "{'name':'华工蓝天','address': 'Suchness142', 'Preset': 'Huagong'}"
+            "{'name':'激光小镇','address': 'Suchness136', 'Preset': 'LaserTown','No':'2','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'激光产业园三期','address': 'Suchness136', 'Preset': 'LaserPark3','No':'2','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'激光产业园南门','address': 'Suchness136', 'Preset': 'LaserParkSouthGate','No':'2','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'激光产业园东门','address': 'Suchness199', 'Preset': 'LaserParkEastGate','No':'17','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'激光产业园二期','address': 'Suchness139', 'Preset': 'LaserPark2','No':'1','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'电子电气产业园南门','address': 'Suchness199', 'Preset': 'ElectronicParkSouthGate','No':'17','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'电子电气产业园西门','address': 'Suchness199', 'Preset': 'ElectronicParkWestGate','No':'17','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'元大科技','address': 'Suchness197', 'Preset': 'YuandaBuilding','No':'21','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'兄弟木业东门','address': 'Suchness197', 'Preset': 'BrotherWoodEastGate','No':'21','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'兄弟木业厂内','address': 'Suchness197', 'Preset': 'BrotherWoodIndustry','No':'21','ip':'183.208.120.226','port':'26060'}",
+            "{'name':'光大环保','address': 'Suchness160', 'Preset': 'GuangdaEnvPro','No':'8','ip':'183.208.120.226','port':'6060'}",
+            "{'name':'亿茂滤材','address': 'Suchness160', 'Preset': 'EimoFilter','No':'8','ip':'183.208.120.226','port':'6060'}",
+            "{'name':'光电科技综合体','address': 'Suchness148', 'Preset': 'LaserElectricTechnology','No':'14','ip':'183.208.120.226','port':'6060'}"
     };
 
 }

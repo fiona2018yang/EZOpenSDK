@@ -15,6 +15,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -204,6 +207,17 @@ public class FuzzyMatchSpinner extends FrameLayout
         Log.d(TAG,"dialog.show");
         alertDiag.show();
 
+        final WindowManager.LayoutParams params = alertDiag.getWindow().getAttributes();
+        params.width = 1000;
+        params.height = 1200;
+        alertDiag.getWindow().setAttributes(params);
+        alertDiag.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.scale);
+        view.setAnimation(animation);
+        animation.start();
+
+
+
         //增加变化监听
         etKeyWords.addTextChangedListener(new TextWatcher(){
             @Override
@@ -263,8 +277,7 @@ public class FuzzyMatchSpinner extends FrameLayout
             lvResult.setItemChecked(checkPosition, true);
         }
 
-        lvResult.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
+        lvResult.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id)
