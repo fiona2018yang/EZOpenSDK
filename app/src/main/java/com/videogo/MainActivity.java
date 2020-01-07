@@ -456,7 +456,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             SimpleLineSymbol simpleLineSymbol_info = new SimpleLineSymbol(Color.parseColor("#"+linecolor), Integer.parseInt(linewidth));
             Graphic line = new Graphic(polyline,simpleLineSymbol_info,map);
             graphicsLayer_info.addGraphic(line);
-            TextSymbol t = new TextSymbol(12, list_des_info.get(i), Color.BLACK);
+            TextSymbol t = new TextSymbol(12, list_des_info.get(i), Color.WHITE);
             t.setFontFamily(new File(CopyFontFile.FONT_PATH).getPath());
             t.setOffsetX(-20);
             Map<String,Object> map2 = new HashMap<>();
