@@ -176,6 +176,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
     private LinearLayout mRealPlayPageLy = null;
     private TitleBar mPortraitTitleBar = null;
     private TitleBar mLandscapeTitleBar = null;
+    private String titlename="";
     private Button mTiletRightBtn = null;
     private RelativeLayout mRealPlayPlayRl = null;
 
@@ -557,6 +558,7 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             mCameraInfo = intent.getParcelableExtra(IntentConsts.EXTRA_CAMERA_INFO);
             mDeviceInfo = intent.getParcelableExtra(IntentConsts.EXTRA_DEVICE_INFO);
             mRtspUrl = intent.getStringExtra(IntentConsts.EXTRA_RTSP_URL);
+            titlename = intent.getStringExtra("titlename");
             if (mCameraInfo != null) {
                 mCurrentQulityMode = (mCameraInfo.getVideoLevel());
             }
@@ -981,8 +983,8 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         mRealPlaySoundBtn.setVisibility(View.VISIBLE);
 
         if (mCameraInfo != null) {
-            mPortraitTitleBar.setTitle(mCameraInfo.getCameraName());
-            mLandscapeTitleBar.setTitle(mCameraInfo.getCameraName());
+            mPortraitTitleBar.setTitle(titlename);
+            mLandscapeTitleBar.setTitle(titlename);
 
             setCameraInfoTiletRightBtn();
 

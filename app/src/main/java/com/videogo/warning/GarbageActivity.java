@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import ezviz.ezopensdk.R;
 import okhttp3.Call;
@@ -124,7 +125,7 @@ public class GarbageActivity extends Activity {
                         List<AlarmMessage> list = new ArrayList<>();
                         list = bundle2.getParcelableArrayList("datalist");
                         list_size = list.size();
-                        Log.d(TAG, "list.isze=" + list_size);
+                        Log.d("refresh", "list.isze=" + list_size);
                         if (refreshType) {
                             //刷新
                             if (alarmMessageList.size() != 0) {
@@ -164,7 +165,7 @@ public class GarbageActivity extends Activity {
         sharedPreferences = getSharedPreferences("userid", MODE_PRIVATE);
         userid = sharedPreferences.getString("id", "1");
         db = ((EzvizApplication) getApplication()).getDatebase();
-        cachedThreadPool = Executors.newFixedThreadPool(24);
+        cachedThreadPool = Executors.newFixedThreadPool(3);
         cachedThreadPool_1 = Executors.newFixedThreadPool(24);
         refreshLayout = findViewById(R.id.refreshLayout);
         spinner_time = findViewById(R.id.spinner_1);
@@ -186,7 +187,7 @@ public class GarbageActivity extends Activity {
         rv.setLayoutManager(layoutManager);
         rv.addItemDecoration(CommItemDecoration.createVertical(context, getResources().getColor(R.color.blue_bg), 4));
         rv.setItemAnimator(new DefaultItemAnimator());
-        adatper = new TitleWarningAdatter(alarmMessageList ,cameraInfoList, cachedThreadPool_1, context);
+        adatper = new TitleWarningAdatter(alarmMessageList ,cachedThreadPool_1,cameraInfoList, context);
         rv.setAdapter(adatper);
         adatper.setSetOnItemClickListener(new TitleWarningAdatter.OnClickListener() {
             @Override
@@ -234,7 +235,7 @@ public class GarbageActivity extends Activity {
                 refreshType = true;
                 page = 1;
                 queryDataFromService(alarm_type, page);
-                refreshLayout.finishRefresh(500);
+                refreshLayout.finishRefresh(2000);
                 page++;
             }
         });
@@ -242,6 +243,7 @@ public class GarbageActivity extends Activity {
             @Override
             public void onLoadMore(@NonNull RefreshLayout refreshLayout) {
                 refreshType = false;
+                Log.d("refresh","alarm_type="+alarm_type);
                 queryDataFromService(alarm_type, page);
                 if (list_size < page_size) {
                     ToastNotRepeat.show(getApplicationContext(), "暂无更多的数据啦");
@@ -249,7 +251,7 @@ public class GarbageActivity extends Activity {
                     return;
                 } else {
                     refreshLayout.setEnableLoadMore(true);
-                    refreshLayout.finishLoadMore(500);
+                    refreshLayout.finishLoadMore(2000);
                     page++;
                 }
             }
@@ -277,7 +279,6 @@ public class GarbageActivity extends Activity {
         super.onDestroy();
         handler.removeCallbacksAndMessages(null);
         cachedThreadPool.shutdown();
-        cachedThreadPool_1.shutdown();
     }
     private void queryReadId(){
         Runnable runnable = new Runnable() {

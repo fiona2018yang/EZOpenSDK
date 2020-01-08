@@ -270,6 +270,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     Intent intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
                     intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                     intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                    intent.putExtra("titlename",cameraInfo.getCameraName());
                     startActivityForResult(intent, REQUEST_CODE);
                     return;
                 }
@@ -483,6 +484,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                             Intent intent = new Intent(EZCameraListActivity.this, EZRealPlayActivity.class);
                             intent.putExtra(IntentConsts.EXTRA_CAMERA_INFO, cameraInfo);
                             intent.putExtra(IntentConsts.EXTRA_DEVICE_INFO, deviceInfo);
+                            intent.putExtra("titlename",spMode.getText());
                             startActivityForResult(intent, REQUEST_CODE);
                         }
                     }

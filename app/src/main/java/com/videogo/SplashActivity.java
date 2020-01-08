@@ -241,6 +241,7 @@ public class SplashActivity extends Activity {
             @Override
             public void onResponse(Call call, Response response) throws IOException {
                 String responseBody = response.body().string();
+                //Log.d(TAG,"response="+responseBody);
                 try {
                     JSONObject object = new JSONObject(responseBody);
                     String data = object.get("data").toString();

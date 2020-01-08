@@ -38,22 +38,23 @@ import okhttp3.Response;
 
 public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatter.MyViewHolder>{
     private List<AlarmMessage> alarmMessageList;
+    private String TAG = "GarbageActivity";
     private Context context;
-    private ExecutorService cachedThreadPool;
     private OnClickListener OnClickListener;
     private List<EZCameraInfo> cameraInfoList;
     private List<String> read_list;
     private AsyncImageLoader asyncImageLoader;
+    private ExecutorService cachedThreadPool;
     private String address;
     private boolean isSrolling = false;
 
 
-    public TitleWarningAdatter(List<AlarmMessage> alarmMessageList,List<EZCameraInfo> cameraInfos,ExecutorService executorService  ,Context context) {
+    public TitleWarningAdatter(List<AlarmMessage> alarmMessageList,ExecutorService cachedThreadPool,List<EZCameraInfo> cameraInfos,Context context) {
         this.alarmMessageList = alarmMessageList;
         this.cameraInfoList = cameraInfos;
         this.context = context;
-        this.cachedThreadPool = executorService;
-        this.asyncImageLoader = new AsyncImageLoader(cachedThreadPool);
+        this.cachedThreadPool = cachedThreadPool;
+        this.asyncImageLoader = new AsyncImageLoader(this.cachedThreadPool);
     }
 
     @Override
@@ -75,6 +76,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         String path = alarmMessageList.get(position).getImgPath();
+        Log.d(TAG,"path = "+path);
         holder.imageView.setTag(path);
         //加载图片
         if (path != null && !path.equals("")) {
@@ -90,6 +92,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                     String imagpath = Environment.getExternalStorageDirectory().toString() + "/EZOpenSDK/cash/" + pic_name;
                     File imgFile = new File(imagpath);
                     if (!imgFile.exists()) {
+                        Log.d(TAG,"文件不存在");
                         asyncImageLoader.loadDrawable(map, new AsyncImageLoader.ImageCallback() {
                             @Override
                             public void imageLoaded() {
@@ -108,6 +111,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                             }
                         });
                     } else {
+                        Log.d(TAG,"文件存在");
                         if (null == avatarTag || avatarTag.equals(holder.imageView.getTag())) {
                             Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600, 300)
                                     .error(context.getResources().getDrawable(R.mipmap.ic_launcher)).into(holder.imageView);

@@ -12,7 +12,8 @@ import java.util.concurrent.ExecutorService;
 
 public class AsyncImageLoader {
     private ExecutorService cachedThreadPool;
-    public static ImageCallback imageCallback;
+    private String TAG = "GarbageActivity";
+
     public AsyncImageLoader(ExecutorService cachedThreadPool) {
         this.cachedThreadPool = cachedThreadPool;
     }
@@ -27,7 +28,7 @@ public class AsyncImageLoader {
         String password = map.get("password");
         String pic_name = map.get("pic_name");
         String server_name = map.get("server_name");
-        Log.d("TAG","server_name: "+server_name);
+        Log.d(TAG,"server_name: "+server_name);
         Handler handler = new Handler() {
             public void handleMessage(Message message) {
                 switch (message.what){
@@ -46,6 +47,7 @@ public class AsyncImageLoader {
                 FTPutils ftPutils = new FTPutils();
                 String localpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/cash";
                 Boolean flag = ftPutils.connect(ip,Integer.parseInt(port),name,password);
+                Log.d(TAG,"flag="+flag);
                 if (flag){
                     try {
                         ftPutils.downloadSingleFile(server_name, localpath, pic_name, new FTPutils.FtpProgressListener() {

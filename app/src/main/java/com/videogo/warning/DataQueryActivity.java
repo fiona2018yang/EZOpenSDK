@@ -3,7 +3,6 @@ package com.videogo.warning;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,24 +15,18 @@ import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.videogo.ToastNotRepeat;
 import com.videogo.adapter.LeftAdapter;
 import com.videogo.adapter.RightAdapter;
 import com.videogo.been.Temp;
-import com.videogo.ui.cameralist.EZCameraListActivity;
 import com.videogo.ui.util.MyListView;
 import com.videogo.ui.util.MySpinner;
 import com.videogo.ui.util.SyncHorizontalScrollView;
 import com.videogo.ui.util.ToChineseNumUtill;
 import com.videogo.util.LogUtil;
 import com.videogo.widget.WaitDialog;
-
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -43,10 +36,8 @@ import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -183,8 +174,6 @@ public class DataQueryActivity extends Activity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                Log.d(TAG,"position="+position);
-                Log.d(TAG,"id="+id);
                 tempList.clear();
                 tempList.addAll(totalList.subList(position*pagesize,(position+1)*pagesize));
                 getInt(pagesize);

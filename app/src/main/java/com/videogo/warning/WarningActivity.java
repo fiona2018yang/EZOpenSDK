@@ -214,6 +214,7 @@ public class WarningActivity  extends Activity {
                 list = AlarmContant.getList_super();
                 break;
         }
+        Log.d(TAG,"list.size="+list.size());
         for (int i = 0 ; i < list.size() ; i++){
             int type= gettype(list.get(i));
             type_list.add(type);
