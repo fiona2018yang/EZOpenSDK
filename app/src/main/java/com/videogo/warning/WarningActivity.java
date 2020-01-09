@@ -115,7 +115,7 @@ public class WarningActivity  extends Activity {
             @Override
             public void onRefresh(@NonNull RefreshLayout refreshLayout) {
                 queryTypeSizeFromUrl();
-                refreshLayout.finishRefresh(100);
+                refreshLayout.finishRefresh(1500);
             }
         });
     }

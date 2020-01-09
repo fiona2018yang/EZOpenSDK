@@ -76,7 +76,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
         String path = alarmMessageList.get(position).getImgPath();
-        Log.d(TAG,"path = "+path);
+        //Log.d(TAG,"path = "+path);
         holder.imageView.setTag(path);
         //加载图片
         if (path != null && !path.equals("")) {
@@ -92,7 +92,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                     String imagpath = Environment.getExternalStorageDirectory().toString() + "/EZOpenSDK/cash/" + pic_name;
                     File imgFile = new File(imagpath);
                     if (!imgFile.exists()) {
-                        Log.d(TAG,"文件不存在");
+                        //Log.d(TAG,"文件不存在");
                         asyncImageLoader.loadDrawable(map, new AsyncImageLoader.ImageCallback() {
                             @Override
                             public void imageLoaded() {
@@ -111,7 +111,7 @@ public class TitleWarningAdatter extends RecyclerView.Adapter<TitleWarningAdatte
                             }
                         });
                     } else {
-                        Log.d(TAG,"文件存在");
+                        //Log.d(TAG,"文件存在");
                         if (null == avatarTag || avatarTag.equals(holder.imageView.getTag())) {
                             Picasso.with(context).load(imgFile).transform(new RoundTransform(20)).resize(600, 300)
                                     .error(context.getResources().getDrawable(R.mipmap.ic_launcher)).into(holder.imageView);

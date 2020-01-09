@@ -37,6 +37,7 @@ import com.videogo.been.AsyncImageLoader;
 import com.videogo.been.SnCal;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.remoteplayback.list.PlaybackActivity2;
+import com.videogo.widget.WaitDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,7 +73,7 @@ public class GarbageActivity extends Activity {
     private ExecutorService cachedThreadPool_1;
     private RecyclerView rv;
     private int page = 1;
-    private int page_size = 12;
+    private int page_size = 20;
     private int list_size = 0;
     private SQLiteDatabase db;
     private RefreshLayout refreshLayout;
@@ -90,6 +91,7 @@ public class GarbageActivity extends Activity {
     private SharedPreferences sharedPreferences;
     private String userid;
     private Context context;
+    private WaitDialog mWaitDlg = null;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -121,6 +123,9 @@ public class GarbageActivity extends Activity {
                     break;
                 case 101:
                     try {
+                        if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                            mWaitDlg.dismiss();
+                        }
                         Bundle bundle2 = msg.getData();
                         List<AlarmMessage> list = new ArrayList<>();
                         list = bundle2.getParcelableArrayList("datalist");
@@ -178,6 +183,9 @@ public class GarbageActivity extends Activity {
         String str = getIntent().getStringExtra("title");
         cameraInfoList = getIntent().getParcelableArrayListExtra("camerainfo_list");
         title_text.setText(str);
+        mWaitDlg = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+        mWaitDlg.setCancelable(false);
+        mWaitDlg.show();
         //查询数据
         queryDataFromService(alarm_type, 1);
         page++;

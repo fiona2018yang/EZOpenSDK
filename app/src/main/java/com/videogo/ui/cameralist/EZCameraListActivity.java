@@ -67,6 +67,7 @@ import com.videogo.ui.message.EZMessageActivity2;
 import com.videogo.ui.realplay.EZRealPlayActivity;
 import com.videogo.ui.spinner.FuzzyMatchSpinner;
 import com.videogo.ui.util.ActivityUtils;
+import com.videogo.ui.util.DataUtils;
 import com.videogo.util.ConnectionDetector;
 import com.videogo.util.DateTimeUtil;
 import com.videogo.util.LogUtil;

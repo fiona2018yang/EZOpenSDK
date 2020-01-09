@@ -294,6 +294,14 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                 case RemoteListContant.MSG_REMOTELIST_STREAM_TIMEOUT:
                     //handleStreamTimeOut();
                     break;
+                case 301:
+                    tx_address.setText("未知");
+                    break;
+                case 302:
+                    Bundle bundle = msg.getData();
+                    String str = bundle.getString("address");
+                    tx_address.setText(str);
+                    break;
                 default:
                     break;
             }
@@ -400,9 +408,11 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
 
         if (alarmMessage.getCreateTime()!=null){
             if (alarmMessage.getCreateTime().contains("-")){
+                Log.d(TAG,"creattime="+alarmMessage.getCreateTime());
                 tx_creattime.setText(alarmMessage.getCreateTime());
             }else{
-                String time = DataUtils.date2TimeStamp(alarmMessage.getCreateTime(),"yyyy-MM-dd HH:mm:ss");
+                String time = DataUtils.timeStamp2Date(Long.parseLong(alarmMessage.getCreateTime()),"yyyy-MM-dd HH:mm:ss");
+                Log.d(TAG,"creattime="+time);
                 tx_creattime.setText(time);
             }
         }
@@ -1414,13 +1424,13 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                         endTime = beginTime+sustainTime;
                     }
                     long systime = System.currentTimeMillis();
-                    if ((systime - beginTime)<forwardTime){
-                        beginTime = beginTime-forwardTime;
-                        endTime = beginTime+sustainTime;
-                        if (endTime > systime){
-                            endTime = systime;
-                        }
-                    }
+//                    if ((systime - beginTime)<forwardTime){
+//                        beginTime = beginTime-forwardTime;
+//                        endTime = beginTime+sustainTime;
+//                        if (endTime > systime){
+//                            endTime = systime;
+//                        }
+//                    }
                     Log.d(TAG,"beginTime2="+beginTime);
                 }catch (Exception e){
                     e.printStackTrace();
@@ -2103,12 +2113,21 @@ public class PlaybackActivity2 extends RootActivity implements SurfaceHolder.Cal
                             address = formatted_address+"("+sematic_description+")";
                         }
                         if (address.equals("")){
-                            textView.setText("未知");
+                            Message message = Message.obtain();
+                            message.what = 301;
+                            playBackHandler.sendMessage(message);
                         }else{
-                            textView.setText(address);
+                            Message message = Message.obtain();
+                            message.what = 302;
+                            Bundle bundle = new Bundle();
+                            bundle.putString("address",address);
+                            message.setData(bundle);
+                            playBackHandler.sendMessage(message);
                         }
                     }else{
-                        textView.setText("未知");
+                        Message message = Message.obtain();
+                        message.what = 301;
+                        playBackHandler.sendMessage(message);
                     }
                     Log.d("TAG","address="+address);
                 } catch (JSONException e) {
