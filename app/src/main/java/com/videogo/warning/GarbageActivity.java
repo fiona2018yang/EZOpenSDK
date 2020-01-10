@@ -191,7 +191,7 @@ public class GarbageActivity extends Activity {
         page++;
         queryReadId();
         rv = findViewById(R.id.recyclerView);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        LinearLayoutManager layoutManager = new WarnLinearLayoutManager(context);
         rv.setLayoutManager(layoutManager);
         rv.addItemDecoration(CommItemDecoration.createVertical(context, getResources().getColor(R.color.blue_bg), 4));
         rv.setItemAnimator(new DefaultItemAnimator());
