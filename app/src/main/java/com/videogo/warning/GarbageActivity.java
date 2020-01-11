@@ -243,7 +243,7 @@ public class GarbageActivity extends Activity {
                 refreshType = true;
                 page = 1;
                 queryDataFromService(alarm_type, page);
-                refreshLayout.finishRefresh(2000);
+                refreshLayout.finishRefresh(1000);
                 page++;
             }
         });
@@ -259,7 +259,7 @@ public class GarbageActivity extends Activity {
                     return;
                 } else {
                     refreshLayout.setEnableLoadMore(true);
-                    refreshLayout.finishLoadMore(2000);
+                    refreshLayout.finishLoadMore(1000);
                     page++;
                 }
             }

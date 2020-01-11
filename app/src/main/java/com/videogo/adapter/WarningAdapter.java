@@ -32,21 +32,22 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.WarningH
     public void onBindViewHolder(WarningHolder holder, int position) {
         String type = list.get(position);
         int size_url = 0;
-        if (type_size_url!=null&&type_size_url.size()>0){
-            for (Map map : type_size_url){
-                if (map!=null){
-                    int ty = (int) map.get("type");
-                    if (ty == gettype(type)){
-                        size_url = (int) map.get("size");
-                        if (Integer.parseInt(type_size.get(position))<size_url){
-                            holder.tv.setTextColor(context.getResources().getColor(R.color.a1_blue_color));
-                        }else{
-                            holder.tv.setTextColor(context.getResources().getColor(R.color.topBarText));
-                        }
-                    }
-                }
-            }
-        }
+//        if (type_size_url!=null&&type_size_url.size()>0){
+//            for (Map map : type_size_url){
+//                if (map!=null){
+//                    int ty = (int) map.get("type");
+//                    if (ty == gettype(type)){
+//                        size_url = (int) map.get("size");
+//                        if (Integer.parseInt(type_size.get(position))<size_url){
+//                            holder.tv.setTextColor(context.getResources().getColor(R.color.a1_blue_color));
+//                        }else{
+//                            holder.tv.setTextColor(context.getResources().getColor(R.color.topBarText));
+//                        }
+//                    }
+//                }
+//            }
+//        }
+        holder.tv.setTextColor(context.getResources().getColor(R.color.topBarText));
         holder.tv.setText(list.get(position));
         int finalSize_url = size_url;
         holder.itemView.setOnClickListener(new View.OnClickListener() {

@@ -55,7 +55,6 @@ public class WarningActivity  extends Activity {
     private SharedPreferences sharedPreferences;
     private RecyclerView rv;
     private ImageButton back;
-    private RefreshLayout refreshLayout;
     private ExecutorService executors;
     private ExecutorService executors_1;
     private WarningAdapter adapter;
@@ -105,20 +104,19 @@ public class WarningActivity  extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_warning);
         initView();
-        queryTypeSize();
-        queryTypeSizeFromUrl();
-        refresh();
+        //queryTypeSize();
+        //queryTypeSizeFromUrl();
     }
 
-    private void refresh() {
-        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
-            @Override
-            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
-                queryTypeSizeFromUrl();
-                refreshLayout.finishRefresh(1500);
-            }
-        });
-    }
+//    private void refresh() {
+//        refreshLayout.setOnRefreshListener(new OnRefreshListener() {
+//            @Override
+//            public void onRefresh(@NonNull RefreshLayout refreshLayout) {
+//                queryTypeSizeFromUrl();
+//                refreshLayout.finishRefresh(1500);
+//            }
+//        });
+//    }
     private void queryTypeSizeFromUrl() {
         for (int i = 0 ; i < list.size() ; i++){
             String url = AlarmContant.service_url + "api/getEarlyWarning";
@@ -193,7 +191,7 @@ public class WarningActivity  extends Activity {
         userid = sharedPreferences.getString("id", "1");
         executors = Executors.newFixedThreadPool(5);
         executors_1 = Executors.newFixedThreadPool(5);
-        refreshLayout = findViewById(R.id.refresh_layout);
+        //refreshLayout = findViewById(R.id.refresh_layout);
         switch (user_type){
             case AlarmContant.USER_TYPE_CHENGGUAN:
                 list = AlarmContant.getList_chengguan();
@@ -230,7 +228,7 @@ public class WarningActivity  extends Activity {
                     Intent i = new Intent(view.getContext(),DataQueryActivity.class);
                     startActivity(i);
                 }else {
-                    upDateUi(position,size_url);
+                    //upDateUi(position,size_url);
                     alarm_type = gettype(list.get(position));
                     Log.d("TAG","alarm_type="+alarm_type);
                     String title = list.get(position);
@@ -277,6 +275,6 @@ public class WarningActivity  extends Activity {
         executors.shutdown();
         executors_1.shutdown();
         handler.removeCallbacksAndMessages(null);
-        cursor.close();
+        //cursor.close();
     }
 }

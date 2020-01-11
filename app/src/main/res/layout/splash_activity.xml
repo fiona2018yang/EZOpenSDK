@@ -51,6 +51,9 @@
             android:layout_width="217dp"
             android:layout_height="45dp"
             android:background="#22ffffff"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:textCursorDrawable="@drawable/my_cursor"
             />
     </LinearLayout>
 
@@ -84,6 +87,9 @@
             android:layout_height="45dp"
             android:textColorHint="@color/divider"
             android:background="#22ffffff"
+            android:singleLine="true"
+            android:maxLines="1"
+            android:textCursorDrawable="@drawable/my_cursor"
             />
     </LinearLayout>
 
