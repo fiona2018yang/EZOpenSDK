@@ -485,6 +485,7 @@ public class HomeActivity extends Activity {
                 return;
             }
             if (result!=null){
+                Log.d(TAG,"result.size="+result.size());
                 for (EZDeviceInfo ezDeviceInfo : result){
                     for (EZCameraInfo cameraInfo : ezDeviceInfo.getCameraInfoList()){
                         list_ezCamera.add(cameraInfo);

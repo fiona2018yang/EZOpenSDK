@@ -180,9 +180,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     mId = (String) msg.obj;
                     break;
                 case 110:
-                    String url = msg.getData().getString("url");
-                    int no = msg.getData().getInt("no");
-                    cameraInfoList.get(no-1).setCameraCover(url);
                     mAdapter.notifyDataSetChanged();
                 default:
                     break;
@@ -560,12 +557,9 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     String  url = null;
                     try {
                         url = EzvizApplication.getOpenSDK().captureCamera(cameraInfo.getDeviceSerial(),cameraInfo.getCameraNo());
+                        cameraInfo.setCameraCover(url);
                         Message message = new Message();
                         message.what = 110;
-                        Bundle bundle = new Bundle();
-                        bundle.putString("url",url);
-                        bundle.putInt("no",cameraInfo.getCameraNo());
-                        message.setData(bundle);
                         mHandler.sendMessage(message);
                     } catch (BaseException e) {
                         e.printStackTrace();
@@ -676,6 +670,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
                     mListView.setFooterRefreshEnabled(true);
                     mListView.getRefreshableView().removeFooterView(mNoMoreView);
                 }
+                Log.d(TAG,"result.size="+result.size());
                 deviceInfoList.addAll(result);
                 addCameraList(result);
                 mAdapter.notifyDataSetChanged();
@@ -709,6 +704,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
 
     private void addCameraList(List<EZDeviceInfo> result) {
         int count = result.size();
+        Log.d(TAG,"count="+count);
         EZDeviceInfo item = null;
         for (int i = 0; i < count; i++) {
             item = result.get(i);

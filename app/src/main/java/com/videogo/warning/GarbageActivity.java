@@ -73,7 +73,7 @@ public class GarbageActivity extends Activity {
     private ExecutorService cachedThreadPool_1;
     private RecyclerView rv;
     private int page = 1;
-    private int page_size = 20;
+    private int page_size = 30;
     private int list_size = 0;
     private SQLiteDatabase db;
     private RefreshLayout refreshLayout;
