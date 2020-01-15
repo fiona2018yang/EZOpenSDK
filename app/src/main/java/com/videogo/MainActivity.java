@@ -63,6 +63,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private TextView result;
     private String path;
     private TextView title;
+    private String TAG = "MainActivity";
     private SharedPreferences sharedPreferences;
     private List<EZDeviceInfo> list_ezDevices;
     private List<Graphic> list_graphic = new ArrayList<>();
@@ -430,6 +431,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         List<String> list_style_url = new ArrayList<>();
         ReadKml readKml1 = new ReadKml(url2,list_name_info,list_des_info,null,list_collection,list_styleid,list_stylemap,list_style_url,MainActivity.this);
         readKml1.parseKml();
+        Log.d(TAG,"list_name.size="+list_name_info.size());
+        Log.d(TAG,"list_name"+list_name_info.toString());
+        Log.d(TAG,"list_des.size="+list_des_info.size());
         //线型
         for (int i = 0 ; i < list_collection.size() ; i++){
             Polyline polyline = new Polyline();
@@ -456,7 +460,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             SimpleLineSymbol simpleLineSymbol_info = new SimpleLineSymbol(Color.parseColor("#"+linecolor), Integer.parseInt(linewidth));
             Graphic line = new Graphic(polyline,simpleLineSymbol_info,map);
             graphicsLayer_info.addGraphic(line);
-            TextSymbol t = new TextSymbol(12, list_des_info.get(i), Color.WHITE);
+            TextSymbol t = new TextSymbol(12, list_name_info.get(i+1)+list_des_info.get(i), Color.WHITE);
             t.setFontFamily(new File(CopyFontFile.FONT_PATH).getPath());
             t.setOffsetX(-20);
             Map<String,Object> map2 = new HashMap<>();
