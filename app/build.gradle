@@ -21,8 +21,8 @@ android {
         applicationId "ezviz.ezopensdk"
         minSdkVersion 19
         targetSdkVersion 26
-        versionCode 4
-        versionName "1.5.8"
+        versionCode 6
+        versionName "1.6.0"
         ndk {
             abiFilters "armeabi-v7a"
         }

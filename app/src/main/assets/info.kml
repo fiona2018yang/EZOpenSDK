@@ -2124,9 +2124,9 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>卡特米</name>
+		<name>卡米特</name>
 		<visibility>0</visibility>
-		<description>卡特米约84.3亩</description>
+		<description>卡米特约84.3亩</description>
 		<styleUrl>#msn_ylw-pushpin21</styleUrl>
 		<Polygon>
 			<tessellate>1</tessellate>
@@ -2140,9 +2140,9 @@
 		</Polygon>
 	</Placemark>
 	<Placemark>
-		<name>卡特米激光</name>
+		<name>卡米特激光</name>
 		<visibility>0</visibility>
-		<description>卡特米激光21.485亩</description>
+		<description>卡米特激光21.485亩</description>
 		<styleUrl>#msn_ylw-pushpin21</styleUrl>
 		<Polygon>
 			<tessellate>1</tessellate>
