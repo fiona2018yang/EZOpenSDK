@@ -1692,6 +1692,29 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
             }
         }).start();
     }
+    /**
+     * 云台操作
+     *
+     * @param command1 ptz控制命令
+     * @param action  控制启动/停止
+     */
+    private void ptzOption2(final EZPTZCommand command1, final EZPTZCommand command2,final EZPTZAction action) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                boolean ptz_result = false;
+                try {
+                    ptz_result = EzvizApplication.getOpenSDK().controlPTZ(mCameraInfo.getDeviceSerial(), mCameraInfo.getCameraNo(), command1,
+                            action, my_speed);
+                    ptz_result = EzvizApplication.getOpenSDK().controlPTZ(mCameraInfo.getDeviceSerial(), mCameraInfo.getCameraNo(), command2,
+                            action, my_speed);
+                } catch (BaseException e) {
+                    e.printStackTrace();
+                }
+                LogUtil.i(TAG, "controlPTZ ptzCtrl result: " + ptz_result);
+            }
+        }).start();
+    }
 
     private OnTouchListener mOnTouchListener = new OnTouchListener() {
 
@@ -1727,6 +1750,24 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                             setPtzDirectionIv(RealPlayStatus.PTZ_RIGHT);
                             ptzOption(EZPTZCommand.EZPTZCommandRight, EZPTZAction.EZPTZActionSTART);
                             break;
+
+//                        case R.id.ptz_top_left_btn:
+//                            ptzOption2(EZPTZCommand.EZPTZCommandUp,EZPTZCommand.EZPTZCommandLeft,EZPTZAction.EZPTZActionSTART);
+//                            break;
+//                        case R.id.ptz_top_right_btn:
+//                            ptzOption(EZPTZCommand.EZPTZCommandUp,EZPTZAction.EZPTZActionSTART);
+//                            ptzOption(EZPTZCommand.EZPTZCommandRight,EZPTZAction.EZPTZActionSTART);
+//                            break;
+//                        case R.id.ptz_bottom_left_btn:
+//                            ptzOption(EZPTZCommand.EZPTZCommandDown,EZPTZAction.EZPTZActionSTART);
+//                            ptzOption(EZPTZCommand.EZPTZCommandLeft,EZPTZAction.EZPTZActionSTART);
+//                            break;
+//                        case R.id.ptz_bottom_right_btn:
+//                            ptzOption(EZPTZCommand.EZPTZCommandDown,EZPTZAction.EZPTZActionSTART);
+//                            ptzOption(EZPTZCommand.EZPTZCommandRight,EZPTZAction.EZPTZActionSTART);
+//                            break;
+
+
                         case R.id.tx_zoomin:
                             setPtzDirectionIv(RealPlayStatus.PTZ_ZOOMIN);
                             ptzOption(EZPTZCommand.EZPTZCommandZoomIn, EZPTZAction.EZPTZActionSTART);
@@ -1785,6 +1826,25 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
                             mPtzControlLy.setBackgroundResource(R.drawable.ptz_bg);
                             ptzOption(EZPTZCommand.EZPTZCommandRight, EZPTZAction.EZPTZActionSTOP);
                             break;
+
+
+//                        case R.id.ptz_top_left_btn:
+//                            ptzOption(EZPTZCommand.EZPTZCommandUp,EZPTZAction.EZPTZActionSTOP);
+//                            ptzOption(EZPTZCommand.EZPTZCommandLeft,EZPTZAction.EZPTZActionSTOP);
+//                            break;
+//                        case R.id.ptz_top_right_btn:
+//                            ptzOption(EZPTZCommand.EZPTZCommandUp,EZPTZAction.EZPTZActionSTOP);
+//                            ptzOption(EZPTZCommand.EZPTZCommandRight,EZPTZAction.EZPTZActionSTOP);
+//                            break;
+//                        case R.id.ptz_bottom_left_btn:
+//                            ptzOption(EZPTZCommand.EZPTZCommandDown,EZPTZAction.EZPTZActionSTOP);
+//                            ptzOption(EZPTZCommand.EZPTZCommandLeft,EZPTZAction.EZPTZActionSTOP);
+//                            break;
+//                        case R.id.ptz_bottom_right_btn:
+//                            ptzOption(EZPTZCommand.EZPTZCommandDown,EZPTZAction.EZPTZActionSTOP);
+//                            ptzOption(EZPTZCommand.EZPTZCommandRight,EZPTZAction.EZPTZActionSTOP);
+//                            break;
+
                         case R.id.tx_zoomin:
                             ptzOption(EZPTZCommand.EZPTZCommandZoomIn, EZPTZAction.EZPTZActionSTOP);
                             Log.i(TAG, "onTouch: zoomin-stop");
@@ -1976,6 +2036,18 @@ public class EZRealPlayActivity extends Activity implements OnClickListener, Sur
         ptzLeftBtn.setOnTouchListener(mOnTouchListener);
         ImageButton ptzRightBtn = (ImageButton) layoutView.findViewById(R.id.ptz_right_btn);
         ptzRightBtn.setOnTouchListener(mOnTouchListener);
+
+//        ImageButton ptzTopLeftBtn = (ImageButton) layoutView.findViewById(R.id.ptz_top_left_btn);
+//        ImageButton ptzTopRightBtn = (ImageButton) layoutView.findViewById(R.id.ptz_top_right_btn);
+//        ImageButton ptzBotLeftBtn = (ImageButton) layoutView.findViewById(R.id.ptz_bottom_left_btn);
+//        ImageButton ptzBotRightBtn = (ImageButton) layoutView.findViewById(R.id.ptz_bottom_right_btn);
+//        ptzTopLeftBtn.setOnTouchListener(mOnTouchListener);
+//        ptzTopRightBtn.setOnTouchListener(mOnTouchListener);
+//        ptzBotLeftBtn.setOnTouchListener(mOnTouchListener);
+//        ptzBotRightBtn.setOnTouchListener(mOnTouchListener);
+
+
+
         ImageButton ptzFlipBtn = (ImageButton) layoutView.findViewById(R.id.ptz_flip_btn);
         ptzFlipBtn.setOnClickListener(mOnPopWndClickListener);
         ImageButton tx_zoomin = (ImageButton) layoutView.findViewById(R.id.tx_zoomin);

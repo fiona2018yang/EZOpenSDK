@@ -21,8 +21,8 @@ android {
         applicationId "ezviz.ezopensdk"
         minSdkVersion 19
         targetSdkVersion 26
-        versionCode 6
-        versionName "1.6.0"
+        versionCode 9
+        versionName "1.6.3"
         ndk {
             abiFilters "armeabi-v7a"
         }
@@ -64,9 +64,9 @@ android.applicationVariants.all{variant ->
     variant.outputs.all { output ->
         def date = new Date().format("MM_dd_hh_mm", TimeZone.getTimeZone("GMT+08"))
         if (variant.buildType.name == "debug") {
-            output.outputFileName = "arbitrator_v${android.defaultConfig.versionName}_debug_${android.defaultConfig.versionCode}_${date}.apk"
+            output.outputFileName = "arbitrator_v${android.defaultConfig.versionCode}_debug_${android.defaultConfig.versionName}_${date}.apk"
         } else if (variant.buildType.name == "release") {
-            output.outputFileName = "arbitrator_v${android.defaultConfig.versionName}_${android.defaultConfig.versionCode}_${date}.apk"
+            output.outputFileName = "arbitrator_v${android.defaultConfig.versionCode}_${android.defaultConfig.versionName}_${date}.apk"
         }
     }
 }

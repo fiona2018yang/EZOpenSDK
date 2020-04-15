@@ -97,7 +97,7 @@ public class TagAliasOperatorHelper {
                 message.setData(bundle);
                 delaySendHandler.sendMessageDelayed(message,1000*60);
                 String logs ="错误码为6002 超时,6014 服务器繁忙,都建议延迟重试";
-                ExampleUtil.showToast(logs, context);
+                //ExampleUtil.showToast(logs, context);
                 return true;
             }
         }
@@ -126,7 +126,7 @@ public class TagAliasOperatorHelper {
             String logs = "Failed to set alias, errorCode:" + jPushMessage.getErrorCode();
             Logger.e(TAG, logs);
             if(!RetryActionIfNeeded(jPushMessage.getErrorCode(),alias)) {
-                ExampleUtil.showToast(logs, context);
+                //ExampleUtil.showToast(logs, context);
             }
             editor.putBoolean("isSuccess",false);
             editor.commit();

@@ -2,13 +2,21 @@ package com.videogo.devicemgt;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v4.content.FileProvider;
+import android.support.v7.widget.LinearLayoutManager;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -20,21 +28,34 @@ import android.widget.TextView;
 import com.videogo.EzvizApplication;
 import com.videogo.MainActivity;
 import com.videogo.RootActivity;
+import com.videogo.ToastNotRepeat;
+import com.videogo.been.AlarmContant;
+import com.videogo.been.Constant;
 import com.videogo.constant.IntentConsts;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
 import com.videogo.openapi.EZConstants;
-import com.videogo.openapi.EZOpenSDK;
 import com.videogo.openapi.bean.EZCameraInfo;
 import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.openapi.bean.EZDeviceVersion;
-import com.videogo.ui.cameralist.EZCameraListActivity;
 import com.videogo.ui.util.ActivityUtils;
+import com.videogo.ui.util.Constants;
+import com.videogo.ui.util.FTPutils;
+import com.videogo.ui.util.PackageUtils;
 import com.videogo.util.ConnectionDetector;
 import com.videogo.util.LogUtil;
 import com.videogo.widget.TitleBar;
 import com.videogo.widget.WaitDialog;
+
+import org.apache.commons.net.ftp.FTPFile;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import ezviz.ezopensdk.R;
 
@@ -162,6 +183,69 @@ public class EZDeviceSettingActivity extends RootActivity {
     private EZDeviceVersion mDeviceVersion = null;
     private EZDeviceInfo mEZDeviceInfo = null;
     private EZCameraInfo ezCameraInfo = null;
+    private ExecutorService cachedThreadPool;
+    private String fileName = "";
+    private ProgressDialog progressDialog;
+    private int mCurrentVersionCode;
+
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 101:
+                    Bundle bundle = msg.getData();
+                    String str = bundle.getString("versionName");
+                    int MaxCode = bundle.getInt("versionCode");
+                    fileName = bundle.getString("fileName");
+                    mVersionView.setText(str);
+                    mCurrentVersionCode = PackageUtils.getVersionCode(EZDeviceSettingActivity.this);
+                    Log.d(TAG,"mCurrentVersionCode="+mCurrentVersionCode);
+                    Log.d(TAG,"MacCode="+MaxCode);
+                    if (mCurrentVersionCode>=MaxCode){
+                        mVersionNoticeView.setVisibility(View.GONE);
+                    }else{
+                        mVersionNoticeView.setVisibility(View.GONE);
+                    }
+                    break;
+                case 0 :
+                    Bundle bundle2 = msg.getData();
+                    String progress = bundle2.getString("progress");
+                    progressDialog.setProgress(Integer.parseInt(progress));
+                    Log.d(TAG,"progress="+progress);
+                    if (Float.parseFloat(progress)==100){
+                        progressDialog.dismiss();
+                        ToastNotRepeat.show(EZDeviceSettingActivity.this,"下载完成!");
+                        installing();
+                    }
+                    break;
+                case 1 :
+                    //下载失败
+                    progressDialog.dismiss();
+                    ToastNotRepeat.show(EZDeviceSettingActivity.this,"下载失败,请稍后重试");
+                    break;
+                case 2 :
+                    //下载完成
+                    progressDialog.dismiss();
+                    ToastNotRepeat.show(EZDeviceSettingActivity.this,"下载完成!");
+                    //安装apk
+                    installing();
+                    break;
+            }
+        }
+    };
+
+    private void installing() {
+        String file_path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/version/"+fileName;
+        Log.d(TAG,"filepath="+file_path);
+        File imgFile = new File(file_path);
+        Uri uri = FileProvider.getUriForFile(this, "ezviz.ezopensdk.fileprovider", imgFile);
+        Intent installIntent = new Intent(Intent.ACTION_VIEW);
+        installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        installIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        installIntent.setDataAndType(uri, "application/vnd.android.package-archive");
+        startActivity(installIntent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,6 +295,8 @@ public class EZDeviceSettingActivity extends RootActivity {
 
         mDeviceDeleteView = findViewById(R.id.device_delete);
         mDeviceSerialTextView = (TextView) findViewById(R.id.ez_device_serial);
+        cachedThreadPool = Executors.newFixedThreadPool(3);
+
     }
 
     /**
@@ -225,6 +311,47 @@ public class EZDeviceSettingActivity extends RootActivity {
             showToast(R.string.device_have_not_added);
             finish();
         }
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                FTPutils ftPutils = new FTPutils();
+                List<Integer> integerList = new ArrayList<>();
+                Boolean flag = ftPutils.connect(AlarmContant.ftp_ip,Integer.parseInt(AlarmContant.ftp_port),AlarmContant.name,AlarmContant.password);
+                Log.d(TAG,"flag = "+flag);
+                if (flag){
+                    try {
+                        FTPFile[] files = ftPutils.listName(AlarmContant.apk_path);
+                        for (int i = 0 ; i < files.length ; i ++){
+                            String[] strings = files[i].getName().split("_");
+                            String versionCode = strings[1].substring(1);
+                            Log.d(TAG,"versionCode = "+versionCode);
+                            integerList.add(Integer.parseInt(versionCode));
+                        }
+                        int versionCode = Collections.max(integerList);
+                        String versionName = files[integerList.indexOf(versionCode)].getName().split("_")[2];
+                        String fileName = files[integerList.indexOf(versionCode)].getName();
+//                        Log.d(TAG,"files.length = "+files.length);
+//                        Log.d(TAG,"file0 = "+files[0].getName());
+//                        Log.d(TAG,"file1 = "+files[1].getName());
+//                        Log.d(TAG,"versionName = "+versionName);
+
+                        if (versionName!=null){
+                            Message msg = Message.obtain();
+                            msg.what = 101 ;
+                            Bundle bundle = new Bundle();
+                            bundle.putString("versionName",versionName);
+                            bundle.putInt("versionCode",versionCode);
+                            bundle.putString("fileName",fileName);
+                            msg.setData(bundle);
+                            handler.sendMessage(msg);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        cachedThreadPool.execute(runnable);
     }
 
     /**
@@ -241,6 +368,77 @@ public class EZDeviceSettingActivity extends RootActivity {
                 onBackPressed();
             }
         });
+        mVersionNoticeView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(EZDeviceSettingActivity.this);
+                builder.setTitle("版本更新");
+                builder.setPositiveButton("现在更新", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        //点击确定的时候进行下载
+                        progressDialog = new ProgressDialog(EZDeviceSettingActivity.this);
+                        progressDialog.setTitle("APK文件下载中，请稍候...");
+                        progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                        progressDialog.setCancelable(false);// 设置允许取消
+                        progressDialog.show();
+                        //开始下载任务
+                        asyDownLoadFile();
+                    }
+                });
+                builder.setNegativeButton("暂不更新",null);
+                builder.setCancelable(false);//设置为false时候点击返回键获取屏幕边缘，对话框也无法取消
+                builder.show();
+            }
+        });
+    }
+
+    private void asyDownLoadFile() {
+        String file_path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/version/"+fileName;
+        File imgFile = new File(file_path);
+        if (imgFile.exists()){
+            imgFile.delete();
+        }
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                FTPutils ftPutils = new FTPutils();
+                String localpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/version";
+                Boolean flag = ftPutils.connect(AlarmContant.ftp_ip,Integer.parseInt(AlarmContant.ftp_port),AlarmContant.name,AlarmContant.password);
+                if (flag){
+                    try {
+                        ftPutils.downloadSingleFile(AlarmContant.apk_path + "/" + fileName, localpath, fileName, new FTPutils.FtpProgressListener() {
+                            @Override
+                            public void onFtpProgress(int currentStatus, long process, File targetFile) {
+                                if (currentStatus == Constant.FTP_FILE_NOTEXISTS){
+                                    Message message = Message.obtain();
+                                    message.what = 1;
+                                    handler.sendMessage(message);
+                                }else if(currentStatus ==Constant.LOCAL_FILE_AIREADY_COMPLETE){
+                                    Message message = Message.obtain();
+                                    message.what = 2;
+                                    handler.sendMessage(message);
+                                }else{
+                                    Message message = Message.obtain();
+                                    message.what = 0;
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("progress", String.valueOf(process));
+                                    message.setData(bundle);
+                                    handler.sendMessage(message);
+                                }
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    Message message = Message.obtain();
+                    message.what = 1;
+                    handler.sendMessage(message);
+                }
+            }
+        };
+        cachedThreadPool.execute(runnable);
     }
 
     /**
@@ -345,6 +543,16 @@ public class EZDeviceSettingActivity extends RootActivity {
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+            handler = null;
+        }
+        cachedThreadPool.shutdownNow();
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
 //        mCloudStateHelper.onPause();
@@ -418,8 +626,9 @@ public class EZDeviceSettingActivity extends RootActivity {
             // 版本部分
             if (mEZDeviceInfo.getStatus() == 1 && mDeviceVersion != null) {
                 boolean bHasUpgrade = (mDeviceVersion.getIsNeedUpgrade() != 0);
-                mCurrentVersionTextView.setText(mDeviceVersion.getCurrentVersion());
-                mVersionView.setText(mDeviceVersion.getNewestVersion());
+                //mCurrentVersionTextView.setText(mDeviceVersion.getCurrentVersion());
+                mCurrentVersionTextView.setText(PackageUtils.getVersionName(this));
+                //mVersionView.setText(mDeviceVersion.getNewestVersion());
                 if (bHasUpgrade){
                     mVersionNewestView.setVisibility(View.VISIBLE);
                 } else {
@@ -428,11 +637,11 @@ public class EZDeviceSettingActivity extends RootActivity {
 
 //                bHasUpgrade = true;// TODO stub
                 if(bHasUpgrade) {
-                    mVersionNoticeView.setVisibility(View.VISIBLE);
+                    //mVersionNoticeView.setVisibility(View.VISIBLE);
                     mVersionArrowView.setVisibility(View.VISIBLE);
                     mVersionLayout.setOnClickListener(mOnClickListener);
                 } else {
-                    mVersionNoticeView.setVisibility(View.GONE);
+                    //mVersionNoticeView.setVisibility(View.GONE);
                     mVersionArrowView.setVisibility(View.GONE);
                     mVersionLayout.setOnClickListener(null);
                 }

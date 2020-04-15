@@ -29,6 +29,11 @@ public class AlarmContant {
     public static final String AppKey = "bec27f333fd04a95a352bec49d466754";
     public static final String Secret = "d55a02b00c894303eedf279419d2bd94";
     public static final String short_str="_1080";
+    public static final String ftp_ip = "183.208.120.226";
+    public static final String ftp_port = "3301";
+    public static final String name = "ubuntu";
+    public static final String password = "rushi12345";
+    public static final String apk_path = "node/kaifaqu/apk";
 
     public static List<String> list_chengguan = new ArrayList<>();
     public static List<String> list_shiwuju = new ArrayList<>();

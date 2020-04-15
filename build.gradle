@@ -23,6 +23,13 @@ allprojects {
         maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
         maven{ url 'https://esri.bintray.com/arcgis' }
         maven { url "https://jitpack.io" }
+        gradle.projectsEvaluated {
+
+            tasks.withType(JavaCompile) {
+
+                options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"                       }
+
+        }
     }
 }
 

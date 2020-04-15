@@ -319,6 +319,7 @@ public class GarbageActivity extends Activity {
         map.put("type", String.valueOf(type));
         map.put("limit", String.valueOf(page_size));
         map.put("page", String.valueOf(page));
+        map.put("isPush", "1");
         OkHttpUtil.post(url, new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {

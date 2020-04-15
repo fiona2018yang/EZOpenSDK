@@ -473,6 +473,8 @@
      -->
 
     <string name="company_name">江苏如是地球空间信息科技有限公司</string>
+    <string name="version_name">版本号 1.5.8</string>
+    <string name="update">检查更新</string>
     <string name="activate">激活</string>
     <string name="sadp_activate_state1">当前设备处于出厂初始状态，请先设置设备密码</string>
     <string name="sadp_activate_state2">设备密码用于在浏览器上通过IP直接登录设备</string>

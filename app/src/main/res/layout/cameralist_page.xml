@@ -16,9 +16,9 @@
             android:id="@+id/btn_user"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_marginLeft="10dp"
+            android:layout_marginLeft="20dp"
             android:layout_centerVertical="true"
-            android:background="@drawable/user" />
+            android:background="@drawable/common_title_back_selector"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -31,7 +31,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:text="我的"
+                android:text="机器人列表"
                 android:textColor="@color/topBarText"
                 android:textSize="20sp" />
 

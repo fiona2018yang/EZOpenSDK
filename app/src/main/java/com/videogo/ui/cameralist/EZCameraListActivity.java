@@ -23,6 +23,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -31,6 +32,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -160,7 +162,8 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     public static ExecutorService newCachedThreadPool(){
         return new ThreadPoolExecutor(0,Integer.MAX_VALUE,60L, TimeUnit.SECONDS,new SynchronousQueue<Runnable>());
     }
-    private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+    //private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+    private ExecutorService cachedThreadPool = Executors.newFixedThreadPool(5);
 
     private Handler mHandler = new Handler() {
         @Override
@@ -235,7 +238,8 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         mUserBtn.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                popLogoutDialog();
+                //popLogoutDialog();
+                finish();
             }
         });
 
@@ -380,6 +384,7 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         mCameraFailTipTv = (TextView) findViewById(R.id.get_camera_list_fail_tv);
         spMode = findViewById(R.id.fuzzysp_mode_ddjdevwrite);
 
+
         List<String> datalist = Arrays.asList(modeArrayData);
         Gson gson = new Gson();
         List<JsonObject> list_objects = gson.fromJson(datalist.toString(),new TypeToken<List<JsonObject>>() {}.getType());
@@ -391,6 +396,27 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
         ArrayAdapter modelAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item,arrayList.toArray(new String[arrayList.size()]));
         modelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spMode.setAdapter(modelAdapter,loBodyList);
+
+
+
+
+
+        spMode.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(spMode.getAlertDiag() == null) {
+                    spMode.createAlertDialog();
+                    Display defaultDisplay = getWindowManager().getDefaultDisplay();
+                    Point point = new Point();
+                    defaultDisplay.getSize(point);
+                    int x = point.x;
+                    int y = point.y;
+                    spMode.setAlertDiag(x-100,y-300);
+                } else if(!spMode.getAlertDiag().isShowing()) {
+                    spMode.getAlertDiag().show();
+                }
+            }
+        });
 
         mWaitDlg = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
         mWaitDlg.setCancelable(false);

@@ -12,6 +12,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
+import com.videogo.EzvizApplication;
 import com.videogo.been.LoBody;
 
 import ezviz.ezopensdk.R;
@@ -108,25 +110,25 @@ public class FuzzyMatchSpinner extends FrameLayout
     public boolean performClick() {
         boolean handled = super.performClick();
 
-        if(!handled) {
-            handled = true;
-
-            if(alertDiag == null) {
-                createAlertDialog();
-            } else if(!alertDiag.isShowing()) {
-                alertDiag.show();
-            }
-        }
-        dowm.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(alertDiag == null) {
-                    createAlertDialog();
-                } else if(!alertDiag.isShowing()) {
-                    alertDiag.show();
-                }
-            }
-        });
+//        if(!handled) {
+//            handled = true;
+//
+//            if(alertDiag == null) {
+//                createAlertDialog();
+//            } else if(!alertDiag.isShowing()) {
+//                alertDiag.show();
+//            }
+//        }
+//        dowm.setOnClickListener(new OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if(alertDiag == null) {
+//                    createAlertDialog();
+//                } else if(!alertDiag.isShowing()) {
+//                    alertDiag.show();
+//                }
+//            }
+//        });
         return handled;
     }
 
@@ -185,7 +187,19 @@ public class FuzzyMatchSpinner extends FrameLayout
         this.onItemSelectedListener = onItemSelectedListener;
     }
 
-    private void createAlertDialog()
+    public void setAlertDiag(int width,int height){
+        if (alertDiag!=null){
+            final WindowManager.LayoutParams params = alertDiag.getWindow().getAttributes();
+            params.width = width;
+            params.height = height;
+            alertDiag.getWindow().setAttributes(params);
+            alertDiag.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+    }
+    public AlertDialog getAlertDiag(){
+        return alertDiag;
+    }
+    public void createAlertDialog()
     {
         //mPopup = new Dialog(getContext());
         alertDiag = new AlertDialog.Builder(getContext()).create();
@@ -207,11 +221,7 @@ public class FuzzyMatchSpinner extends FrameLayout
         Log.d(TAG,"dialog.show");
         alertDiag.show();
 
-        final WindowManager.LayoutParams params = alertDiag.getWindow().getAttributes();
-        params.width = 1000;
-        params.height = 1200;
-        alertDiag.getWindow().setAttributes(params);
-        alertDiag.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+
         Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.scale);
         view.setAnimation(animation);
         animation.start();

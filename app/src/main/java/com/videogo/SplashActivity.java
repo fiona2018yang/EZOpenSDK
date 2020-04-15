@@ -47,7 +47,7 @@ public class SplashActivity extends Activity {
     private String TAG = "SplashActivity";
     //启动页面
     EditText etUsername, etPassword;
-    Button btnLogin, btnSignup;
+    Button btnLogin;
     String strUsername, strPassword;
     String name ,password;
     private Handler handler ;
@@ -64,7 +64,7 @@ public class SplashActivity extends Activity {
         etUsername = (EditText) findViewById(R.id.et_login_username);
         etPassword = (EditText) findViewById(R.id.et_login_password);
         btnLogin = (Button) findViewById(R.id.btn_login);
-        btnSignup = (Button) findViewById(R.id.btn_signup);
+        //btnSignup = (Button) findViewById(R.id.btn_signup);
         getAccessToken();
         if (!name.equals("")&&!password.equals("")){
             etUsername.setText(name);
@@ -130,13 +130,13 @@ public class SplashActivity extends Activity {
                 }
             }
         });
-        btnSignup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent it = new Intent(SplashActivity.this, SignupActivity.class);//启动注册页面
-                startActivity(it);
-            }
-        });
+//        btnSignup.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent it = new Intent(SplashActivity.this, SignupActivity.class);//启动注册页面
+//                startActivity(it);
+//            }
+//        });
 
 
         //        //倒计时球

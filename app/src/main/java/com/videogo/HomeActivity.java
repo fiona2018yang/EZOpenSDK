@@ -2,8 +2,11 @@ package com.videogo;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -12,15 +15,18 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -30,6 +36,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
 import com.bigkoo.convenientbanner.ConvenientBanner;
 import com.bigkoo.convenientbanner.holder.CBViewHolderCreator;
 import com.bigkoo.convenientbanner.holder.Holder;
@@ -39,6 +47,7 @@ import com.google.gson.reflect.TypeToken;
 import com.videogo.been.AlarmContant;
 import com.videogo.been.AlarmMessage;
 import com.videogo.been.AlarmRead;
+import com.videogo.been.Constant;
 import com.videogo.errorlayer.ErrorInfo;
 import com.videogo.exception.BaseException;
 import com.videogo.exception.ErrorCode;
@@ -48,16 +57,22 @@ import com.videogo.openapi.bean.EZDeviceInfo;
 import com.videogo.remoteplayback.list.PlaybackActivity2;
 import com.videogo.scanpic.ScanPicActivity;
 import com.videogo.scanvideo.ScanVideoActivity;
+import com.videogo.ui.util.FTPutils;
+import com.videogo.ui.util.PackageUtils;
 import com.videogo.util.ConnectionDetector;
 import com.videogo.warning.OkHttpUtil;
 import com.videogo.warning.WarningActivity;
+import com.videogo.widget.WaitDialog;
 
+import org.apache.commons.net.ftp.FTPFile;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,10 +102,14 @@ public class HomeActivity extends Activity {
     private ExecutorService executors_1;
     private final static int LOAD_MY_DEVICE = 0;
     private int mLoadType = LOAD_MY_DEVICE;
-    private Handler handler;
     private String userid;
     private String table_name;
     private Cursor cursor;
+    private TextView versionName;
+    private TextView versionUpdate;
+    private int mCurrentVersionCode;
+    private ExecutorService cachedThreadPool;
+    private WaitDialog mWaitDlg = null;
     private static String[] allpermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_NETWORK_STATE,
@@ -101,6 +120,7 @@ public class HomeActivity extends Activity {
             Manifest.permission.WRITE_SETTINGS,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.CAMERA,
+            Manifest.permission.REQUEST_INSTALL_PACKAGES
     };
     private boolean isNeedCheck = true;
     // 图片封装为一个数组
@@ -109,7 +129,147 @@ public class HomeActivity extends Activity {
     private String[] iconName = { "实景地图", "画面预览", "百度地图", "报警信息", "视频查看", "图片查看"};
     private List<EZDeviceInfo> list_ezdevices = new ArrayList<>();
     private List<EZCameraInfo> list_ezCamera = new ArrayList<>();
+    private String updateFileName = "";
+    private String newVersionName = "";
+    private ProgressDialog progressDialog;
 
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what){
+                case 102:
+                    if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                        mWaitDlg.dismiss();
+                    }
+                    Bundle bundle = msg.getData();
+                    newVersionName = bundle.getString("versionName");
+                    int MaxCode = bundle.getInt("versionCode");
+                    updateFileName = bundle.getString("fileName");
+                    mCurrentVersionCode = PackageUtils.getVersionCode(HomeActivity.this);
+                    Log.d(TAG,"mCurrentVersionCode="+mCurrentVersionCode);
+                    Log.d(TAG,"MacCode="+MaxCode);
+                    if (mCurrentVersionCode>=MaxCode){
+                        ToastNotRepeat.show(HomeActivity.this,"当前已经是最新版本");
+                    }else{
+                        //更新apk
+                        showUpdateDialog();
+                    }
+                    break;
+                case 103:
+                    if (mWaitDlg != null && mWaitDlg.isShowing()) {
+                        mWaitDlg.dismiss();
+                    }
+                    ToastNotRepeat.show(HomeActivity.this,"网络异常，请稍后重试...");
+                    break;
+                case 0 :
+                    Bundle bundle2 = msg.getData();
+                    String progress = bundle2.getString("progress");
+                    progressDialog.setProgress(Integer.parseInt(progress));
+                    Log.d(TAG,"progress="+progress);
+                    if (Float.parseFloat(progress)==100){
+                        progressDialog.dismiss();
+                        ToastNotRepeat.show(HomeActivity.this,"下载完成");
+                        installing();
+                    }
+                    break;
+                case 1 :
+                    //下载失败
+                    progressDialog.dismiss();
+                    ToastNotRepeat.show(HomeActivity.this,"下载失败,请稍后重试...");
+                    break;
+                case 2 :
+                    //下载完成
+                    progressDialog.dismiss();
+                    ToastNotRepeat.show(HomeActivity.this,"下载完成");
+                    //安装apk
+                    installing();
+                    break;
+            }
+        }
+    };
+
+    private void showUpdateDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+        builder.setTitle("版本更新");
+        builder.setMessage("最新版本："+newVersionName);
+        builder.setPositiveButton("现在更新", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                //点击确定的时候进行下载
+                progressDialog = new ProgressDialog(HomeActivity.this);
+                progressDialog.setTitle("APK文件下载中，请稍候...");
+                progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                progressDialog.setCancelable(false);// 设置允许取消
+                progressDialog.show();
+                //开始下载任务
+                asyDownLoadFile();
+            }
+        });
+        builder.setNegativeButton("暂不更新",null);
+        builder.setCancelable(false);//设置为false时候点击返回键获取屏幕边缘，对话框也无法取消
+        builder.show();
+    }
+
+    private void asyDownLoadFile() {
+        String file_path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/version/"+updateFileName;
+        File imgFile = new File(file_path);
+        if (imgFile.exists()){
+            imgFile.delete();
+        }
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                FTPutils ftPutils = new FTPutils();
+                String localpath = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/version";
+                Boolean flag = ftPutils.connect(AlarmContant.ftp_ip,Integer.parseInt(AlarmContant.ftp_port),AlarmContant.name,AlarmContant.password);
+                if (flag){
+                    try {
+                        ftPutils.downloadSingleFile(AlarmContant.apk_path + "/" + updateFileName, localpath, updateFileName, new FTPutils.FtpProgressListener() {
+                            @Override
+                            public void onFtpProgress(int currentStatus, long process, File targetFile) {
+                                if (currentStatus == Constant.FTP_FILE_NOTEXISTS){
+                                    Message message = Message.obtain();
+                                    message.what = 1;
+                                    handler.sendMessage(message);
+                                }else if(currentStatus ==Constant.LOCAL_FILE_AIREADY_COMPLETE){
+                                    Message message = Message.obtain();
+                                    message.what = 2;
+                                    handler.sendMessage(message);
+                                }else{
+                                    Message message = Message.obtain();
+                                    message.what = 0;
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("progress", String.valueOf(process));
+                                    message.setData(bundle);
+                                    handler.sendMessage(message);
+                                }
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }else{
+                    Message message = Message.obtain();
+                    message.what = 1;
+                    handler.sendMessage(message);
+                }
+            }
+        };
+        cachedThreadPool.execute(runnable);
+    }
+
+    private void installing() {
+        String file_path = Environment.getExternalStorageDirectory().toString()+"/EZOpenSDK/version/"+updateFileName;
+        Log.d(TAG,"filepath="+file_path);
+        File imgFile = new File(file_path);
+        Uri uri = FileProvider.getUriForFile(this, "ezviz.ezopensdk.fileprovider", imgFile);
+        Intent installIntent = new Intent(Intent.ACTION_VIEW);
+        installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        installIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        installIntent.setDataAndType(uri, "application/vnd.android.package-archive");
+        startActivity(installIntent);
+    }
 
 
     @Override
@@ -122,7 +282,66 @@ public class HomeActivity extends Activity {
         //initData();
         setAlias();
         initSql();
+        updateApk();
     }
+
+    private void updateApk() {
+        mCurrentVersionCode = PackageUtils.getVersionCode(HomeActivity.this);
+        mWaitDlg = new WaitDialog(this, android.R.style.Theme_Translucent_NoTitleBar);
+        versionName.setText("版本号 "+PackageUtils.getVersionName(this));
+        versionUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mWaitDlg.show();
+                Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        FTPutils ftPutils = new FTPutils();
+                        List<Integer> integerList = new ArrayList<>();
+                        Boolean flag = ftPutils.connect(AlarmContant.ftp_ip,Integer.parseInt(AlarmContant.ftp_port),AlarmContant.name,AlarmContant.password);
+                        Log.d(TAG,"flag = "+flag);
+                        if (flag){
+                            try {
+                                FTPFile[] files = ftPutils.listName(AlarmContant.apk_path);
+                                for (int i = 0 ; i < files.length ; i ++){
+                                    String[] strings = files[i].getName().split("_");
+                                    String versionCode = strings[1].substring(1);
+                                    Log.d(TAG,"versionCode = "+versionCode);
+                                    integerList.add(Integer.parseInt(versionCode));
+                                }
+                                int versionCode = Collections.max(integerList);
+                                String versionName = files[integerList.indexOf(versionCode)].getName().split("_")[2];
+                                String fileName = files[integerList.indexOf(versionCode)].getName();
+//                        Log.d(TAG,"files.length = "+files.length);
+//                        Log.d(TAG,"file0 = "+files[0].getName());
+//                        Log.d(TAG,"file1 = "+files[1].getName());
+//                        Log.d(TAG,"versionName = "+versionName);
+
+                                if (versionName!=null){
+                                    Message msg = Message.obtain();
+                                    msg.what = 102 ;
+                                    Bundle bundle = new Bundle();
+                                    bundle.putString("versionName",versionName);
+                                    bundle.putInt("versionCode",versionCode);
+                                    bundle.putString("fileName",fileName);
+                                    msg.setData(bundle);
+                                    handler.sendMessage(msg);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }else {
+                            Message msg = Message.obtain();
+                            msg.what = 103 ;
+                            handler.sendMessage(msg);
+                        }
+                    }
+                };
+                cachedThreadPool.execute(runnable);
+            }
+        });
+    }
+
     //设置别名
     private void setAlias() {
         String userid = sharedPreferences_1.getString("id","1");
@@ -259,6 +478,7 @@ public class HomeActivity extends Activity {
      */
     private void initGridView() {
         table_name = EzvizApplication.table_name;
+        cachedThreadPool = Executors.newFixedThreadPool(3);
         db = ((EzvizApplication)getApplication()).getDatebase();
         sharedPreferences = getSharedPreferences("alias",MODE_PRIVATE);
         sharedPreferences_1 = getSharedPreferences("userid",MODE_PRIVATE);
@@ -274,6 +494,8 @@ public class HomeActivity extends Activity {
         myTask.execute();
 
         HomeGView = (GridView) findViewById(R.id.gv_home);
+        versionName = findViewById(R.id.version_name);
+        versionUpdate = findViewById(R.id.update);
         //新建List
         data_list = new ArrayList<>();
         //获取数据
