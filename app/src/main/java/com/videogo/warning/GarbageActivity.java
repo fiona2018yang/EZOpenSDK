@@ -170,8 +170,8 @@ public class GarbageActivity extends Activity {
         sharedPreferences = getSharedPreferences("userid", MODE_PRIVATE);
         userid = sharedPreferences.getString("id", "1");
         db = ((EzvizApplication) getApplication()).getDatebase();
-        cachedThreadPool = Executors.newFixedThreadPool(3);
-        cachedThreadPool_1 = Executors.newFixedThreadPool(24);
+        cachedThreadPool = Executors.newFixedThreadPool(2);
+        cachedThreadPool_1 = Executors.newFixedThreadPool(3);
         refreshLayout = findViewById(R.id.refreshLayout);
         spinner_time = findViewById(R.id.spinner_1);
         spinner_location = findViewById(R.id.spinner_2);

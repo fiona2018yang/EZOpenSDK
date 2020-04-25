@@ -14,6 +14,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -117,6 +118,7 @@ public class HomeActivity extends Activity {
             Manifest.permission.VIBRATE,
             Manifest.permission.ACCESS_WIFI_STATE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_SETTINGS,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.CAMERA,
@@ -227,7 +229,7 @@ public class HomeActivity extends Activity {
                     try {
                         ftPutils.downloadSingleFile(AlarmContant.apk_path + "/" + updateFileName, localpath, updateFileName, new FTPutils.FtpProgressListener() {
                             @Override
-                            public void onFtpProgress(int currentStatus, long process, File targetFile) {
+                            public void onFtpProgress(int currentStatus, long process, File targetFile,long currentSize,long serverSize) {
                                 if (currentStatus == Constant.FTP_FILE_NOTEXISTS){
                                     Message message = Message.obtain();
                                     message.what = 1;
@@ -312,10 +314,6 @@ public class HomeActivity extends Activity {
                                 int versionCode = Collections.max(integerList);
                                 String versionName = files[integerList.indexOf(versionCode)].getName().split("_")[2];
                                 String fileName = files[integerList.indexOf(versionCode)].getName();
-//                        Log.d(TAG,"files.length = "+files.length);
-//                        Log.d(TAG,"file0 = "+files[0].getName());
-//                        Log.d(TAG,"file1 = "+files[1].getName());
-//                        Log.d(TAG,"versionName = "+versionName);
 
                                 if (versionName!=null){
                                     Message msg = Message.obtain();
@@ -496,6 +494,7 @@ public class HomeActivity extends Activity {
         HomeGView = (GridView) findViewById(R.id.gv_home);
         versionName = findViewById(R.id.version_name);
         versionUpdate = findViewById(R.id.update);
+        versionUpdate.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
         //新建List
         data_list = new ArrayList<>();
         //获取数据
@@ -582,19 +581,7 @@ public class HomeActivity extends Activity {
 
         return data_list;
     }
-//    public List<Map<String, Object>> getData() {
-//        //icon和iconName的长度是相同的，这里任选其一都可以
-//        Resources res = getResources();
-//        String[] TitleIconName = res.getStringArray(R.array.home_grid_text);
-//        TypedArray ta = res.obtainTypedArray(R.array.home_grid_icons);
-//        for (int i = 0; i < TitleIconName.length; i++) {
-//            Map<String, Object> map = new HashMap<>();
-//            map.put("icon", ta.getResourceId(i, 0));
-//            map.put("iconName", TitleIconName[i]);
-//            data_list.add(map);
-//        }
-//        return data_list;
-//    }
+
     /**
      * 设置广告栏
      */

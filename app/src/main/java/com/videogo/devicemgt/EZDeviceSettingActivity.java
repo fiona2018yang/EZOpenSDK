@@ -409,7 +409,7 @@ public class EZDeviceSettingActivity extends RootActivity {
                     try {
                         ftPutils.downloadSingleFile(AlarmContant.apk_path + "/" + fileName, localpath, fileName, new FTPutils.FtpProgressListener() {
                             @Override
-                            public void onFtpProgress(int currentStatus, long process, File targetFile) {
+                            public void onFtpProgress(int currentStatus, long process, File targetFile,long currentSize,long serverSize) {
                                 if (currentStatus == Constant.FTP_FILE_NOTEXISTS){
                                     Message message = Message.obtain();
                                     message.what = 1;

@@ -12,5 +12,6 @@ public class Constant {
     public static final int FTP_DISCONNECT_SUCCESS = 8 ;
     public static final int FTP_DELETEFILE_SUCCESS = 9 ;
     public static final int FTP_DELETEFILE_FAIL = 10 ;
+    public static final int FTP_DOWN_START = 11 ;
 
 }

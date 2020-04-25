@@ -52,7 +52,7 @@ public class AsyncImageLoader {
                     try {
                         ftPutils.downloadSingleFile(server_name, localpath, pic_name, new FTPutils.FtpProgressListener() {
                                     @Override
-                                    public void onFtpProgress(int currentStatus, long process, File targetFile) {
+                                    public void onFtpProgress(int currentStatus, long process, File targetFile,long currentSize,long serverSize) {
                                         if (currentStatus == Constant.FTP_FILE_NOTEXISTS){
                                             Message message = Message.obtain();
                                             message.what = 1;
