@@ -31,6 +31,10 @@ public class FTPutils {
         this.mFtpClient = mFtpClient;
     }
 
+    public FTPClient getmFtpClient() {
+        return mFtpClient;
+    }
+
     public void useCompressedTransfer(FTPClient mFtpClient) {
         try {
             //mFtpClient.setFileTransferMode(org.apache.commons.net.ftp.FTP.COMPRESSED_TRANSFER_MODE);
@@ -40,13 +44,14 @@ public class FTPutils {
             // 二进制文件支持
             mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
             //设置缓存
-            mFtpClient.setBufferSize(1024 * 2);
+            mFtpClient.setBufferSize(1024 * 3);
             //设置编码格式，防止中文乱码
             mFtpClient.setControlEncoding("UTF-8");
             //设置连接超时时间
             mFtpClient.setConnectTimeout(5000);
-            //设置数据传输超时时间
-            mFtpClient.setDataTimeout(20 * 1000);
+
+//            mFtpClient.setControlKeepAliveTimeout(60*1000);
+//            mFtpClient.setControlKeepAliveReplyTimeout(60*1000);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -189,7 +194,7 @@ public class FTPutils {
         }
     }
 
-    public void downloadMap(List<String> serverPath_list,String localPath,List<String> fileName_list,FtpProgressListener listener) throws Exception{
+    public void downloadMap(List<String> serverPath_list,String localPath,List<String> fileName_list,FtpProgressListener listener)throws Exception{
         listener.onFtpProgress(Constant.FTP_CONNECT_SUCCESS,0,null,0,0);
         mFtpClient.enterLocalPassiveMode();
         long serverSize = 0 ;
@@ -238,12 +243,16 @@ public class FTPutils {
                 localFile.createNewFile();
             }
             // 开始准备下载文件
+            mFtpClient.enterLocalPassiveMode();//通知服务器开通给一个端口，防止挂死
             mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
             mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
             mFtpClient.setRestartOffset(0);
+            //设置数据传输超时时间
+            mFtpClient.setDataTimeout(0);
+            //mFtpClient.setSoTimeout(0);
             OutputStream out = new FileOutputStream(localFile, true);
             InputStream input = mFtpClient.retrieveFileStream(serverPath_list.get(i));//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
-            byte[] b = new byte[1024];
+            byte[] b = new byte[512];
             int length = 0;
             Log.d(TAG, "downloadSingleFile:正在下载"+step);
             while ((length = input.read(b)) != -1) {
@@ -260,6 +269,7 @@ public class FTPutils {
             out.flush();
             out.close();
             input.close();
+            mFtpClient.sendCommand("pwd");
             mFtpClient.completePendingCommand();
         }
         // 下载完成之后关闭连接
@@ -290,7 +300,6 @@ public class FTPutils {
                 return;
             }
             serverSize +=files[0].getSize(); // 获取远程文件的长度
-            Log.d("TAG","serverSize="+serverSize);
         }
         listener.onFtpProgress(Constant.FTP_DOWN_START,0,null,0,serverSize);
         // 创建本地文件夹
@@ -305,7 +314,6 @@ public class FTPutils {
         long currentSize = localSize;
         for (int i = 0 ; i < serverPath_List.size() ; i ++){
             String localfilePath = localPath + File.separator + fileName_list.get(i);
-            Log.d("TAG","localPath="+localfilePath);
             File localFile = new File(localfilePath);
             if (localFile.exists()) {
                 localFile.delete();
@@ -314,9 +322,12 @@ public class FTPutils {
                 localFile.createNewFile();
             }
             // 开始准备下载文件
+            mFtpClient.enterLocalPassiveMode();//通知服务器开通给一个端口，防止挂死
             mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
             mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
             mFtpClient.setRestartOffset(0);
+            mFtpClient.setDataTimeout(0);
+            //mFtpClient.setSoTimeout(60*1000);
             OutputStream out = new FileOutputStream(localFile, true);
             InputStream input = mFtpClient.retrieveFileStream(serverPath_List.get(i));//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
             byte[] b = new byte[1024];
@@ -327,8 +338,8 @@ public class FTPutils {
                 currentSize = currentSize + length;
                 if (currentSize / step != process) {
                     process = currentSize / step;
+                    listener.onFtpProgress(Constant.FTP_DOWN_LOADING, process, null,currentSize,serverSize);
                     if (process % 1 == 0) { // 每隔%1的进度返回一次
-                        listener.onFtpProgress(Constant.FTP_DOWN_LOADING, process, null,currentSize,serverSize);
                     }
                 }
             }
@@ -336,6 +347,7 @@ public class FTPutils {
             out.flush();
             out.close();
             input.close();
+            mFtpClient.sendCommand("pwd");
             mFtpClient.completePendingCommand();
         }
         // 下载完成之后关闭连接
@@ -408,6 +420,8 @@ public class FTPutils {
         mFtpClient.setFileType(FTP.BINARY_FILE_TYPE);
         mFtpClient.setFileTransferMode(FTP.BINARY_FILE_TYPE);
         mFtpClient.setRestartOffset(localSize);
+        mFtpClient.setDataTimeout(60 * 1000);
+        mFtpClient.setSoTimeout(60*1000);
         //Log.d(TAG, "downloadSingleFile: 开始准备"+fileName+","+Thread.currentThread().getId());
         OutputStream out = new FileOutputStream(localFile, true);
         InputStream input = mFtpClient.retrieveFileStream(serverPath);//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
@@ -474,9 +488,11 @@ public class FTPutils {
             localSize = localFile.length(); // 如果本地文件存在，获取本地文件的长度
             //Log.d("PlaybackActivity2","localSize="+localSize);
             if (localSize >= serverSize) {
+                localFile.delete();
+                localFile.createNewFile();
+                localSize = 0;
                 listener.onFtpProgress(Constant.LOCAL_FILE_AIREADY_COMPLETE, 0, localFile,0,0);
                 //加载本地图片
-
             } else {
                 localFile.delete();
                 localFile.createNewFile();
@@ -493,6 +509,8 @@ public class FTPutils {
         Log.d(TAG, "downloadSingleFile: 开始准备" + fileName + "," + Thread.currentThread().getId());
         OutputStream out = new FileOutputStream(localFile, true);
         mFtpClient.setRestartOffset(localSize);
+        mFtpClient.setDataTimeout(60 * 1000);
+        mFtpClient.setSoTimeout(60*1000);
         InputStream input = mFtpClient.retrieveFileStream(serverPath);//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
         long process = 0;
         if (serverSize > 100) {
@@ -544,7 +562,6 @@ public class FTPutils {
 
         return;
     }
-
 
     // -------------------------------------------------------文件删除方法------------------------------------------------
 

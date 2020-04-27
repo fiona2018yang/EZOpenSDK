@@ -57,8 +57,12 @@ import com.videogo.ui.util.CopyFontFile;
 import com.videogo.ui.util.FTPutils;
 import com.videogo.ui.util.ReadUtils;
 import com.videogo.widget.WaitDialog;
+
+import org.apache.commons.net.ftp.FTPFile;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -235,7 +239,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         title = findViewById(R.id.title_tv);
         update = findViewById(R.id.update);
         update.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
-        executorService = Executors.newFixedThreadPool(3);
+        executorService = Executors.newFixedThreadPool(5);
         TaskLatch = new CountDownLatch(10);
         CopyFontFile mCopyData_File = new CopyFontFile(this);
         mCopyData_File.DoCopy();
@@ -487,6 +491,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
      */
     private void loadlayer(String path) {
         mWaitDlg.show();
+        update.setVisibility(View.GONE);
         File file = new File(path);
         String url_2 = "西区.kml";
         if ((path.substring(path.lastIndexOf("/") + 1)).equals("west")) {
@@ -499,7 +504,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             url_3 = "/south";
         }
         if (!file.exists()) {
-            update.setVisibility(View.GONE);
             ToastNotRepeat.show(this, "影像文件下载中，请稍后...");
             //下载地图文件
             String localPath = path;
@@ -521,50 +525,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         } else {
             //判断文件是否完整
             File[] files = file.listFiles();
-            if (files.length<408){
-                ToastNotRepeat.show(this, "影像文件下载中，请稍后...");
-                update.setVisibility(View.GONE);
-                //获取文件创建时间
-                long time_end = 0 ;
-                int j = 0 ;
-                for (int i = 0 ; i < files.length ; i ++){
-                    long time = files[i].lastModified();
-                    if (time > time_end){
-                        time_end = time;
-                        j = i ;
-                    }
+            if (files.length<408 ){
+                List<String> l = new ArrayList<>();
+                for (File sfile : files){
+                    l.add(sfile.getName());
                 }
-                String file_end_path = files[j].getAbsolutePath();
-                String str = file_end_path.substring(file_end_path.lastIndexOf("/")+1,file_end_path.length());
-                if (str.contains("TIF")||str.contains("tfw")){
-                    String s = str.substring(url_3.length()-1,str.indexOf("."));
-                    Log.d("TAG","s="+s);
-                    //下载地图文件
-                    String localPath = path;
-                    List<String> serverPath_list = new ArrayList<>();
-                    List<String> filename_list = new ArrayList<>();
-                    for (int i = Integer.parseInt(s) ; i < 100 ; i ++){
-                        serverPath_list.add("node/kaifaqu/map"+url_3+url_3+String.valueOf(i)+".TIF");
-                        serverPath_list.add("node/kaifaqu/map"+url_3+url_3+String.valueOf(i)+".TIF.aux.xml");
-                        serverPath_list.add("node/kaifaqu/map"+url_3+url_3+String.valueOf(i)+".TIF.ovr");
-                        serverPath_list.add("node/kaifaqu/map"+url_3+url_3+String.valueOf(i)+".tfw");
-                        filename_list.add(url_3.substring(1)+String.valueOf(i)+".TIF");
-                        filename_list.add(url_3.substring(1)+String.valueOf(i)+".TIF.aux.xml");
-                        filename_list.add(url_3.substring(1)+String.valueOf(i)+".TIF.ovr");
-                        filename_list.add(url_3.substring(1)+String.valueOf(i)+".tfw");
-                    }
-                    addPathList(serverPath_list, filename_list);
-                    DownMapTask downMapTask = new DownMapTask(serverPath_list,localPath,filename_list,mapProgressListener);
-                    executorService.execute(downMapTask);
-                }else{
-                    //下载地图文件
-                    String localPath = path;
-                    List<String> serverPath_list = new ArrayList<>();
-                    List<String> filename_list = new ArrayList<>();
-                    addPathList(serverPath_list, filename_list);
-                    DownMapTask downMapTask = new DownMapTask(serverPath_list,localPath,filename_list,mapProgressListener);
-                    executorService.execute(downMapTask);
-                }
+                ComPareMapTask task = new ComPareMapTask(l,path,mapProgressListener);
+                executorService.execute(task);
+
             }else{
                 if (mWaitDlg != null && mWaitDlg.isShowing()) {
                     mWaitDlg.dismiss();
@@ -806,7 +774,43 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
         });
     }
+    private class ComPareMapTask implements Runnable{
+        private List<String> list;
+        private String localPath;
+        private FTPutils.FtpProgressListener downMapProgressListener;
 
+        public ComPareMapTask(List<String> list, String localPath, FTPutils.FtpProgressListener downMapProgressListener) {
+            this.list = list;
+            this.localPath = localPath;
+            this.downMapProgressListener = downMapProgressListener;
+        }
+
+        @Override
+        public void run() {
+            FTPutils ftPutils = new FTPutils();
+            Boolean flag = ftPutils.connect(AlarmContant.ftp_ip, Integer.parseInt(AlarmContant.ftp_port), AlarmContant.name, AlarmContant.password);
+            if (flag){
+                try {
+                    FTPFile[] ftpFiles = ftPutils.getmFtpClient().listFiles("node/kaifaqu/map"+url_3);
+                    List<String> serverPath_list = new ArrayList<>();
+                    List<String> filename_list = new ArrayList<>();
+                    String name = ftpFiles[0].getName().toString();
+                    for (int i = 0 ; i < ftpFiles.length ; i++){
+                        if (!list.contains(ftpFiles[i].getName().toString())){
+                            serverPath_list.add("node/kaifaqu/map"+url_3+"/"+ftpFiles[i].getName().toString());
+                            filename_list.add(ftpFiles[i].getName().toString());
+                        }
+                    }
+                    Log.d("TAG","name="+name);
+                    ftPutils.downloadMoreFile(serverPath_list,localPath,filename_list,downMapProgressListener);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
     /**
      * 地图下载
      */
@@ -928,8 +932,26 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         public void run() {
             FileRasterSource rasterSource = null;
             try {
-                rasterSource = new FileRasterSource(img_path + str + i + ".tif");
+                rasterSource = new FileRasterSource(img_path + str + i + ".TIF");
                 rasterSource.project(mMapview.getSpatialReference());
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+                File file = new File(img_path+str+i+".TIF");
+                File file2 = new File(img_path+str+i+".tfw");
+                File file3 = new File(img_path+str+i+".TIF.ovr");
+                File file4 = new File(img_path+str+i+".TIF.aux.xml");
+                if (file.exists()){
+                    file.delete();
+                }
+                if (file2.exists()){
+                    file2.delete();
+                }
+                if (file3.exists()){
+                    file3.delete();
+                }
+                if (file4.exists()){
+                    file4.delete();
+                }
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
