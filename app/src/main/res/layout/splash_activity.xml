@@ -6,22 +6,6 @@
     android:orientation="vertical"
     android:background="@mipmap/icon_login">
 
-    <!--<com.videogo.ui.cameralist.CountDownView-->
-        <!--android:id="@+id/count_down_view"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_alignParentRight="true"-->
-        <!--android:layout_margin="16dp"-->
-        <!--app:cd_animator_time="5"-->
-        <!--app:cd_animator_time_unit="S"-->
-        <!--app:cd_arc_color="#ffffff"-->
-        <!--app:cd_arc_width="2dp"-->
-        <!--app:cd_bg_color="#6eb8e7"-->
-        <!--app:cd_circle_radius="20dp"-->
-        <!--app:cd_location="top"-->
-        <!--app:cd_retreat_type="forward"-->
-        <!--app:cd_text_color="#ffffff"-->
-        <!--app:cd_text_size="14sp" />-->
     <RelativeLayout
         android:layout_weight="5"
         android:layout_width="match_parent"
@@ -41,10 +25,8 @@
             android:layout_height="wrap_content">
             <LinearLayout
                 android:layout_centerHorizontal="true"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_marginLeft="76dp"
-                android:layout_marginRight="76dp"
                 android:orientation="horizontal">
                 <LinearLayout
                     android:layout_width="40dp"
@@ -81,10 +63,8 @@
             android:layout_height="wrap_content">
             <LinearLayout
                 android:layout_centerHorizontal="true"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_marginLeft="76dp"
-                android:layout_marginRight="76dp"
                 android:orientation="horizontal">
                 <LinearLayout
                     android:layout_width="40dp"
@@ -120,7 +100,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-
                 <Button
                     android:layout_centerHorizontal="true"
                     android:id="@+id/btn_login"
@@ -131,16 +110,7 @@
                     android:text="登录"
                     android:textColor="#ffffff"
                     android:textSize="20dp" />
-<!--                <Button-->
-<!--                    android:id="@+id/btn_signup"-->
-<!--                    android:layout_width="0dp"-->
-<!--                    android:layout_height="40dp"-->
-<!--                    android:layout_marginLeft="30dp"-->
-<!--                    android:background="#46000000"-->
-<!--                    android:visibility="gone"-->
-<!--                    android:text="注册"-->
-<!--                    android:textColor="#ffffff"-->
-<!--                    android:textSize="20dp" />-->
+
         </RelativeLayout>
     </LinearLayout>
 

@@ -34,6 +34,8 @@ public class AlarmContant {
     public static final String name = "ubuntu";
     public static final String password = "rushi12345";
     public static final String apk_path = "node/kaifaqu/apk";
+    public static final int fileNum = 108;
+    public static final int tifNum = 25;
 
     public static List<String> list_chengguan = new ArrayList<>();
     public static List<String> list_shiwuju = new ArrayList<>();

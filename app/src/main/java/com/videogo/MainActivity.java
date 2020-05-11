@@ -1,6 +1,7 @@
 package com.videogo;
 
 import android.app.AlertDialog;
+import android.app.Application;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,7 +12,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.os.Parcelable;
 import android.os.Process;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -57,9 +57,7 @@ import com.videogo.ui.util.CopyFontFile;
 import com.videogo.ui.util.FTPutils;
 import com.videogo.ui.util.ReadUtils;
 import com.videogo.widget.WaitDialog;
-
 import org.apache.commons.net.ftp.FTPFile;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -73,6 +71,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import ezviz.ezopensdk.R;
+
+import static com.videogo.been.AlarmContant.fileNum;
+import static com.videogo.been.AlarmContant.tifNum;
 
 
 public class MainActivity extends FragmentActivity implements View.OnClickListener {
@@ -102,6 +103,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     private FTPutils.FtpProgressListener mapProgressListener;
     private String local_path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/map";
     private String url_3 = "/west";
+    private Handler handler1;
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -112,9 +114,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
                     //1.txt解析
                     String s = getTxtContent("/EZOpenSDK/map/version.txt");
-                    Log.d("TAG","s="+s);
                     String local_s = getTxtContent("/EZOpenSDK/map"+url_3+"/version.txt");
-                    Log.d("TAG","local_s="+local_s);
                     //2.与本地txt比对
                     String[] num = s.substring(0, s.lastIndexOf(";")).split(",");
                     String[] local_num = local_s.substring(0, local_s.lastIndexOf(";")).split(",");
@@ -130,7 +130,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         List<String> serverPath_list = new ArrayList<>();
                         List<String> filename_list = new ArrayList<>();
                         for (String str : name_list){
-                            Log.d("TAG","str="+str);
                             serverPath_list.add("node/kaifaqu/map"+url_3+url_3+str+".TIF");
                             serverPath_list.add("node/kaifaqu/map"+url_3+url_3+str+".TIF.aux.xml");
                             serverPath_list.add("node/kaifaqu/map"+url_3+url_3+str+".TIF.ovr");
@@ -144,7 +143,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         UpdateMapTask downMapTask = new UpdateMapTask(filename_list,serverPath_list,path,ftpProgressListener);
                         executorService.execute(downMapTask);
                     }else{
-                        ToastNotRepeat.show(MainActivity.this,"当前版本已是最新版本！");
+                        ToastNotRepeat.show(getApplicationContext(),"当前版本已是最新版本！");
                     }
                     break;
                 case 1:
@@ -169,14 +168,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     if (mWaitDlg != null && mWaitDlg.isShowing()) {
                         mWaitDlg.dismiss();
                     }
-                    ToastNotRepeat.show(MainActivity.this,"网络连接错误，请稍后重试...");
+                    ToastNotRepeat.show(getApplicationContext(),"网络连接错误，请稍后重试...");
                     break;
                 case 5:
                     Bundle bundle1 = msg.getData();
                     String progress1 = bundle1.getString("progress");
                     String currentSize1 = bundle1.getString("currentSize");
-                    Log.d("TAG","progress1="+progress1);
-                    Log.d("TAG","currentSize1="+currentSize1);
                     progressDialog.setProgress(Integer.parseInt(currentSize1)/1048576);
                     if (Float.parseFloat(progress1)==100){
                         progressDialog.dismiss();
@@ -189,7 +186,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
                     Bundle bundle2 = msg.getData();
                     String serverSize2 = bundle2.getString("serverSize");
-                    Log.d("TAG","serversize2="+serverSize2);
                     progressDialog.setProgressNumberFormat("%1d Mb /%2d Mb");
                     progressDialog.setMax(Integer.parseInt(serverSize2)/1048576);
                     progressDialog.show();
@@ -199,11 +195,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     };
 
     private void reLoadClass() {
-        finish();
-        Intent i = new Intent(MainActivity.this, MainActivity.class);
-        i.putParcelableArrayListExtra("devices_main", (ArrayList<? extends Parcelable>) list_ezDevices);
-        startActivity(i);
-        overridePendingTransition(0, 0);
+        recreate();
     }
 
     private String getTxtContent(String s2) {
@@ -239,8 +231,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         title = findViewById(R.id.title_tv);
         update = findViewById(R.id.update);
         update.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
-        executorService = Executors.newFixedThreadPool(5);
-        TaskLatch = new CountDownLatch(10);
+        executorService = Executors.newSingleThreadExecutor();
+        TaskLatch = new CountDownLatch(1);
         CopyFontFile mCopyData_File = new CopyFontFile(this);
         mCopyData_File.DoCopy();
         progressDialog = new ProgressDialog(MainActivity.this);
@@ -269,7 +261,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         if (path.equals("") || path == null) {
             //path =Environment.getExternalStorageDirectory().getPath()+"/1.tif";
             path = Environment.getExternalStorageDirectory().getPath() + "/EZOpenSDK/map/west";
-            //path =Environment.getExternalStorageDirectory().getPath()+"/z_tangxunfu_GPS/tangxunhu(3).tif";
         }
         //加载tif
         locationDisplayManager = mapView.getLocationDisplayManager();
@@ -401,7 +392,8 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     locationDisplayManager.start();
                     position.setVisibility(View.GONE);
                     position_sel.setVisibility(View.VISIBLE);
-                    new Handler().postDelayed(new Runnable() {
+                    handler1 = new Handler();
+                    handler1.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             try {
@@ -483,6 +475,15 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (handler!=null){
+            handler.removeCallbacksAndMessages(null);
+        }
+        if (handler1!=null){
+            handler1.removeCallbacksAndMessages(null);
+        }
+        if (locationDisplayManager.isStarted()){
+            locationDisplayManager.stop();
+        }
         executorService.shutdownNow();
     }
 
@@ -504,12 +505,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             url_3 = "/south";
         }
         if (!file.exists()) {
-            ToastNotRepeat.show(this, "影像文件下载中，请稍后...");
+            ToastNotRepeat.show(getApplicationContext(), "影像文件下载中，请稍后...");
             //下载地图文件
             String localPath = path;
             List<String> serverPath_list = new ArrayList<>();
             List<String> filename_list = new ArrayList<>();
-            for (int i = 0 ; i < 100 ; i ++){
+            for (int i = 0 ; i < tifNum ; i ++){
                 serverPath_list.add("node/kaifaqu/map"+url_3+url_3+String.valueOf(i)+".TIF");
                 serverPath_list.add("node/kaifaqu/map"+url_3+url_3+String.valueOf(i)+".TIF.aux.xml");
                 serverPath_list.add("node/kaifaqu/map"+url_3+url_3+String.valueOf(i)+".TIF.ovr");
@@ -525,7 +526,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         } else {
             //判断文件是否完整
             File[] files = file.listFiles();
-            if (files.length<408 ){
+            if (files.length<fileNum ){
                 List<String> l = new ArrayList<>();
                 for (File sfile : files){
                     l.add(sfile.getName());
@@ -548,7 +549,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     e.printStackTrace();
                 }
                 //加载tif
-                for (int i = 0; i < 100; i++) {
+                for (int i = 0; i < tifNum; i++) {
                     executorService.execute(new ImageTask(TaskLatch, path, i, mapView, url_3));
                 }
                 //加载kml
@@ -628,13 +629,10 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 @Override
                 public void postAction(float v, float v1, double v2) {
                     //定义地图默认缩放处理后的操作。
-                    Log.i("TAG", "scale=" + mapView.getScale());
                     if (mapView.getScale() > 30000) {
                         graphicsLayer_info_text.setVisible(false);
-                        Log.i("TAG", "1");
                     } else {
                         graphicsLayer_info_text.setVisible(true);
-                        Log.i("TAG", "2");
                     }
                 }
             });
@@ -705,9 +703,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         List<String> list_style_url = new ArrayList<>();
         ReadKml readKml1 = new ReadKml(url2, list_name_info, list_des_info, null, list_collection, list_styleid, list_stylemap, list_style_url, MainActivity.this);
         readKml1.parseKml();
-        Log.d(TAG, "list_name.size=" + list_name_info.size());
-        Log.d(TAG, "list_name" + list_name_info.toString());
-        Log.d(TAG, "list_des.size=" + list_des_info.size());
         //线型
         for (int i = 0; i < list_collection.size(); i++) {
             Polyline polyline = new Polyline();
@@ -794,14 +789,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     FTPFile[] ftpFiles = ftPutils.getmFtpClient().listFiles("node/kaifaqu/map"+url_3);
                     List<String> serverPath_list = new ArrayList<>();
                     List<String> filename_list = new ArrayList<>();
-                    String name = ftpFiles[0].getName().toString();
                     for (int i = 0 ; i < ftpFiles.length ; i++){
-                        if (!list.contains(ftpFiles[i].getName().toString())){
-                            serverPath_list.add("node/kaifaqu/map"+url_3+"/"+ftpFiles[i].getName().toString());
-                            filename_list.add(ftpFiles[i].getName().toString());
+                        if (!list.contains(ftpFiles[i].getName())){
+                            serverPath_list.add("node/kaifaqu/map"+url_3+"/"+ftpFiles[i].getName());
+                            filename_list.add(ftpFiles[i].getName());
                         }
                     }
-                    Log.d("TAG","name="+name);
                     ftPutils.downloadMoreFile(serverPath_list,localPath,filename_list,downMapProgressListener);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -930,35 +923,48 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         @Override
         public void run() {
+
             FileRasterSource rasterSource = null;
             try {
                 rasterSource = new FileRasterSource(img_path + str + i + ".TIF");
                 rasterSource.project(mMapview.getSpatialReference());
-            } catch (RuntimeException e) {
-                e.printStackTrace();
-                File file = new File(img_path+str+i+".TIF");
-                File file2 = new File(img_path+str+i+".tfw");
-                File file3 = new File(img_path+str+i+".TIF.ovr");
-                File file4 = new File(img_path+str+i+".TIF.aux.xml");
-                if (file.exists()){
-                    file.delete();
-                }
-                if (file2.exists()){
-                    file2.delete();
-                }
-                if (file3.exists()){
-                    file3.delete();
-                }
-                if (file4.exists()){
-                    file4.delete();
-                }
+                Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
+                RasterLayer rasterLayer = new RasterLayer(rasterSource);
+                mMapview.addLayer(rasterLayer);
+                Log.d(TAG, "currentId="+Thread.currentThread().getId());
             } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                Log.d(TAG, "message = "+e.getMessage());
+            } catch (IllegalArgumentException ie){
+                Log.d(TAG, "message = "+ie.getMessage());
+            } catch (RuntimeException re){
+                Log.d(TAG, "message = "+re.getMessage());
+                if (re.getMessage().contains("Failed to open raster dataset")){
+                    deleteFile();
+                }
             }
-            Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
-            RasterLayer rasterLayer = new RasterLayer(rasterSource);
-            mMapview.addLayer(rasterLayer);
+            if (rasterSource!=null){
+                rasterSource.dispose();
+            }
             endTaskLatch.countDown();
+        }
+
+        private void deleteFile() {
+            File file = new File(img_path+str+i+".TIF");
+            File file2 = new File(img_path+str+i+".tfw");
+            File file3 = new File(img_path+str+i+".TIF.ovr");
+            File file4 = new File(img_path+str+i+".TIF.aux.xml");
+            if (file.exists()){
+                file.delete();
+            }
+            if (file2.exists()){
+                file2.delete();
+            }
+            if (file3.exists()){
+                file3.delete();
+            }
+            if (file4.exists()){
+                file4.delete();
+            }
         }
     }
 

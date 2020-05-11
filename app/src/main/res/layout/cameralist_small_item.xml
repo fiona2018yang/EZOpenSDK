@@ -3,7 +3,7 @@
     android:id="@+id/camera_item_rl"
     android:layout_width="fill_parent"
     android:layout_height="120dp"
-    android:background="@color/transparent"
+    android:background="@color/transparent_bg"
     android:clickable="true">
 
     <LinearLayout

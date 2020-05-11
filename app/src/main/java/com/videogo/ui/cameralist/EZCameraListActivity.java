@@ -162,7 +162,6 @@ public class EZCameraListActivity extends Activity implements OnClickListener {
     public static ExecutorService newCachedThreadPool(){
         return new ThreadPoolExecutor(0,Integer.MAX_VALUE,60L, TimeUnit.SECONDS,new SynchronousQueue<Runnable>());
     }
-    //private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
     private ExecutorService cachedThreadPool = Executors.newFixedThreadPool(5);
 
     private Handler mHandler = new Handler() {

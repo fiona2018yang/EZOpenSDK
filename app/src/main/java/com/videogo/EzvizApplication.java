@@ -73,12 +73,10 @@ public class EzvizApplication extends Application {
         LeakCanary.install(this);
     }
 
-    private void initData() {
-        dbHelper = new MyDatabaseHelper(this, "filepath.db", null, 1);
-        db = dbHelper.getWritableDatabase();
+    public  void initData() {
         intentFilter = new IntentFilter();
         intentFilter.addAction("com.videogo.action.ADD_DEVICE_SUCCESS_ACTION");
-        intentFilter.addAction("com.videogo.action.OAUTH_SUCCESS_ACTION");
+        intentFilter.addAction("com.action.OAUTH_SUCCESS_ACTION");
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         receiver = new EzvizBroadcastReceiver();
         registerReceiver(receiver,intentFilter);
@@ -109,6 +107,8 @@ public class EzvizApplication extends Application {
     }
 
     private void initSDK() {
+        dbHelper = new MyDatabaseHelper(this, "filepath.db", null, 1);
+        db = dbHelper.getWritableDatabase();
         {
             /**
              * sdk日志开关，正式发布需要去掉
@@ -131,10 +131,9 @@ public class EzvizApplication extends Application {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             LogUtil.i("TAG","action = "+action);
-            if (action.equals(Constant.OAUTH_SUCCESS_ACTION)){
+            //if (action.equals(Constant.OAUTH_SUCCESS_ACTION)){
+            if (action.equals("com.action.OAUTH_SUCCESS_ACTION")){
                 Log.i("TAG", "onReceive: OAUTH_SUCCESS_ACTION");
-                //Intent i = new Intent(context, EZCameraListActivity.class);
-//                Intent i = new Intent(context, MainActivity.class);
                 Intent i = new Intent(context, HomeActivity.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 /*******   获取登录成功之后的EZAccessToken对象   *****/

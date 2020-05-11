@@ -51,7 +51,6 @@ public class EZCameraListAdapter extends BaseAdapter {
     private static final String TAG = "CameraListAdapter";
 
     private Context mContext = null;
-//    private List<EZDeviceInfo> mCameraInfoList = null;
     private List<EZCameraInfo > CameraInfo_List = null;
     private List<EZDeviceInfo> DeviceInfo_list = null;
     /**
@@ -119,7 +118,6 @@ public class EZCameraListAdapter extends BaseAdapter {
 
     public EZCameraListAdapter(Context context) {
         mContext = context;
-//        mCameraInfoList = new ArrayList<EZDeviceInfo>();
         CameraInfo_List = new ArrayList<EZCameraInfo>();
         DeviceInfo_list = new ArrayList<>();
         mExecuteItemMap = new HashMap<String, EZCameraInfo>();

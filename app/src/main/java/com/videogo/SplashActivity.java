@@ -17,7 +17,9 @@ import com.videogo.been.AlarmContant;
 import com.videogo.been.User;
 import com.videogo.main.EzvizWebViewActivity;
 import com.videogo.openapi.EZOpenSDK;
+import com.videogo.openapi.EzvizAPI;
 import com.videogo.ui.util.ExampleUtil;
+import com.videogo.util.LocalInfo;
 import com.videogo.warning.OkHttpUtil;
 
 import org.json.JSONException;
@@ -65,7 +67,6 @@ public class SplashActivity extends Activity {
         etPassword = (EditText) findViewById(R.id.et_login_password);
         btnLogin = (Button) findViewById(R.id.btn_login);
         //btnSignup = (Button) findViewById(R.id.btn_signup);
-        getAccessToken();
         if (!name.equals("")&&!password.equals("")){
             etUsername.setText(name);
             etPassword.setText(password);
@@ -90,9 +91,9 @@ public class SplashActivity extends Activity {
                             editor.commit();
                             editor2.putString("name",strUsername).commit();
                             editor2.putString("password",strPassword).commit();
-                            Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
-                            startActivity(it);
-                            SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
+                            getAccessToken();
+                            //Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
+                            //startActivity(it);
                         } else {
                             Toast.makeText(SplashActivity.this, "密码错误！", Toast.LENGTH_LONG).show();
                         }
@@ -102,8 +103,12 @@ public class SplashActivity extends Activity {
                         break;
                     case 104:
                         Bundle bundle1 = msg.getData();
+                        Intent intent = new Intent();
+                        intent.setAction("com.action.OAUTH_SUCCESS_ACTION");
                         String accessToken = bundle1.getString("accessToken");
                         EZOpenSDK.getInstance().setAccessToken(accessToken);
+                        SplashActivity.this.sendBroadcast(intent);
+                        SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
                         break;
                 }
             }
@@ -130,42 +135,10 @@ public class SplashActivity extends Activity {
                 }
             }
         });
-//        btnSignup.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent it = new Intent(SplashActivity.this, SignupActivity.class);//启动注册页面
-//                startActivity(it);
-//            }
-//        });
-
-
-        //        //倒计时球
-        //        countDownView = (CountDownView) findViewById(R.id.count_down_view);
-        //        countDownView.setOnLoadingFinishListener(new CountDownView.OnLoadingFinishListener() {
-        //            @Override
-        //            public void finish() {
-        //                if (!isIntent) {
-        //                    //倒计时结束自然跳转
-        //                    Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
-        //                    startActivity(it);
-        //                    isIntent = true;
-        //                    SplashActivity.this.finish();//关闭当前Activity，防止返回到此界面
-        //                }
-        //            }
-        //        });
-
-        //        countDownView.setOnClickListener(new View.OnClickListener() {
-        //            @Override
-        //            public void onClick(View v) {
-        //                //点击跳转
-        //                Intent it = new Intent(SplashActivity.this, EzvizWebViewActivity.class);//启动MainActivity
-        //                startActivity(it);
-        //                isIntent = true;
-        //                finish();//关闭当前Activity，防止返回到此界面
-        //            }
-        //        });
-        //        countDownView.start();
     }
+
+
+
     private void setUserType(String etUsername){
         if (etUsername.equals("chengguan")){
             EzvizApplication.setUser_type(6);

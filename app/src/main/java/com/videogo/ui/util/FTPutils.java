@@ -2,6 +2,7 @@ package com.videogo.ui.util;
 
 import android.util.Log;
 
+import com.videogo.been.AlarmContant;
 import com.videogo.been.Constant;
 
 import org.apache.commons.net.ftp.FTP;
@@ -198,21 +199,17 @@ public class FTPutils {
         listener.onFtpProgress(Constant.FTP_CONNECT_SUCCESS,0,null,0,0);
         mFtpClient.enterLocalPassiveMode();
         long serverSize = 0 ;
-        Log.d("TAG","serverPath_list.size="+serverPath_list.size());
-        if (serverPath_list.size()<408){
+        if (serverPath_list.size()< AlarmContant.fileNum){
             for (String str : serverPath_list){
                 FTPFile[] files = mFtpClient.listFiles(str);
-                //FTPFile files = mFtpClient.mlistFile(str);
                 if (files != null && files.length == 0) {
                     Log.d(TAG, "ftp文件不存在");
                     return;
                 }
                 serverSize+=files[0].getSize();
-                //Log.d("TAG","serverSize="+serverSize);
             }
         }else{
             String serverPathParent = serverPath_list.get(0).substring(0,serverPath_list.get(0).lastIndexOf("/"));
-            Log.d("TAG","serverPathParent="+serverPathParent);
             FTPFile[] files = mFtpClient.listFiles(serverPathParent);
             if (files != null && files.length == 0) {
                 Log.d(TAG, "ftp文件不存在");
@@ -249,10 +246,9 @@ public class FTPutils {
             mFtpClient.setRestartOffset(0);
             //设置数据传输超时时间
             mFtpClient.setDataTimeout(0);
-            //mFtpClient.setSoTimeout(0);
             OutputStream out = new FileOutputStream(localFile, true);
             InputStream input = mFtpClient.retrieveFileStream(serverPath_list.get(i));//在调用此方法后，一定要在流关闭后再调用completePendingCommand结束整个事务
-            byte[] b = new byte[512];
+            byte[] b = new byte[1024];
             int length = 0;
             Log.d(TAG, "downloadSingleFile:正在下载"+step);
             while ((length = input.read(b)) != -1) {
@@ -260,9 +256,7 @@ public class FTPutils {
                 currentSize = currentSize + length;
                 if (currentSize / step != process) {
                     process = currentSize / step;
-                    if (process % 1 == 0) { // 每隔%1的进度返回一次
-                        listener.onFtpProgress(Constant.FTP_DOWN_LOADING, process, null,currentSize,serverSize);
-                    }
+                    listener.onFtpProgress(Constant.FTP_DOWN_LOADING, process, null,currentSize,serverSize);
                 }
             }
             Log.d(TAG, "downloadSingleFile: 下载完毕" + Thread.currentThread().getId());
@@ -339,8 +333,6 @@ public class FTPutils {
                 if (currentSize / step != process) {
                     process = currentSize / step;
                     listener.onFtpProgress(Constant.FTP_DOWN_LOADING, process, null,currentSize,serverSize);
-                    if (process % 1 == 0) { // 每隔%1的进度返回一次
-                    }
                 }
             }
             Log.d(TAG, "downloadSingleFile: 下载完毕" + Thread.currentThread().getId());

@@ -149,7 +149,7 @@
                 android:layout_height="fill_parent"
                 android:layout_above="@+id/camera_list_gc_ly"
                 android:layout_marginBottom="3dp"
-                android:cacheColorHint="@color/transparent"
+                android:cacheColorHint="@color/transparent_bg"
                 android:divider="@color/transparent"
                 android:drawingCacheQuality="high"
                 android:fadingEdge="none"
